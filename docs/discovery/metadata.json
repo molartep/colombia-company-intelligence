@@ -1,0 +1,227 @@
+{
+  "id": "c82u-588k",
+  "name": "Personas Naturales, Personas Jurídicas y Entidades Sin Animo de Lucro",
+  "rowsUpdatedAt": 1793998170,
+  "viewLastModified": 1788826871,
+  "description": "Extracción que contiene los datos básicos del Registro Mercantil que administran las Cámaras de Comercio a nivel Nacional para Personas Naturales, Personas Jurídicas y Entidades Sin Animo de Lucro (ESADLs), que se encuentran sincronizados en el Registro Único Empresarial y Social (RUES).",
+  "attribution": "Confecámaras, Bogotá D.C.",
+  "licenseId": "CC_40_BY_SA",
+  "columns": [
+    {
+      "fieldName": "codigo_camara",
+      "name": "codigo_camara",
+      "dataTypeName": "text",
+      "description": "Código de la Cámara de comercio que realiza la actualización de datos."
+    },
+    {
+      "fieldName": "camara_comercio",
+      "name": "camara_comercio",
+      "dataTypeName": "text",
+      "description": "Cámara de comercio que realiza la actualización de datos."
+    },
+    {
+      "fieldName": "matricula",
+      "name": "matricula",
+      "dataTypeName": "text",
+      "description": "Número de Matricula Mercantil"
+    },
+    {
+      "fieldName": "inscripcion_proponente",
+      "name": "inscripcion_proponente",
+      "dataTypeName": "text",
+      "description": "Número de Inscripción en el registro de Proponentes"
+    },
+    {
+      "fieldName": "razon_social",
+      "name": "razon_social",
+      "dataTypeName": "text",
+      "description": "Razón Social"
+    },
+    {
+      "fieldName": "primer_apellido",
+      "name": "primer_apellido",
+      "dataTypeName": "text",
+      "description": "Primer Apellido "
+    },
+    {
+      "fieldName": "segundo_apellido",
+      "name": "segundo_apellido",
+      "dataTypeName": "text",
+      "description": "Segundo Apellido, otros apellidos  "
+    },
+    {
+      "fieldName": "primer_nombre",
+      "name": "primer_nombre",
+      "dataTypeName": "text",
+      "description": "Primer Nombre"
+    },
+    {
+      "fieldName": "segundo_nombre",
+      "name": "segundo_nombre",
+      "dataTypeName": "text",
+      "description": "Segundo Nombre u otros nombres"
+    },
+    {
+      "fieldName": "sigla",
+      "name": "sigla",
+      "dataTypeName": "text",
+      "description": "Sigla"
+    },
+    {
+      "fieldName": "codigo_clase_identificacion",
+      "name": "codigo_clase_identificacion",
+      "dataTypeName": "text",
+      "description": "Código Clase Identificación"
+    },
+    {
+      "fieldName": "clase_identificacion",
+      "name": "clase_identificacion",
+      "dataTypeName": "text",
+      "description": "Clase Identificación"
+    },
+    {
+      "fieldName": "numero_identificacion",
+      "name": "numero_identificacion",
+      "dataTypeName": "text",
+      "description": "Número de Identificación"
+    },
+    {
+      "fieldName": "nit",
+      "name": "nit",
+      "dataTypeName": "text",
+      "description": "Número de Identificación Tributario"
+    },
+    {
+      "fieldName": "digito_verificacion",
+      "name": "digito_verificacion",
+      "dataTypeName": "text",
+      "description": "Digito de Verificación"
+    },
+    {
+      "fieldName": "cod_ciiu_act_econ_pri",
+      "name": "cod_ciiu_act_econ_pri",
+      "dataTypeName": "text",
+      "description": "Código CIIU actividad económica principal"
+    },
+    {
+      "fieldName": "cod_ciiu_act_econ_sec",
+      "name": "cod_ciiu_act_econ_sec",
+      "dataTypeName": "text",
+      "description": "Código CIIU actividad económica secundaria"
+    },
+    {
+      "fieldName": "ciiu3",
+      "name": "ciiu3",
+      "dataTypeName": "text",
+      "description": "Código actividad económica otras 1"
+    },
+    {
+      "fieldName": "ciiu4",
+      "name": "ciiu4",
+      "dataTypeName": "text",
+      "description": "Código actividad económica otras 2"
+    },
+    {
+      "fieldName": "fecha_matricula",
+      "name": "fecha_matricula",
+      "dataTypeName": "text",
+      "description": "Fecha Matricula"
+    },
+    {
+      "fieldName": "fecha_renovacion",
+      "name": "fecha_renovacion",
+      "dataTypeName": "text",
+      "description": "Fecha de ultima renovación"
+    },
+    {
+      "fieldName": "ultimo_ano_renovado",
+      "name": "ultimo_ano_renovado",
+      "dataTypeName": "text",
+      "description": "Ultimo Año Renovado"
+    },
+    {
+      "fieldName": "fecha_vigencia",
+      "name": "fecha_vigencia",
+      "dataTypeName": "text",
+      "description": "Fecha Vigencia"
+    },
+    {
+      "fieldName": "fecha_cancelacion",
+      "name": "fecha_cancelacion",
+      "dataTypeName": "text",
+      "description": "Fecha Cancelación"
+    },
+    {
+      "fieldName": "codigo_tipo_sociedad",
+      "name": "codigo_tipo_sociedad",
+      "dataTypeName": "text",
+      "description": "Código Tipo sociedad"
+    },
+    {
+      "fieldName": "tipo_sociedad",
+      "name": "tipo_sociedad",
+      "dataTypeName": "text",
+      "description": "Tipo sociedad"
+    },
+    {
+      "fieldName": "codigo_organizacion_juridica",
+      "name": "codigo_organizacion_juridica",
+      "dataTypeName": "text",
+      "description": "Código Organización Jurídica"
+    },
+    {
+      "fieldName": "organizacion_juridica",
+      "name": "organizacion_juridica",
+      "dataTypeName": "text",
+      "description": "Organización Jurídica"
+    },
+    {
+      "fieldName": "codigo_categoria_matricula",
+      "name": "codigo_categoria_matricula",
+      "dataTypeName": "text",
+      "description": "Código Categoría Matricula"
+    },
+    {
+      "fieldName": "categoria_matricula",
+      "name": "categoria_matricula",
+      "dataTypeName": "text",
+      "description": "Categoría Matricula"
+    },
+    {
+      "fieldName": "codigo_estado_matricula",
+      "name": "codigo_estado_matricula",
+      "dataTypeName": "text",
+      "description": "Código Estado Matricula"
+    },
+    {
+      "fieldName": "estado_matricula",
+      "name": "estado_matricula",
+      "dataTypeName": "text",
+      "description": "Estado Matricula"
+    },
+    {
+      "fieldName": "clase_identificacion_rl",
+      "name": "clase_identificacion_RL",
+      "dataTypeName": "text",
+      "description": "Clase de identificación del representante legal de la empresa"
+    },
+    {
+      "fieldName": "num_identificacion_representante_legal",
+      "name": "Num Identificacion Representante Legal",
+      "dataTypeName": "text",
+      "description": "Numero de identificación del representante legal de la empresa"
+    },
+    {
+      "fieldName": "representante_legal",
+      "name": "Representante Legal",
+      "dataTypeName": "text",
+      "description": "Nombre del representante legal de la empresa"
+    },
+    {
+      "fieldName": "fecha_actualizacion",
+      "name": "fecha_actualizacion",
+      "dataTypeName": "text",
+      "description": "Fecha Ultima Actualización de datos al RUES"
+    }
+  ]
+}
