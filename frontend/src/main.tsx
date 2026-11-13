@@ -25,16 +25,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               COLOMBIA<span className="brand-sub">COMPANY INTELLIGENCE</span>
             </span>
           </Link>
-          <div className="header-right">
-            <span className="badge">PHASE 01 · IDENTITY</span>
-            <a
-              href="https://github.com/molartep/colombia-company-intelligence"
-              target="_blank"
-              rel="noreferrer"
-            >
-              GitHub ↗
-            </a>
-          </div>
         </header>
         <main id="main">
           <Routes>
@@ -55,7 +45,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <span>
             Colombia Company Intelligence <span className="muted">/ Open source</span>
           </span>
-          <p>Public registration data is evidence, not a due-diligence conclusion.</p>
           <a href="https://www.datos.gov.co/d/c82u-588k" target="_blank" rel="noreferrer">
             Data: Confecámaras · CC BY-SA 4.0 ↗
           </a>

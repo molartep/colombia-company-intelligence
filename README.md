@@ -162,7 +162,7 @@ Profiles are cached evidence: they do not silently refresh against RUES when ope
 
 ## Frontend
 
-The home page provides a debounced, keyboard-accessible NIT/name search, loading/error/empty states,
+The home page provides a submit-only, keyboard-accessible NIT/name search, loading/error/empty states,
 a responsive candidate table, and pagination. Selecting a UUID opens Overview and Sources sections.
 Overview includes identity, CIIU code, registration strings, a copy-NIT button, freshness, and attribute
 availability. Sources includes official links, safe public fields, source row IDs, mappings in the
@@ -191,7 +191,7 @@ production/development database you need to keep.** Standard tests use mocked HT
 including missing/malformed fields, schema drift, 429, 5xx, timeouts, no matches, and controlled query
 escaping. PostgreSQL tests verify actual migrations, uniqueness, row relationships, versions,
 pagination, stale fallback, and the end-to-end API with synthetic data. Frontend tests cover form
-submission/debounce, results, source failures, empty states, and profile rendering.
+submission and loading-dialog behavior, results, source failures, empty states, and profile rendering.
 
 CI runs the full backend suite against PostgreSQL 16, lint/type checks, frontend tests/build,
 backend packaging, and a separate Compose startup/readiness check. Live government connectivity is

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
-import { Failure, Loading } from '../components/Feedback'
+import { Failure, SearchLoadingDialog } from '../components/Feedback'
 import { label } from '../utils'
 import { SearchForm } from '../components/SearchForm'
 
@@ -17,9 +17,6 @@ export function Search() {
   return (
     <>
       <section className="hero">
-        <div className="eyebrow">
-          <span className="status-dot" /> OFFICIAL DATA. TRACEABLE EVIDENCE.
-        </div>
         <h1>
           A clearer view of
           <br />
@@ -29,7 +26,14 @@ export function Search() {
           Start with identity. Find registration records, resolve a legal name, and understand the
           source behind every result.
         </p>
-        <SearchForm initial={q} onSearch={(value) => setParams({ q: value, page: '1' })} />
+        <SearchForm
+          initial={q}
+          disabled={results.isFetching}
+          onSearch={(value) => {
+            if (value === q && page === 1) void results.refetch()
+            else setParams({ q: value, page: '1' })
+          }}
+        />
         <div className="source-line">
           <span className="mini-icon">✓</span> Powered by RUES / Confecámaras{' '}
           <span>via datos.gov.co</span>
@@ -44,7 +48,7 @@ export function Search() {
             </div>
             <span className="muted">Page {page} · up to 20 records</span>
           </div>
-          {results.isPending && <Loading />}
+          {results.isFetching && <SearchLoadingDialog />}
           {results.isError && (
             <Failure error={results.error} retry={() => void results.refetch()} />
           )}
@@ -125,10 +129,6 @@ export function Search() {
                       </tbody>
                     </table>
                   </div>
-                  <p className="small muted mt-4">
-                    Ranked within this page. Separate registrations may share a NIT; review each
-                    record before selecting an entity.
-                  </p>
                 </>
               )}
               <nav className="pagination" aria-label="Result pages">
@@ -149,34 +149,7 @@ export function Search() {
             </>
           )}
         </section>
-      ) : (
-        <section className="principles">
-          <article>
-            <span>01 / IDENTITY FIRST</span>
-            <h3>Find the right registration</h3>
-            <p>
-              Search by NIT or legal name. Compare records without automatically merging similar
-              entities.
-            </p>
-          </article>
-          <article>
-            <span>02 / EVIDENCE INCLUDED</span>
-            <h3>Go directly to the source</h3>
-            <p>
-              Every profile connects to official records, retrieval dates, and transparent field
-              mappings.
-            </p>
-          </article>
-          <article>
-            <span>03 / CLEAR LIMITATIONS</span>
-            <h3>Know what’s still unknown</h3>
-            <p>
-              Missing information is marked clearly. Financials, listings, and screening have not
-              yet been checked.
-            </p>
-          </article>
-        </section>
-      )}
+      ) : null}
     </>
   )
 }

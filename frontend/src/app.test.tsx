@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -24,14 +24,49 @@ function reply(body: unknown, status = 200) {
 }
 afterEach(() => vi.unstubAllGlobals())
 
-test('search form submits and debounces edits', async () => {
-  const onSearch = vi.fn()
-  render(<SearchForm onSearch={onSearch} />)
+test('search form waits for submission even after typing pauses', () => {
+  vi.useFakeTimers()
+  try {
+    const onSearch = vi.fn()
+    render(<SearchForm onSearch={onSearch} />)
+    fireEvent.change(screen.getByLabelText('Company name or NIT'), {
+      target: { value: 'SYNTHETIC' },
+    })
+    act(() => vi.advanceTimersByTime(2000))
+    expect(onSearch).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: /Search/ }))
+    expect(onSearch).toHaveBeenCalledExactlyOnceWith('SYNTHETIC')
+  } finally {
+    vi.useRealTimers()
+  }
+})
+
+test('submitted search opens an animated loading popup and closes it when results arrive', async () => {
+  let finish!: (value: unknown) => void
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        }),
+    ),
+  )
+  wrapper(<Search />)
   await userEvent.type(screen.getByLabelText('Company name or NIT'), 'SYNTHETIC')
-  expect(onSearch).not.toHaveBeenCalled()
-  await waitFor(() => expect(onSearch).toHaveBeenCalledWith('SYNTHETIC'), { timeout: 1500 })
+  expect(fetch).not.toHaveBeenCalled()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: /Search/ }))
-  expect(onSearch).toHaveBeenCalledTimes(2)
+  const dialog = await screen.findByRole('dialog', { name: 'Retrieving results' })
+  expect(dialog).toBeVisible()
+  expect(dialog.querySelector('img')).toHaveAttribute('src', '/retrieving-results.gif')
+  expect(screen.getByRole('button', { name: /Search/ })).toBeDisabled()
+  await act(async () =>
+    finish({ ok: true, json: async () => ({ items: [], has_more: false, page: 1 }) }),
+  )
+  expect(await screen.findByText('No matching registrations')).toBeVisible()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /Search/ })).toBeEnabled()
 })
 
 test('renders official result and profile link', async () => {

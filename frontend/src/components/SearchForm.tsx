@@ -3,16 +3,14 @@ import { useEffect, useRef, useState } from 'react'
 export function SearchForm({
   initial = '',
   onSearch,
+  disabled = false,
 }: {
   initial?: string
   onSearch: (value: string) => void
+  disabled?: boolean
 }) {
   const [value, setValue] = useState(initial)
-  const callback = useRef(onSearch)
   const previous = useRef(initial)
-  useEffect(() => {
-    callback.current = onSearch
-  }, [onSearch])
   useEffect(() => {
     if (initial !== previous.current) {
       previous.current = initial
@@ -20,21 +18,12 @@ export function SearchForm({
       setValue(initial)
     }
   }, [initial])
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (value.trim().length >= 2 && value.trim() !== previous.current) {
-        previous.current = value.trim()
-        callback.current(value.trim())
-      }
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [value])
   return (
     <form
       className="search-form"
       onSubmit={(event) => {
         event.preventDefault()
-        if (value.trim().length >= 2) {
+        if (!disabled && value.trim().length >= 2) {
           previous.current = value.trim()
           onSearch(value.trim())
         }
@@ -55,7 +44,7 @@ export function SearchForm({
           autoComplete="off"
           required
         />
-        <button type="submit">
+        <button type="submit" disabled={disabled}>
           Search <span aria-hidden="true">↗</span>
         </button>
       </div>

@@ -559,3 +559,45 @@ details dl {
     }
   }
 }
+
+.search-loading-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(400px, calc(100vw - 40px));
+  padding: 34px 28px;
+  border: 1px solid #d4e1d8;
+  border-radius: 14px;
+  background: #fff;
+  color: #17333c;
+  text-align: center;
+  box-shadow: 0 24px 80px #112c3533;
+}
+.search-loading-dialog::backdrop {
+  background: #112c3580;
+  backdrop-filter: blur(3px);
+}
+.search-loading-animation {
+  display: block;
+  margin: 0 auto 20px;
+}
+.search-loading-static {
+  display: none;
+  font-size: 48px;
+}
+.search-loading-dialog h2 {
+  margin: 0 0 12px;
+}
+.search-loading-dialog p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #627477;
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-loading-animation {
+    display: none;
+  }
+  .search-loading-static {
+    display: block;
+  }
+}
