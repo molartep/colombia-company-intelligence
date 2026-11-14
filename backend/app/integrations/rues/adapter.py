@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 
 from app.core.errors import SourceError
 from app.core.normalization import InvalidIdentifier, normalize_nit
+from app.integrations.rues.queries import literal, name_order, nit_order
 from app.integrations.socrata import SocrataClient
 
 SOURCE_ID = "rues-c82u-588k"
@@ -40,16 +41,12 @@ class CompanyDataSource(Protocol):
     source_id: str
 
     async def search_by_nit(
-        self, nit: str, limit: int = 20, offset: int = 0
+        self, nit: str, limit: int = 20, offset: int = 0, verification_digit: str | None = None
     ) -> list[dict[str, Any]]: ...
 
     async def search_by_name(
         self, name: str, limit: int = 20, offset: int = 0
     ) -> list[dict[str, Any]]: ...
-
-
-def literal(value: str) -> str:
-    return "'" + value.replace("'", "''") + "'"
 
 
 def source_datetime(value: Any) -> datetime | None:
@@ -113,12 +110,12 @@ class RuesDataSource:
             )
         return data
 
-    async def search(self, where: str, limit: int, offset: int) -> list[dict[str, Any]]:
+    async def search(self, where: str, limit: int, offset: int, order: str) -> list[dict[str, Any]]:
         rows = await self.client.records(
             {
                 "$select": "*, :id as upstream_id",
                 "$where": where,
-                "$order": ":id",
+                "$order": order,
                 "$limit": str(limit),
                 "$offset": str(offset),
             }
@@ -128,18 +125,23 @@ class RuesDataSource:
         return rows
 
     async def search_by_nit(
-        self, nit: str, limit: int = 20, offset: int = 0
+        self, nit: str, limit: int = 20, offset: int = 0, verification_digit: str | None = None
     ) -> list[dict[str, Any]]:
-        return await self.search("nit = " + literal(nit), limit, offset)
+        return await self.search(
+            "nit = " + literal(nit), limit, offset, nit_order(verification_digit)
+        )
 
     async def search_by_name(
         self, name: str, limit: int = 20, offset: int = 0
     ) -> list[dict[str, Any]]:
         # Wildcards are controlled: user '%' and '_' never broaden a query.
         name = name.replace("%", " ").replace("_", " ").strip()
-        name = "".join(name.upper().split())
-        if len(name) < 2:
+        compact = "".join(name.upper().split())
+        if len(compact) < 2:
             raise ValueError("Enter at least two searchable characters.")
         return await self.search(
-            "replace(upper(razon_social), ' ', '') like " + literal("%" + name + "%"), limit, offset
+            "replace(upper(razon_social), ' ', '') like " + literal("%" + compact + "%"),
+            limit,
+            offset,
+            name_order(name),
         )

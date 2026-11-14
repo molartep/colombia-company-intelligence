@@ -11,7 +11,7 @@ Unix socket; it is a local validation aid, not an application dependency or a co
   no personal raw records committed.
 - `make smoke`: actual adapter metadata validation plus one bounded exact-NIT and one bounded name
   request; both returned valid official records with source row IDs.
-- **67 backend tests passed**, including real PostgreSQL persistence, separate registration IDs,
+- **70 backend tests passed**, including real PostgreSQL persistence, separate registration IDs,
   payload-version deduplication, foreign-key relationships, pagination, API profile/source routes,
   public-field filtering, cached normalized-name matching, source failure behavior, and migration
   upgrade → downgrade → re-upgrade → Alembic model-drift check.
@@ -119,3 +119,25 @@ Colombia network logo is used, and accessible GitHub/LinkedIn icon links point t
 personal profiles with safe new-tab behavior. All 26 frontend tests, ESLint, strict TypeScript,
 and the production build passed. The image asset and its exact generation prompt are tracked in
 `docs/branding.md` and `frontend/public/colombia-network-logo.png`.
+
+
+## Global source relevance ordering
+
+The full **70-test backend suite** passed against real PostgreSQL. A source simulation executes the
+actual generated filtering, relevance expression, tie-breakers, and pagination in SQL. It confirms
+that strong matches with late source row IDs precede 24 weaker early rows, API pagination preserves
+that order without duplicates, verification-digit matches come first, and cached outage fallback
+reports page-local ranking. All **26 frontend tests**, Ruff, strict mypy, ESLint, strict TypeScript,
+and the Vite production build passed.
+
+Live RUES accepted the computed CASE ordering with `unaccent`, `upper`, `trim`, and literal
+`replace`; `regex_replace` was rejected and is not used. The optional
+`SOCRATA_TIMEOUT=45 backend/.venv/bin/python scripts/live_smoke.py --ranking` passed metadata,
+exact-NIT, name, and ranked page-boundary checks. Two five-row Zulu pages exactly matched one
+ten-row query by source row ID. This is a bounded live check, not an exhaustive search-quality
+benchmark or a snapshot/latency guarantee. Candidate filtering remains case/space-insensitive;
+typo tolerance and broader accent/punctuation retrieval are not added.
+
+The restarted local API also returned a fresh, non-stale `olartemoure` search with
+`OLARTE MOURE & ASOCIADOS SAS` before `FUNDACIÓN OLARTE MOURE`, reporting
+`ranking_scope: all matching source records`.

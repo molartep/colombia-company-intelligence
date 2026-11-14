@@ -26,7 +26,7 @@ export interface SearchPage {
   has_more: boolean
   stale: boolean
   warning: string | null
-  ranking_scope: string
+  ranking_scope: 'all matching source records' | 'current cached page'
 }
 export interface DataSource {
   id: string

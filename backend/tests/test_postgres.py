@@ -267,3 +267,163 @@ async def test_search_dates_use_latest_source_record_without_filling_missing_val
         assert cached.stale
         assert cached.items[0].registration_date is None
         assert cached.items[0].renewal_date is None
+
+
+async def test_global_source_ranking_precedes_pagination_and_api_preserves_order(
+    session, record, metadata
+):
+    """Execute the generated WHERE/ORDER BY on a simulated source in real PostgreSQL.
+
+    PostgreSQL emulates SoQL's case(boolean,value,...) function and unaccent for
+    these synthetic fixtures. Filtering, sorting and LIMIT/OFFSET execute in SQL,
+    rather than returning a conveniently pre-sorted mock response.
+    """
+    import json
+
+    await session.execute(
+        text("""
+        CREATE TEMP TABLE rues_ranking_fixture (
+            upstream_id text PRIMARY KEY, razon_social text, nit text,
+            digito_verificacion text, payload jsonb
+        ) ON COMMIT PRESERVE ROWS
+    """)
+    )
+    await session.execute(
+        text("""
+        CREATE FUNCTION pg_temp.source_unaccent(value text) RETURNS text
+        LANGUAGE sql IMMUTABLE AS $$
+            SELECT translate(value, 'ÁÉÍÓÚÜÑáéíóúüñ', 'AEIOUUNaeiouun')
+        $$
+    """)
+    )
+    for count in (2, 6):
+        arguments = ", ".join(f"c{i} boolean, v{i} integer" for i in range(count))
+        branches = " ".join(f"WHEN c{i} THEN v{i}" for i in range(count))
+        await session.execute(
+            text(
+                f"CREATE FUNCTION pg_temp.source_case({arguments}) RETURNS integer "
+                f"LANGUAGE sql IMMUTABLE AS $$ SELECT CASE {branches} ELSE NULL END $$"
+            )
+        )
+    weak = [
+        dict(record, upstream_id=f"row-{i:04}", razon_social=f"AAA {i:02} AZULU SAS")
+        for i in range(24)
+    ]
+    strong_names = [
+        "ZULU",
+        "Z U L U",
+        "ZULU NORTE",
+        "ZULU SAS",
+        "A ZULU SERVICIOS",
+        "ZULUAGA SAS",
+        "ZULU SAS",
+    ]
+    strong = [
+        dict(record, upstream_id=f"row-{9000 + i}", razon_social=name)
+        for i, name in enumerate(strong_names)
+    ]
+    dv_match = dict(
+        record, upstream_id="row-9900", razon_social="OTHER SYNTHETIC SAS", digito_verificacion="9"
+    )
+    for row in [*weak, *strong, dv_match]:
+        await session.execute(
+            text(
+                "INSERT INTO rues_ranking_fixture "
+                "VALUES (:id, :name, :nit, :dv, CAST(:payload AS jsonb))"
+            ),
+            {
+                "id": row["upstream_id"],
+                "name": row["razon_social"],
+                "nit": row["nit"],
+                "dv": row["digito_verificacion"],
+                "payload": json.dumps(row),
+            },
+        )
+    await session.commit()
+    offsets = []
+
+    async def handler(request):
+        if "/api/views/" in request.url.path:
+            return httpx.Response(200, json=metadata)
+        params = request.url.params
+        offsets.append(int(params["$offset"]))
+        assert params["$order"].startswith("case(")
+        order = (
+            params["$order"]
+            .replace("case(", "pg_temp.source_case(")
+            .replace("unaccent(", "pg_temp.source_unaccent(")
+            .replace(":id", "upstream_id")
+        )
+        # All query fragments come from the real adapter, including escaped literals.
+        rows = await session.scalars(
+            text(
+                f"SELECT payload FROM rues_ranking_fixture WHERE {params['$where']} "
+                f"ORDER BY {order} LIMIT :limit OFFSET :offset"
+            ),
+            {"limit": int(params["$limit"]), "offset": int(params["$offset"])},
+        )
+        return httpx.Response(200, json=list(rows))
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as upstream:
+        source = RuesDataSource(SocrataClient(upstream, retries=0))
+
+        async def override_session():
+            yield session
+
+        app.dependency_overrides[get_session] = override_session
+        app.dependency_overrides[adapter] = lambda: source
+        try:
+            async with httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                items = []
+                for page in range(1, 12):
+                    response = await client.get(
+                        "/api/v1/companies", params={"q": "Zulu", "page_size": 3, "page": page}
+                    )
+                    assert response.status_code == 200, response.text
+                    data = response.json()
+                    assert data["ranking_scope"] == "all matching source records"
+                    assert not data["stale"]
+                    if page == 1:
+                        assert [i["legal_name"] for i in data["items"]] == [
+                            "ZULU",
+                            "Z U L U",
+                            "ZULU NORTE",
+                        ]
+                    items.extend(data["items"])
+                    if not data["has_more"]:
+                        break
+                names = [i["legal_name"] for i in items]
+                assert names[:7] == [
+                    "ZULU",
+                    "Z U L U",
+                    "ZULU NORTE",
+                    "ZULU SAS",
+                    "ZULU SAS",
+                    "A ZULU SERVICIOS",
+                    "ZULUAGA SAS",
+                ]
+                assert names[7:] == [row["razon_social"] for row in weak]
+                assert len({i["id"] for i in items}) == len(items) == 31
+                assert offsets == list(range(0, 31, 3))
+                for i, expected in zip(items[3:5], ("row-9003", "row-9006"), strict=True):
+                    sources = (await client.get(f"/api/v1/companies/{i['id']}/sources")).json()
+                    assert sources[0]["external_record_id"] == expected
+                    assert "search_rank" not in sources[0]["fields"]
+                response = await client.get(
+                    "/api/v1/companies", params={"q": "000123456-9", "page_size": 2}
+                )
+                assert response.status_code == 200, response.text
+                nit_items = response.json()["items"]
+                assert nit_items[0]["legal_name"] == "OTHER SYNTHETIC SAS"
+                assert nit_items[0]["match_type"] == "exact_nit"
+                assert nit_items[1]["match_type"] == "unresolved"
+                source.metadata = AsyncMock(
+                    side_effect=SourceError("source_timeout", "Synthetic outage")
+                )
+                fallback = await client.get("/api/v1/companies", params={"q": "Zulu"})
+                assert fallback.json()["stale"]
+                assert fallback.json()["ranking_scope"] == "current cached page"
+        finally:
+            app.dependency_overrides.clear()

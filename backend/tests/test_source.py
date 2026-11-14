@@ -28,7 +28,9 @@ async def test_success(record, kind):
         assert len(rows) == (0 if kind == "empty" else 1)
         assert seen[0].headers["X-App-Token"] == "synthetic-token"
         assert seen[0].url.params["$limit"] == "20"
-        assert seen[0].url.params["$order"] == ":id"
+        order = seen[0].url.params["$order"]
+        assert order.endswith(":id ASC")
+        assert order.startswith("case(") == (kind != "nit")
         assert ("nit = " in seen[0].url.params["$where"]) == (kind == "nit")
 
 
@@ -170,3 +172,28 @@ async def test_spacing_insensitive_name_query(record, query):
     assert len(seen) == 1
     assert seen[0].url.params["$limit"] == "2"
     assert seen[0].url.params["$offset"] == "3"
+
+
+async def test_verification_digit_is_ranked_at_source(record):
+    seen = []
+
+    def handler(request):
+        seen.append(request)
+        return httpx.Response(200, json=[record])
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        await RuesDataSource(SocrataClient(http)).search_by_nit(
+            "000123456", limit=1, offset=4, verification_digit="7"
+        )
+    assert seen[0].url.params["$order"].startswith("case(digito_verificacion = '7', 0, true, 1)")
+    assert seen[0].url.params["$offset"] == "4"
+    assert seen[0].url.params["$limit"] == "1"
+
+
+def test_relevance_query_quotes_user_literals_and_has_stable_ties():
+    from app.integrations.rues.queries import name_order
+
+    order = name_order("O'NEIL")
+    assert "= 'O''NEIL', 0" in order
+    assert order.endswith("upper(razon_social) ASC, :id ASC")
+    assert name_order("test norte") != ":id"

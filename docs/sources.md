@@ -92,7 +92,7 @@ certify checksum validity. Source DV conflicts produce an unresolved search matc
 Case-insensitive and spacing-insensitive substring queries are verified; accent-insensitive remote matching is not claimed.
 Normalization handles comparison/ranking and exact cached name/alias variants. Retry a shorter
 source-spelled name when no candidate appears. Search is capped at 100 pages, 50 results per page;
-ranking applies only to returned candidates on that page. Offset pagination is not a snapshot.
+live relevance ordering applies to all matching source rows before page limits. Offset pagination is not a snapshot.
 
 The source's system row IDs were verified, but their permanence across full publisher replacement
 is not guaranteed. Different records sharing a NIT remain different company profiles. Missing system
@@ -105,7 +105,7 @@ The application uses SODA **2.x GET query parameters only**, never SODA 3 POST r
 ```text
 $select=*, :id as upstream_id
 $where=nit = '890001255'
-$order=:id
+$order=trim(unaccent(upper(razon_social))) ASC, :id ASC
 $limit=1
 $offset=0
 ```
@@ -155,3 +155,26 @@ The adapter now uses that verified SODA 2.x expression, removing whitespace from
 escaping literals and retaining the existing row limit, offset, and stable ordering. Source-side
 normalization removes literal spaces only; remote accent/punctuation equivalence is not claimed.
 Original legal names remain intact, and spacing similarity never merges registrations.
+
+
+### Global source-side relevance ordering
+
+`app/integrations/rues/queries.py` defines the controlled relevance ordering sent in `$order`.
+It uses a SoQL `case(boolean, value, ..., true, fallback)` expression, evaluated before `$limit`
+and `$offset`. The final source row ID makes equal-name ties deterministic. The API preserves the
+upstream order and never ranks only the page it received. No computed ranking columns are added
+to raw source records, and no additional requests or full imports are required per search.
+
+Name ranking uses case folding, accent removal, common punctuation separators (`.,-/&'"()_`),
+and collapsed whitespace for comparison. This applies to ordering only; the existing literal
+case/spacing-insensitive candidate filter is retained. Remote typo tolerance and accent-insensitive
+candidate retrieval are still not claimed. `regex_replace` was tested and rejected by the endpoint;
+the adapter deliberately uses the verified `replace`, `unaccent`, `trim`, and `upper` functions.
+Whole-word ZULU matches precede prefixes such as ZULUAGA and substrings such as AZULU.
+
+Run `backend/.venv/bin/python scripts/live_smoke.py --ranking` to additionally compare two five-row
+Zulu pages with one ten-row request. The flag adds exactly three bounded requests and checks page
+continuity and unique source IDs without logging raw records. As with all offset paging, this check
+assumes source rows do not change between requests; it is not a source snapshot mechanism.
+Cached fallback is explicitly scoped to the current cached page and cannot establish source-wide
+best matches when the official service is unavailable.

@@ -63,7 +63,9 @@ class SearchPage(BaseModel):
     has_more: bool
     stale: bool = False
     warning: str | None = None
-    ranking_scope: str = "current bounded page"
+    ranking_scope: Literal["all matching source records", "current cached page"] = (
+        "all matching source records"
+    )
 
 
 class RecordView(BaseModel):

@@ -129,7 +129,9 @@ async def search_companies(
     try:
         metadata = await adapter.metadata()
         rows = await (
-            adapter.search_by_nit(nit.number, page_size + 1, offset)
+            adapter.search_by_nit(
+                nit.number, page_size + 1, offset, verification_digit=nit.verification_digit
+            )
             if nit
             else adapter.search_by_name(query, page_size + 1, offset)
         )
@@ -278,9 +280,18 @@ async def search_companies(
                 }
             )
         )
-    items.sort(key=lambda c: (RANK[c.match_type], normalize_name(c.legal_name), str(c.id)))
+    # Live pages are already globally ordered by RUES. Re-sorting here would undo
+    # word-boundary relevance and recreate the old per-page ranking bug.
+    if stale:
+        items.sort(key=lambda c: (RANK[c.match_type], normalize_name(c.legal_name), str(c.id)))
     return SearchPage(
-        items=items, page=page, page_size=page_size, has_more=has_more, stale=stale, warning=warning
+        items=items,
+        page=page,
+        page_size=page_size,
+        has_more=has_more,
+        stale=stale,
+        warning=warning,
+        ranking_scope="current cached page" if stale else "all matching source records",
     )
 
 

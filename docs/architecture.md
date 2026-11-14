@@ -49,14 +49,22 @@ The application does not create tables on startup: Alembic owns schema lifecycle
 
 Each request performs one metadata check and one filtered source query; each has at most two retries
 by default. Each page retrieves at most 51 rows (50 results + lookahead), has a bounded offset, and
-uses `:id` ordering. A process-wide semaphore caps active upstream operations. No eager downloading,
+uses source-side relevance ordering with a final `:id` tie-breaker. A process-wide semaphore caps active upstream operations. No eager downloading,
 API fan-out, or background ingestion occurs. User text is a quoted literal, never a SoQL expression.
 User `%`/`_` wildcards are removed. Remote matching is a case-insensitive substring query that
 removes literal spaces from the source name and whitespace from the query. It does not implement
 accent-insensitive full-text search. Shorter distinctive names help.
 
-Results are deterministically classified and ranked **within the current page**; we do not claim a
-registry-wide ranking or a total count. Source updates can shift offset pages between requests.
+Live results are ranked **across all matching source records before pagination**, using a controlled
+SoQL CASE expression. The API never re-sorts these pages. Tiers prioritize exact legal names,
+normalized full names, whole-word phrase prefixes, whole-word phrases elsewhere, word prefixes, and
+other substrings. Ranking uses verified `upper`, `unaccent`, `replace`, and `trim` functions; common
+punctuation becomes word separators. Ties use normalized words, uppercase legal name, and source
+row ID. NIT searches prioritize a supplied verification digit before name/row-ID tie-breakers.
+No registration status, renewal date, arbitrary confidence percentage, or entity merge affects rank.
+The case/space-insensitive candidate filter is unchanged: sorting does not add typo, accent, or
+punctuation variants that the filter excludes. There is no total count. Source updates can shift
+offset pages between requests; deterministic ordering is not a snapshot guarantee.
 All source candidates remain separate. An explicitly supplied conflicting/missing verification digit
 produces `unresolved`, not an exact identifier match. Bare digit strings are never truncated to guess
 a verification digit. Format validation does not certify an identifier's DIAN checksum or ownership.
@@ -66,7 +74,8 @@ spacing-insensitive name/alias prefixes in the cache can recover previously cons
 these results carry a cache warning and stale flag. On a source failure, NIT equality or normalized name/alias prefix queries can return cached results,
 always explicitly stale. NIT and normalized-name indexes, plus PostgreSQL `text_pattern_ops` prefix
 indexes and expression indexes on space-stripped normalized names support those bounded local
-queries. Cache fallback does not claim full substring coverage.
+queries. Cache fallback does not claim full substring coverage or source-wide ranking. Its response
+scope is `current cached page`; live response scope is `all matching source records`.
 A failed live request with no cache returns a structured 503, never a false empty result.
 
 ## Provenance and states

@@ -150,8 +150,13 @@ curl http://127.0.0.1:8000/api/v1/companies/REPLACE_WITH_RETURNED_UUID
 ```
 
 Query length is 2–160 characters; page size 1–50; page 1–100. Source requests use stable row ordering
-and a one-row lookahead, not a costly total count. Results rank deterministically within the current
-bounded page. Match types are `exact_nit`, `exact_legal_name`, `normalized_name`, `partial_name`, and
+and a one-row lookahead, not a costly total count. Live results are ranked by RUES across all
+matching source records before LIMIT/OFFSET pagination; the API preserves that order. Name ordering
+prioritizes exact full names, equivalent normalized full names, whole-word phrases at the beginning,
+whole-word phrases elsewhere, word prefixes, and remaining substrings. Ties use normalized name,
+uppercase legal name, and source row ID. A supplied NIT verification digit is prioritized globally.
+Cached fallback retains page-local matching order and explicitly reports `ranking_scope` as
+`current cached page`; live responses report `all matching source records`. Match types are `exact_nit`, `exact_legal_name`, `normalized_name`, `partial_name`, and
 `unresolved`; there are no invented confidence percentages. An explicit conflicting/missing DV
 returns an unresolved candidate. Invalid identifier syntax returns 422; a valid no-match returns an
 empty 200 collection. Errors follow `{"error":{"code":"...","message":"..."}}`.
@@ -183,6 +188,7 @@ make test                  # Unit/contracts/API tests + frontend; PG tests skip 
 make test-db               # Disposable Compose PostgreSQL on 5433; real persistence/migration tests
 make build                 # Production frontend assets + backend wheel
 make smoke                 # Optional LIVE metadata + two filtered queries (one row each)
+backend/.venv/bin/python scripts/live_smoke.py --ranking  # Also verify ranked page boundaries
 ```
 
 To run the entire backend suite with your own disposable database:
