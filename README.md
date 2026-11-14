@@ -40,14 +40,15 @@ Prerequisite: Docker Engine/Desktop with Compose v2, plus Git. From the reposito
 
 ```sh
 cp .env.example .env
-docker compose up --build -d
+docker compose up --build --wait --wait-timeout 120
 # Or: make up
 docker compose logs -f backend
 ```
 
 Open [the application](http://127.0.0.1:5173), [OpenAPI docs](http://127.0.0.1:8000/docs), or
 [readiness](http://127.0.0.1:8000/ready). Compose waits for PostgreSQL, runs `alembic upgrade head`
-in a one-shot service, then starts the API and frontend. First builds require package-network access;
+in a one-shot service, then waits for the API and frontend HTTP health checks to pass.
+First builds require package-network access;
 searches require access to `www.datos.gov.co`. An app token is optional.
 
 ```sh

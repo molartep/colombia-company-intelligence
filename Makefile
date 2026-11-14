@@ -1,6 +1,6 @@
 .PHONY: up down install migrate backend frontend test test-db lint format build smoke
 up:
-	docker compose up --build -d
+	docker compose up --build --wait --wait-timeout 120
 
 down:
 	docker compose down
