@@ -86,7 +86,7 @@ NIT normalization validates display syntax, 5–15 digits, and explicit optional
 leading zeroes and does not guess that a bare trailing digit is a DV. It does not mathematically
 certify checksum validity. Source DV conflicts produce an unresolved search match.
 
-Case-insensitive substring queries are verified; accent-insensitive remote matching is not claimed.
+Case-insensitive and spacing-insensitive substring queries are verified; accent-insensitive remote matching is not claimed.
 Normalization handles comparison/ranking and exact cached name/alias variants. Retry a shorter
 source-spelled name when no candidate appears. Search is capped at 100 pages, 50 results per page;
 ranking applies only to returned candidates on that page. Offset pagination is not a snapshot.
@@ -107,7 +107,7 @@ $limit=1
 $offset=0
 ```
 
-Name queries use `upper(razon_social) like '%SAFE LITERAL%'` with escaped single quotes and controlled
+Name queries use `replace(upper(razon_social), ' ', '') like '%SAFE LITERAL%'` with escaped single quotes and controlled
 wildcards. Callers cannot supply raw SoQL, dataset IDs, or upstream URLs. HTTPX uses a fixed official
 host, configurable timeout, pooled connections, a global concurrency cap, and an optional server-side
 `X-App-Token`. There is no frontend token or proxy to arbitrary upstream paths.
@@ -141,3 +141,14 @@ prerequisite for sustained public operation. The footer attributes Confecámaras
 CC BY-SA license; adapted data redistribution may have attribution/share-alike obligations separate
 from the MIT software license. Do not treat this application as a certified registry extract or a
 substitute for authoritative due-diligence/legal verification.
+
+
+### Spacing-insensitive search verification
+
+On 2026-11-13, bounded live queries confirmed that literal `OLARTEMOURE` returns no rows,
+while `OLARTE MOURE` returns two separate candidates. The resource endpoint also accepted
+`replace(upper(razon_social), ' ', '') like '%OLARTEMOURE%'` and returned both candidates.
+The adapter now uses that verified SODA 2.x expression, removing whitespace from input while
+escaping literals and retaining the existing row limit, offset, and stable ordering. Source-side
+normalization removes literal spaces only; remote accent/punctuation equivalence is not claimed.
+Original legal names remain intact, and spacing similarity never merges registrations.

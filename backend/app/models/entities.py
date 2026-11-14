@@ -2,7 +2,16 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, UniqueConstraint, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    UniqueConstraint,
+    func,
+    literal_column,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -85,3 +94,19 @@ class SourceRecord(Base):
     source_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     source_url: Mapped[str | None] = mapped_column(String(1000))
     payload_hash: Mapped[str] = mapped_column(String(64))
+
+
+Index(
+    "ix_companies_compact_name_prefix",
+    func.replace(Company.normalized_name, literal_column("' '"), literal_column("''")).label(
+        "compact_name"
+    ),
+    postgresql_ops={"compact_name": "text_pattern_ops"},
+)
+Index(
+    "ix_aliases_compact_name_prefix",
+    func.replace(CompanyAlias.normalized_name, literal_column("' '"), literal_column("''")).label(
+        "compact_name"
+    ),
+    postgresql_ops={"compact_name": "text_pattern_ops"},
+)

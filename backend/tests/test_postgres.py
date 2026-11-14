@@ -189,3 +189,50 @@ async def test_cached_name_variant_and_unstable_identity(session, record, metada
             session, RuesDataSource(SocrataClient(http)), "andina", None, 1, 20
         )
         assert data.items[0].match_type == "unresolved"
+
+
+async def test_spacing_variants_live_cache_pagination_and_aliases(session, record, metadata):
+    from app.services.companies import search_companies
+
+    rows = [
+        dict(record, upstream_id="row-synthetic-spacing-1", razon_social="TEST NORTE SAS"),
+        dict(record, upstream_id="row-synthetic-spacing-2", razon_social="TESTNORTE SAS"),
+    ]
+    mode = "live"
+
+    def handler(request):
+        if "/api/views/" in request.url.path:
+            if mode == "outage":
+                return httpx.Response(503)
+            return httpx.Response(200, json=metadata)
+        assert (
+            request.url.params["$where"]
+            == "replace(upper(razon_social), ' ', '') like '%TESTNORTE%'"
+        )
+        start = int(request.url.params["$offset"])
+        limit = int(request.url.params["$limit"])
+        return httpx.Response(200, json=rows[start : start + limit] if mode == "live" else [])
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        source = RuesDataSource(SocrataClient(http, retries=0))
+        first = await search_companies(session, source, "testnorte", None, 1, 1)
+        second = await search_companies(session, source, "test norte", None, 2, 1)
+        assert first.has_more and not second.has_more
+        assert first.items[0].id != second.items[0].id
+        assert first.items[0].legal_name == "TEST NORTE SAS"
+        assert first.items[0].match_type == "partial_name"
+        assert "ignoring word spacing" in first.items[0].evidence[0]
+        assert not first.stale and not second.stale
+        mode = "empty"
+        cached = await search_companies(session, source, "testnorte", None, 1, 20)
+        assert cached.stale and len(cached.items) == 2
+        assert {i.id for i in cached.items} == {first.items[0].id, second.items[0].id}
+        # Earlier names remain searchable after the current legal name changes.
+        await persist(session, dict(rows[0], razon_social="RENAMED SYNTHETIC SAS"))
+        await session.commit()
+        mode = "outage"
+        cached = await search_companies(session, source, "testnorte", None, 1, 20)
+        assert cached.stale and len(cached.items) == 2
+        renamed = next(i for i in cached.items if i.id == first.items[0].id)
+        assert renamed.legal_name == "RENAMED SYNTHETIC SAS"
+        assert renamed.match_type == "unresolved"  # An alias is not the current legal name.

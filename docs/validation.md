@@ -11,7 +11,7 @@ Unix socket; it is a local validation aid, not an application dependency or a co
   no personal raw records committed.
 - `make smoke`: actual adapter metadata validation plus one bounded exact-NIT and one bounded name
   request; both returned valid official records with source row IDs.
-- **56 backend tests passed**, including real PostgreSQL persistence, separate registration IDs,
+- **66 backend tests passed**, including real PostgreSQL persistence, separate registration IDs,
   payload-version deduplication, foreign-key relationships, pagination, API profile/source routes,
   public-field filtering, cached normalized-name matching, source failure behavior, and migration
   upgrade → downgrade → re-upgrade → Alembic model-drift check.
@@ -59,3 +59,10 @@ docker compose up --build -d
 curl --fail http://127.0.0.1:8000/ready
 curl --fail http://127.0.0.1:5173
 ```
+
+
+Spacing-search regression validation adds compact/spaced query equivalence, escaped literals,
+space-insensitive match classification, preservation of legal suffixes and separate identities,
+pagination, cached matches during empty responses/outages, and previous-name alias recovery.
+The full 66-test backend suite passed against PostgreSQL, including the additional expression-index
+migration, downgrade/re-upgrade, and Alembic model-drift check.

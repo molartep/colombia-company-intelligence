@@ -43,3 +43,8 @@ def normalize_name(value: str) -> str:
     text = re.sub(r"\bS\s+A\s+S\b", "SAS", text)
     text = re.sub(r"\bS\s+A\b", "SA", text)
     return " ".join(text.split())
+
+
+def compact_name(value: str) -> str:
+    """Search-only key: do not use it to merge entities or replace stored legal names."""
+    return normalize_name(value).replace(" ", "")

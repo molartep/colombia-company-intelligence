@@ -1,6 +1,6 @@
 import pytest
 
-from app.core.normalization import InvalidIdentifier, normalize_name, normalize_nit
+from app.core.normalization import InvalidIdentifier, compact_name, normalize_name, normalize_nit
 from app.models.entities import Company
 from app.services.identity import classify
 
@@ -65,3 +65,24 @@ def test_matching(record, query, nit, expected):
         verification_digit="7",
     )
     assert classify(company, query, normalize_nit(nit) if nit else None)[0] == expected
+
+
+def test_compact_name_is_search_only():
+    assert compact_name("TEST NORTE S.A.S.") == compact_name("testnorte sas")
+    assert compact_name("test\tnorte") == "TESTNORTE"
+    assert normalize_name("TEST NORTE SAS") != normalize_name("TESTNORTE SAS")
+    assert compact_name("TEST NORTE SAS") != compact_name("TEST NORTE SA")
+
+
+@pytest.mark.parametrize(
+    ("query", "expected"),
+    [
+        ("testnorte", "partial_name"),
+        ("testnorte sas", "normalized_name"),
+        ("TEST NORTE SAS", "exact_legal_name"),
+        ("testnorte sa limitada", "unresolved"),
+    ],
+)
+def test_spacing_insensitive_matching(query, expected):
+    company = Company(legal_name="TEST NORTE SAS", normalized_name="TEST NORTE SAS")
+    assert classify(company, query, None)[0] == expected

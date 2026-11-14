@@ -41,7 +41,7 @@ async def test_quote_and_wildcard_escape():
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
         await RuesDataSource(SocrataClient(http)).search_by_name("O'NEIL_%")
-    assert seen == ["upper(razon_social) like '%O''NEIL%'"]
+    assert seen == ["replace(upper(razon_social), ' ', '') like '%O''NEIL%'"]
 
 
 def test_mapping(record):
@@ -148,3 +148,25 @@ async def test_bounds():
         for params in [{}, {"$limit": "100000"}, {"$limit": "1", "$offset": "90000"}]:
             with pytest.raises(ValueError):
                 await SocrataClient(http).records(params)
+
+
+@pytest.mark.parametrize("query", ["testnorte", "test norte", "TEST  NORTE", "test\tnorte"])
+async def test_spacing_insensitive_name_query(record, query):
+    seen = []
+    row = dict(record, razon_social="TEST NORTE SAS")
+
+    def handler(request):
+        seen.append(request)
+        if (
+            request.url.params["$where"]
+            == "replace(upper(razon_social), ' ', '') like '%TESTNORTE%'"
+        ):
+            return httpx.Response(200, json=[row])
+        return httpx.Response(200, json=[])
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        rows = await RuesDataSource(SocrataClient(http)).search_by_name(query, limit=2, offset=3)
+    assert rows == [row]
+    assert len(seen) == 1
+    assert seen[0].url.params["$limit"] == "2"
+    assert seen[0].url.params["$offset"] == "3"

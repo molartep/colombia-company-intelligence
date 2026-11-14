@@ -2,12 +2,12 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, literal_column, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import SourceError
-from app.core.normalization import Nit, normalize_name
+from app.core.normalization import Nit, compact_name, normalize_name
 from app.integrations.rues.adapter import (
     API_URL,
     DATASET_URL,
@@ -143,15 +143,29 @@ async def search_companies(
         companies = [await persist(session, row) for row in rows[:page_size]]
         has_more = len(rows) > page_size
         if not rows and not nit:
-            # Exact normalized aliases can recover punctuation/accent variants already consulted.
+            # Search-only compact keys recover spacing variants without changing identity keys.
             normalized = normalize_name(query)
+            compact = compact_name(query)
             cached = select(CompanyAlias.company_id).where(
-                CompanyAlias.normalized_name == normalized
+                or_(
+                    CompanyAlias.normalized_name == normalized,
+                    func.replace(
+                        CompanyAlias.normalized_name, literal_column("' '"), literal_column("''")
+                    ).startswith(compact, autoescape=True),
+                )
             )
             companies = list(
                 await session.scalars(
                     select(Company)
-                    .where(or_(Company.normalized_name == normalized, Company.id.in_(cached)))
+                    .where(
+                        or_(
+                            Company.normalized_name == normalized,
+                            func.replace(
+                                Company.normalized_name, literal_column("' '"), literal_column("''")
+                            ).startswith(compact, autoescape=True),
+                            Company.id.in_(cached),
+                        )
+                    )
                     .order_by(Company.normalized_name, Company.id)
                     .offset(offset)
                     .limit(page_size + 1)
@@ -162,7 +176,7 @@ async def search_companies(
             if companies:
                 stale = True
                 warning = (
-                    "Source returned no literal matches; showing cached normalized-name matches."
+                    "Source returned no current matches; showing cached normalized-name candidates."
                 )
     except SourceError as exc:
         source.last_checked_at = datetime.now(UTC)
@@ -172,10 +186,20 @@ async def search_companies(
             if nit
             else or_(
                 Company.normalized_name.startswith(normalize_name(query), autoescape=True),
+                func.replace(
+                    Company.normalized_name, literal_column("' '"), literal_column("''")
+                ).startswith(compact_name(query), autoescape=True),
                 Company.id.in_(
                     select(CompanyAlias.company_id).where(
-                        CompanyAlias.normalized_name.startswith(
-                            normalize_name(query), autoescape=True
+                        or_(
+                            CompanyAlias.normalized_name.startswith(
+                                normalize_name(query), autoescape=True
+                            ),
+                            func.replace(
+                                CompanyAlias.normalized_name,
+                                literal_column("' '"),
+                                literal_column("''"),
+                            ).startswith(compact_name(query), autoescape=True),
                         )
                     )
                 ),

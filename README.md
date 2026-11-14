@@ -208,7 +208,9 @@ capital-markets/financial/screening fields. Read the [full schema and limitation
 Some rows are natural persons or cancelled registrations; NIT and dates can be missing, stale, or
 malformed. Registration dates remain source strings, including sentinel values. Source timestamps
 lack timezone metadata; Colombia time is an explicitly documented interpretation. Names normalize
-for comparison, without stripping legal suffixes. Remote accent-insensitive matching is not claimed;
+for comparison, without stripping legal suffixes. Name searches ignore word-spacing differences
+(for example, `olartemoure` matches `OLARTE MOURE`); this is candidate matching, never entity merging.
+Remote accent-insensitive matching is not claimed;
 exact cached normalized aliases can recover previously consulted variants, with a cache warning.
 Source IDs may change on publisher replacement, and offset pages may shift as the dataset changes.
 

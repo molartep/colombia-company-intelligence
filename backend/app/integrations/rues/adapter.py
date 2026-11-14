@@ -137,8 +137,9 @@ class RuesDataSource:
     ) -> list[dict[str, Any]]:
         # Wildcards are controlled: user '%' and '_' never broaden a query.
         name = name.replace("%", " ").replace("_", " ").strip()
+        name = "".join(name.upper().split())
         if len(name) < 2:
             raise ValueError("Enter at least two searchable characters.")
         return await self.search(
-            "upper(razon_social) like " + literal("%" + name.upper() + "%"), limit, offset
+            "replace(upper(razon_social), ' ', '') like " + literal("%" + name + "%"), limit, offset
         )
