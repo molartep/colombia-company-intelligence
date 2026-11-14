@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { Failure, SearchLoadingDialog } from '../components/Feedback'
-import { label } from '../utils'
+import { RegistrationStatus } from '../components/RegistrationStatus'
 import { SearchForm } from '../components/SearchForm'
 
 export function Search() {
@@ -74,10 +74,9 @@ export function Search() {
                     <table>
                       <thead>
                         <tr>
-                          <th>Legal identity</th>
-                          <th>Registration status</th>
-                          <th>Location</th>
-                          <th>Match / source</th>
+                          <th scope="col">Legal entity</th>
+                          <th scope="col">NIT</th>
+                          <th scope="col">Registration status</th>
                           <th>
                             <span className="sr-only">Open profile</span>
                           </th>
@@ -90,10 +89,6 @@ export function Search() {
                               <Link className="company-link" to={`/companies/${company.id}`}>
                                 {company.legal_name}
                               </Link>
-                              <div className="muted small">
-                                NIT {company.nit ?? 'missing from record'}
-                                {company.verification_digit ? `-${company.verification_digit}` : ''}
-                              </div>
                               <div className="muted small mt-1">
                                 {company.chamber ?? 'Chamber missing'} · Matrícula{' '}
                                 {company.registration_number ?? 'missing'}
@@ -102,19 +97,14 @@ export function Search() {
                                 <div className="muted small mt-1">{company.legal_form}</div>
                               )}
                             </td>
-                            <td>
-                              <span className="badge">
-                                {company.registration_status ?? 'Missing from record'}
-                              </span>
-                            </td>
-                            <td className="muted">
-                              {[company.municipality, company.department]
-                                .filter(Boolean)
-                                .join(', ') || 'Unavailable in source'}
+                            <td className="nit-cell">
+                              {company.nit ?? 'Missing from record'}
+                              {company.nit && company.verification_digit
+                                ? `-${company.verification_digit}`
+                                : ''}
                             </td>
                             <td>
-                              <span className="match">{label(company.match_type)}</span>
-                              <div className="small muted">RUES · Confecámaras</div>
+                              <RegistrationStatus status={company.registration_status} />
                             </td>
                             <td>
                               <Link

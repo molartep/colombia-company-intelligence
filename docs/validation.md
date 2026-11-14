@@ -15,7 +15,7 @@ Unix socket; it is a local validation aid, not an application dependency or a co
   payload-version deduplication, foreign-key relationships, pagination, API profile/source routes,
   public-field filtering, cached normalized-name matching, source failure behavior, and migration
   upgrade → downgrade → re-upgrade → Alembic model-drift check.
-- **6 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, source-error
+- **7 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
   states, empty results, and company profile/unchecked attribute rendering.
 - Ruff lint and format checks; strict mypy on `app`; ESLint and strict TypeScript.
 - Vite production bundle; Python backend wheel packaging.

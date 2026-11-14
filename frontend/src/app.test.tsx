@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -89,8 +89,16 @@ test('renders official result and profile link', async () => {
     'href',
     '/companies/synthetic-id',
   )
-  expect(screen.getByText('NIT 000123456-7')).toBeVisible()
-  expect(screen.getByText('Unavailable in source')).toBeVisible()
+  const table = screen.getByRole('table')
+  expect(
+    within(table)
+      .getAllByRole('columnheader')
+      .map((heading) => heading.textContent),
+  ).toEqual(['Legal entity', 'NIT', 'Registration status', 'Open profile'])
+  const legalEntityCell = screen.getByText('SYNTHETIC ANDINA SAS').closest('td')!
+  expect(legalEntityCell).not.toHaveTextContent('000123456')
+  expect(within(table).getByRole('cell', { name: '000123456-7' })).toBeVisible()
+  expect(within(table).getByText('ACTIVA')).toHaveClass('registration-status--active')
   expect(screen.getByRole('button', { name: /Next/ })).toBeDisabled()
 })
 
@@ -139,4 +147,27 @@ test('profile displays available data and unchecked attributes', async () => {
   )
   await userEvent.click(screen.getByText('Attribute availability & provenance'))
   expect(screen.getByText('not yet checked')).toBeVisible()
+})
+
+test('results use the requested registration status colors and preserve missing NITs', async () => {
+  const statuses = ['CANCELADA', 'NO ASIGNADO', 'EN LIQUIDACION', null]
+  reply({
+    items: statuses.map((status, i) => ({
+      id: `synthetic-status-${i}`,
+      legal_name: `SYNTHETIC STATUS COMPANY ${i}`,
+      nit: null,
+      verification_digit: null,
+      registration_status: status,
+    })),
+    page: 1,
+    has_more: false,
+  })
+  wrapper(<Search />, '/?q=SYNTHETIC')
+  const table = await screen.findByRole('table')
+  expect(within(table).getByText('CANCELADA')).toHaveClass('registration-status--cancelled')
+  expect(within(table).getByText('NO ASIGNADO')).toHaveClass('registration-status--unassigned')
+  expect(within(table).getByText('EN LIQUIDACION')).toHaveClass('registration-status--other')
+  for (const row of within(table).getAllByRole('row').slice(1)) {
+    expect(within(row).getAllByRole('cell')[1]).toHaveTextContent('Missing from record')
+  }
 })

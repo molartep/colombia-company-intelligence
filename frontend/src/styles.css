@@ -601,3 +601,28 @@ details dl {
     display: block;
   }
 }
+
+.nit-cell {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.registration-status--active {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+.registration-status--cancelled {
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+.registration-status--unassigned {
+  color: #4b5563;
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+.registration-status--other {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
