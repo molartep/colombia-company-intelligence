@@ -63,3 +63,25 @@ export interface Profile extends Company {
   resolution_note: string
   conflicting_registration_count: number
 }
+
+export interface ParameterOption {
+  value: string
+  code: string | null
+  label: string | null
+}
+export interface ParameterGroup {
+  key: import('../api/filters').FixedFilterKey
+  title: string
+  code_field: string
+  label_field: string
+  description: string
+  options: ParameterOption[]
+}
+export interface ParameterCatalog {
+  source_id: string
+  source_url: string
+  verified_at: string
+  dataset_updated_at: string | null
+  note: string
+  groups: ParameterGroup[]
+}

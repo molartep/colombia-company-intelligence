@@ -427,3 +427,191 @@ async def test_global_source_ranking_precedes_pagination_and_api_preserves_order
                 assert fallback.json()["ranking_scope"] == "current cached page"
         finally:
             app.dependency_overrides.clear()
+
+
+async def test_source_and_cached_calendar_validation_agree(session):
+    from sqlalchemy import column
+
+    from app.integrations.rues.filtering import valid_date as source_valid
+    from app.services.cached_filters import valid_date as cached_valid
+
+    await session.execute(text("CREATE TEMP TABLE filter_dates (fecha_matricula text)"))
+    dates = [
+        "20240229",
+        "20000229",
+        "24000229",
+        "00010101",
+        "19850319",
+        "19000229",
+        "21000229",
+        "20230229",
+        "20240431",
+        "20240132",
+        "20240015",
+        "20241301",
+        "20240100",
+        "00000000",
+        "0",
+        "99991231",
+        "00000101",
+        "2024A201",
+        "2024-02-01",
+        "20240201 ",
+        " 20240201",
+        "",
+        None,
+    ]
+    for value in dates:
+        await session.execute(text("INSERT INTO filter_dates VALUES (:value)"), {"value": value})
+    source = set(
+        await session.scalars(
+            text(
+                f"SELECT fecha_matricula FROM filter_dates WHERE {source_valid('fecha_matricula')}"
+            )
+        )
+    )
+    cached = set(
+        await session.scalars(
+            select(column("fecha_matricula"))
+            .select_from(text("filter_dates"))
+            .where(cached_valid(column("fecha_matricula")))
+        )
+    )
+    assert source == cached == set(dates[:5])
+
+
+async def test_filtered_live_pages_and_cached_outage_use_same_source_constraints(
+    session, record, metadata
+):
+    from app.integrations.rues.filtering import CIIU_FIELDS, CODE_FIELDS
+    from app.models.entities import Company
+
+    await ensure_source(session)
+    rows = []
+    for i in range(12):
+        row = dict(
+            record,
+            upstream_id=f"filter-{i:02}",
+            razon_social=f"TEST {i:02} SAS",
+            codigo_estado_matricula="01",
+            codigo_camara="04",
+            codigo_organizacion_juridica="16",
+            codigo_categoria_matricula="01",
+            cod_ciiu_act_econ_pri="0011",
+            cod_ciiu_act_econ_sec="6201",
+            fecha_matricula="20240229",
+            fecha_renovacion="20250101",
+            ultimo_ano_renovado="2025",
+        )
+        if i < 6:
+            row["codigo_estado_matricula"] = "03"
+        if i == 6:
+            row["fecha_matricula"] = "20230229"
+        if i == 7:
+            row["fecha_renovacion"] = "00000000"
+        if i == 8:
+            row["ultimo_ano_renovado"] = "9999"
+        rows.append(row)
+        await persist(session, row)
+    await session.commit()
+    fields = {
+        "razon_social",
+        "nit",
+        "fecha_matricula",
+        "fecha_renovacion",
+        "ultimo_ano_renovado",
+        *CODE_FIELDS.values(),
+        *CIIU_FIELDS,
+    }
+    projection = ", ".join(f"raw_payload ->> '{f}' AS {f}" for f in sorted(fields))
+    seen = []
+
+    async def handler(request):
+        if "/api/views/" in request.url.path:
+            return httpx.Response(200, json=metadata)
+        params = request.url.params
+        seen.append(params)
+        # Execute the real adapter WHERE before LIMIT/OFFSET on PostgreSQL JSONB.
+        # All synthetic names have the same relevance tier; row ID is the stable tie-break.
+        matches = await session.scalars(
+            text(
+                "WITH source AS (SELECT raw_payload AS payload, "
+                "external_record_id AS upstream_id, "
+                f"{projection} FROM source_records) "
+                f"SELECT payload FROM source WHERE {params['$where']} ORDER BY upstream_id "
+                "LIMIT :limit OFFSET :offset"
+            ),
+            {"limit": int(params["$limit"]), "offset": int(params["$offset"])},
+        )
+        return httpx.Response(200, json=list(matches))
+
+    async def override_session():
+        yield session
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as upstream:
+        source = RuesDataSource(SocrataClient(upstream, retries=0))
+        app.dependency_overrides[get_session] = override_session
+        app.dependency_overrides[adapter] = lambda: source
+        try:
+            async with httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                filters = {
+                    "q": "TEST",
+                    "status": "01",
+                    "chamber": "04",
+                    "organization": "16",
+                    "category": "01",
+                    "ciiu": "62",
+                    "ciiu_match": "prefix",
+                    "ciiu_scope": "any",
+                    "registration_from": "2000-01-01",
+                    "registration_to": "2025-12-31",
+                    "renewal_from": "2024-01-01",
+                    "renewal_to": "2025-12-31",
+                    "renewed_year": "2024",
+                    "renewed_year_mode": "minimum",
+                    "page_size": "2",
+                }
+                first = await client.get("/api/v1/companies", params={**filters, "page": "1"})
+                assert first.status_code == 200, first.text
+                data = first.json()
+                assert [r["legal_name"] for r in data["items"]] == ["TEST 09 SAS", "TEST 10 SAS"]
+                assert data["has_more"] and not data["stale"]
+                provenance = await client.get(f"/api/v1/companies/{data['items'][0]['id']}/sources")
+                public = provenance.json()[0]["fields"]
+                assert public["codigo_estado_matricula"] == "01"
+                assert public["codigo_categoria_matricula"] == "01"
+                assert public["codigo_organizacion_juridica"] == "16"
+                assert "representante_legal" not in public
+                assert "num_identificacion_representante_legal" not in public
+                second = await client.get("/api/v1/companies", params={**filters, "page": "2"})
+                assert [r["legal_name"] for r in second.json()["items"]] == ["TEST 11 SAS"]
+                assert not second.json()["has_more"]
+                assert [p["$offset"] for p in seen] == ["0", "2"]
+                assert all(p["$limit"] == "3" for p in seen)
+                source.metadata = AsyncMock(
+                    side_effect=SourceError("source_timeout", "Synthetic outage")
+                )
+                for page, expected in [(1, ["TEST 09 SAS", "TEST 10 SAS"]), (2, ["TEST 11 SAS"])]:
+                    response = await client.get(
+                        "/api/v1/companies", params={**filters, "page": str(page)}
+                    )
+                    assert response.status_code == 200, response.text
+                    assert response.json()["stale"]
+                    assert [r["legal_name"] for r in response.json()["items"]] == expected
+                # A filtered outage must never return unfiltered cached records.
+                response = await client.get("/api/v1/companies", params={**filters, "status": "02"})
+                assert response.status_code == 503
+                # Empty live responses may use normalized aliases, but still honor every filter.
+                source.metadata = AsyncMock(return_value=metadata)
+                source.search_by_name = AsyncMock(return_value=[])
+                response = await client.get("/api/v1/companies", params=filters)
+                assert response.status_code == 200 and response.json()["stale"]
+                assert [r["legal_name"] for r in response.json()["items"]] == [
+                    "TEST 09 SAS",
+                    "TEST 10 SAS",
+                ]
+                assert await session.scalar(select(func.count()).select_from(Company)) == 12
+        finally:
+            app.dependency_overrides.clear()

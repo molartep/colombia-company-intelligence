@@ -1,4 +1,4 @@
-import type { Profile, RecordView, SearchPage } from '../types'
+import type { ParameterCatalog, Profile, RecordView, SearchPage } from '../types'
 
 export async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(path, { signal })
@@ -19,9 +19,10 @@ export async function request<T>(path: string, signal?: AbortSignal): Promise<T>
   return response.json() as Promise<T>
 }
 export const api = {
-  search: (q: string, page: number, signal?: AbortSignal) =>
+  parameters: (signal?: AbortSignal) => request<ParameterCatalog>('/api/v1/parameters', signal),
+  search: (q: string, page: number, signal?: AbortSignal, filters = '') =>
     request<SearchPage>(
-      `/api/v1/companies?${new URLSearchParams({ q, page: String(page), page_size: '20' })}`,
+      `/api/v1/companies?${new URLSearchParams({ q, page: String(page), page_size: '20' })}${filters ? `&${filters}` : ''}`,
       signal,
     ),
   profile: (id: string, signal?: AbortSignal) =>

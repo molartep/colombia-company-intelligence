@@ -1,4 +1,4 @@
-.PHONY: up down install migrate backend frontend test test-db lint format build smoke
+.PHONY: up down install migrate backend frontend test test-db lint format build smoke refresh-parameters
 up:
 	docker compose up --build --wait --wait-timeout 120
 
@@ -42,3 +42,6 @@ build:
 
 smoke:
 	backend/.venv/bin/python scripts/live_smoke.py
+
+refresh-parameters:
+	backend/.venv/bin/python scripts/refresh_parameters.py

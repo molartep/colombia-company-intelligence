@@ -6,8 +6,10 @@ from zoneinfo import ZoneInfo
 
 from app.core.errors import SourceError
 from app.core.normalization import InvalidIdentifier, normalize_nit
+from app.integrations.rues.filtering import CIIU_FIELDS, CODE_FIELDS, filter_clauses
 from app.integrations.rues.queries import literal, name_order, nit_order
 from app.integrations.socrata import SocrataClient
+from app.schemas.filters import SearchFilters
 
 SOURCE_ID = "rues-c82u-588k"
 DATASET_URL = "https://www.datos.gov.co/d/c82u-588k"
@@ -28,24 +30,34 @@ FIELD_MAP = {
     "last_renewed_year": "ultimo_ano_renovado",
     "cancellation_date": "fecha_cancelacion",
 }
-PUBLIC_FIELDS = set(FIELD_MAP.values()) | {
-    "cod_ciiu_act_econ_sec",
-    "ciiu3",
-    "ciiu4",
-    "fecha_actualizacion",
-    "upstream_id",
-}
+PUBLIC_FIELDS = (
+    set(FIELD_MAP.values())
+    | set(CODE_FIELDS.values())
+    | {
+        "categoria_matricula",
+        "cod_ciiu_act_econ_sec",
+        "ciiu3",
+        "ciiu4",
+        "fecha_actualizacion",
+        "upstream_id",
+    }
+)
 
 
 class CompanyDataSource(Protocol):
     source_id: str
 
     async def search_by_nit(
-        self, nit: str, limit: int = 20, offset: int = 0, verification_digit: str | None = None
+        self,
+        nit: str,
+        limit: int = 20,
+        offset: int = 0,
+        verification_digit: str | None = None,
+        filters: SearchFilters | None = None,
     ) -> list[dict[str, Any]]: ...
 
     async def search_by_name(
-        self, name: str, limit: int = 20, offset: int = 0
+        self, name: str, limit: int = 20, offset: int = 0, filters: SearchFilters | None = None
     ) -> list[dict[str, Any]]: ...
 
 
@@ -104,13 +116,18 @@ class RuesDataSource:
             for c in data["columns"]
             if isinstance(c, dict)
         }
-        if any(columns.get(f) != "text" for f in FIELD_MAP.values()):
+        required = set(FIELD_MAP.values()) | set(CIIU_FIELDS) | set(CODE_FIELDS.values())
+        if any(columns.get(f) != "text" for f in required):
             raise SourceError(
                 "source_schema_changed", "Verified RUES columns changed; adapter review required."
             )
         return data
 
-    async def search(self, where: str, limit: int, offset: int, order: str) -> list[dict[str, Any]]:
+    async def search(
+        self, where: str, limit: int, offset: int, order: str, filters: SearchFilters | None = None
+    ) -> list[dict[str, Any]]:
+        if filters and filters.active:
+            where = " AND ".join(f"({part})" for part in [where, *filter_clauses(filters)])
         rows = await self.client.records(
             {
                 "$select": "*, :id as upstream_id",
@@ -125,14 +142,19 @@ class RuesDataSource:
         return rows
 
     async def search_by_nit(
-        self, nit: str, limit: int = 20, offset: int = 0, verification_digit: str | None = None
+        self,
+        nit: str,
+        limit: int = 20,
+        offset: int = 0,
+        verification_digit: str | None = None,
+        filters: SearchFilters | None = None,
     ) -> list[dict[str, Any]]:
         return await self.search(
-            "nit = " + literal(nit), limit, offset, nit_order(verification_digit)
+            "nit = " + literal(nit), limit, offset, nit_order(verification_digit), filters
         )
 
     async def search_by_name(
-        self, name: str, limit: int = 20, offset: int = 0
+        self, name: str, limit: int = 20, offset: int = 0, filters: SearchFilters | None = None
     ) -> list[dict[str, Any]]:
         # Wildcards are controlled: user '%' and '_' never broaden a query.
         name = name.replace("%", " ").replace("_", " ").strip()
@@ -144,4 +166,5 @@ class RuesDataSource:
             limit,
             offset,
             name_order(name),
+            filters,
         )

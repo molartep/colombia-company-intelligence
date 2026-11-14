@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 
 export function SiteHeader() {
   return (
@@ -15,6 +15,12 @@ export function SiteHeader() {
           COLOMBIA<span className="brand-sub">COMPANY INTELLIGENCE</span>
         </span>
       </Link>
+      <nav className="header-tabs" aria-label="Main navigation">
+        <NavLink to="/" end>
+          Search
+        </NavLink>
+        <NavLink to="/parameters">Parameters</NavLink>
+      </nav>
       <nav className="social-links" aria-label="Social media">
         <a
           className="social-button"

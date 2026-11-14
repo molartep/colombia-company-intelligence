@@ -11,11 +11,11 @@ Unix socket; it is a local validation aid, not an application dependency or a co
   no personal raw records committed.
 - `make smoke`: actual adapter metadata validation plus one bounded exact-NIT and one bounded name
   request; both returned valid official records with source row IDs.
-- **70 backend tests passed**, including real PostgreSQL persistence, separate registration IDs,
+- **92 backend tests passed**, including real PostgreSQL persistence, separate registration IDs,
   payload-version deduplication, foreign-key relationships, pagination, API profile/source routes,
   public-field filtering, cached normalized-name matching, source failure behavior, and migration
   upgrade → downgrade → re-upgrade → Alembic model-drift check.
-- **26 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
+- **31 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
   states, empty results, and company profile/unchecked attribute rendering.
 - Ruff lint and format checks; strict mypy on `app`; ESLint and strict TypeScript.
 - Vite production bundle; Python backend wheel packaging.
@@ -141,3 +141,32 @@ typo tolerance and broader accent/punctuation retrieval are not added.
 The restarted local API also returned a fresh, non-stale `olartemoure` search with
 `OLARTE MOURE & ASOCIADOS SAS` before `FUNDACIÓN OLARTE MOURE`, reporting
 `ranking_scope: all matching source records`.
+
+
+## Advanced source filters and parameter catalog — 2026-11-14
+
+- **92 backend tests passed** against real PostgreSQL, including migrations, filter validation,
+  generated source WHERE execution before pagination, cache/source calendar parity, century/leap
+  dates, zero/malformed/year-9999 placeholders, latest-record filter predicates, filtered lookahead,
+  stale outage/empty-source fallback, no matching filtered cache, and public provenance privacy.
+- **31 frontend tests passed**, including all seven filters, source-code multi-selection, submit-only
+  behavior, reset to page 1, filter preservation through Next and profile-return caching, clear
+  behavior, keyboard-help associations, Parameters code meanings, and canonical cache keys.
+- Ruff lint/format, strict mypy, ESLint, strict TypeScript, frontend production bundle, and backend
+  wheel build passed. The wheel was inspected for the bundled JSON parameter catalog.
+- Four bounded live GROUP BY queries discovered 15 status options (including missing), 58 chambers,
+  53 legal organizations, and 2 registration categories. No company/person data or counts are
+  stored in the catalog. The actual documented refresh script passed metadata plus all four
+  bounded aggregations with `SOCRATA_TIMEOUT=60`.
+- Live RUES accepted combined code/registration/renewal ranges, primary exact CIIU, any-activity
+  prefix CIIU, and exact/minimum renewed-year queries. The full local FastAPI request returned a
+  fresh, non-stale filtered Palomma result with valid source dates and global ranking scope.
+- Isolated real Chrome checks verified all four option groups, no company request when expanding
+  filters, visible keyboard-focus help, Parameters rendering, and no horizontal page overflow at
+  390px. Desktop and mobile screenshots were inspected. The in-app browser control was unavailable;
+  the isolated browser used the same local frontend/backend.
+
+The fixed catalog is a versioned snapshot of observed code/label pairs, not a separately certified
+legal taxonomy or a live facet-count service. Newly published codes require explicit refresh and
+review. Standard tests remain fully independent of government services; only the optional refresh
+and live checks contact RUES. Docker remains unavailable locally and was not executed for this change.

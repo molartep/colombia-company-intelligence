@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 import { Search } from './pages/Search'
 import { CompanyProfile } from './pages/CompanyProfile'
+import { Parameters } from './pages/Parameters'
 import { SiteHeader } from './components/SiteHeader'
 import './styles.css'
 
@@ -20,6 +21,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <SiteHeader />
         <main id="main">
           <Routes>
+            <Route path="/parameters" element={<Parameters />} />
             <Route path="/" element={<Search />} />
             <Route path="/companies/:id" element={<CompanyProfile />} />
             <Route

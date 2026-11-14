@@ -53,11 +53,11 @@ the complete discovered schema. Descriptions are available verbatim in the metad
 | `fecha_cancelacion` | `text` | Cancellation date; source string. |
 | `codigo_tipo_sociedad` | `text` | Society type code; private raw storage only. |
 | `tipo_sociedad` | `text` | Society type; not used as a substitute for legal organization. |
-| `codigo_organizacion_juridica` | `text` | Legal organization code; raw storage only. |
+| `codigo_organizacion_juridica` | `text` | Legal organization code; filter and allowlisted provenance. |
 | `organizacion_juridica` | `text` | Legal organization description → legal_form. |
-| `codigo_categoria_matricula` | `text` | Registration category code; raw storage only. |
-| `categoria_matricula` | `text` | Registration category; raw storage only. |
-| `codigo_estado_matricula` | `text` | Registration status code; raw storage only. |
+| `codigo_categoria_matricula` | `text` | Registration category code; filter and allowlisted provenance. |
+| `categoria_matricula` | `text` | Registration category label; allowlisted provenance. |
+| `codigo_estado_matricula` | `text` | Registration status code; filter and allowlisted provenance. |
 | `estado_matricula` | `text` | Registration status description. |
 | `clase_identificacion_rl` | `text` | Representative identification class; excluded from public API. |
 | `num_identificacion_representante_legal` | `text` | Representative personal identifier; excluded from public API. |
@@ -178,3 +178,12 @@ continuity and unique source IDs without logging raw records. As with all offset
 assumes source rows do not change between requests; it is not a source snapshot mechanism.
 Cached fallback is explicitly scoped to the current cached page and cannot establish source-wide
 best matches when the official service is unavailable.
+
+
+### Advanced filter discovery — 2026-11-14
+
+Four bounded code/label aggregations verified the fixed options used by the Search and Parameters
+pages. Exact distinctions, anomalous codes, missing descriptions, timestamps, refresh procedure,
+and live query checks are documented in [advanced-filters.md](advanced-filters.md). No personal
+records or aggregate counts are included in the versioned option catalog. Source filters use the
+verified code fields, all four CIIU fields, text calendar dates, and last-renewed-year field.

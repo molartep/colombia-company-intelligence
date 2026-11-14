@@ -22,9 +22,12 @@ from app.core.logging import configure_logging
 from app.core.normalization import InvalidIdentifier, looks_like_nit, normalize_name, normalize_nit
 from app.db.session import engine, get_session
 from app.integrations.rues.adapter import RuesDataSource
+from app.integrations.rues.parameters import parameter_catalog
 from app.integrations.socrata import SocrataClient
 from app.models.entities import Company, DataSource
 from app.schemas.api import ErrorResponse, Profile, RecordView, SearchPage, SourceView
+from app.schemas.filters import CompanySearchRequest, SearchFilters
+from app.schemas.parameters import ParameterCatalog
 from app.services.companies import (
     ensure_source,
     profile,
@@ -75,7 +78,7 @@ def adapter(request: Request) -> RuesDataSource:
 
 @app.middleware("http")
 async def constrain_request(request: Request, call_next: RequestResponseEndpoint) -> Response:
-    if len(request.scope.get("query_string", b"")) > 2048:
+    if len(request.scope.get("query_string", b"")) > 8192:
         return error(414, "request_too_large", "Query string is too long.")
     if request.method not in ("GET", "HEAD", "OPTIONS"):
         return error(405, "method_not_allowed", "This API accepts read requests only.")
@@ -106,7 +109,11 @@ async def identifier_error(request: Request, exc: InvalidIdentifier) -> JSONResp
 
 @app.exception_handler(RequestValidationError)
 async def validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
-    return error(422, "invalid_request", "Check query length, pagination, and UUID format.")
+    return error(
+        422,
+        "invalid_request",
+        "Check search filters, date ranges, query length, pagination, and UUID format.",
+    )
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -148,17 +155,23 @@ async def ready(session: DB) -> dict[str, str]:
 async def companies(
     session: DB,
     source: Annotated[RuesDataSource, Depends(adapter)],
-    q: Annotated[str, Query(min_length=2, max_length=160)],
-    page: Annotated[int, Query(ge=1, le=100)] = 1,
-    page_size: Annotated[int, Query(ge=1, le=50)] = 20,
+    params: Annotated[CompanySearchRequest, Query()],
 ) -> SearchPage:
-    q = q.strip()
+    q = params.q.strip()
     nit = normalize_nit(q) if looks_like_nit(q) else None
     if not nit and (
         len(normalize_name(q)) < 2 or len(q.replace("%", "").replace("_", "").strip()) < 2
     ):
         raise HTTPException(422, "Enter at least two searchable characters.")
-    return await search_companies(session, source, q, nit, page, page_size)
+    return await search_companies(
+        session,
+        source,
+        q,
+        nit,
+        params.page,
+        params.page_size,
+        SearchFilters.model_validate(params.model_dump(exclude={"q", "page", "page_size"})),
+    )
 
 
 async def get_company(session: AsyncSession, company_id: UUID) -> Company:
@@ -184,3 +197,8 @@ async def sources(session: DB) -> list[DataSource]:
     await ensure_source(session)
     await session.commit()
     return list(await session.scalars(select(DataSource).order_by(DataSource.id)))
+
+
+@app.get("/api/v1/parameters", response_model=ParameterCatalog)
+async def parameters() -> ParameterCatalog:
+    return ParameterCatalog.model_validate(parameter_catalog())

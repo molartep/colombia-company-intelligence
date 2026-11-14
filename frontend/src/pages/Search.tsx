@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { AdvancedFilters } from '../components/AdvancedFilters'
+import { readFilters, filterParams, searchKey } from '../api/filters'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
@@ -12,10 +15,17 @@ export function Search() {
   const queryClient = useQueryClient()
   const navigationState = { returnTo: `/${location.search}` }
   const q = params.get('q') ?? ''
+  const filters = filterParams(readFilters(params)).toString()
+  const [previousFilters, setPreviousFilters] = useState(filters)
+  const [draftFilters, setDraftFilters] = useState(() => readFilters(params))
+  if (previousFilters !== filters) {
+    setPreviousFilters(filters)
+    setDraftFilters(readFilters(params))
+  }
   const page = Math.min(100, Math.max(1, Number(params.get('page')) || 1))
   const results = useQuery({
-    queryKey: ['search', q, page],
-    queryFn: ({ signal }) => api.search(q, page, signal),
+    queryKey: searchKey(q, page, filters),
+    queryFn: ({ signal }) => api.search(q, page, signal, filters),
     enabled: q.trim().length >= 2,
     // Restore visited pages without a new request when returning from a profile.
     gcTime: 30 * 60_000,
@@ -29,14 +39,24 @@ export function Search() {
           initial={q}
           disabled={results.isFetching}
           onSearch={(value) => {
-            if (value === q && page === 1) void results.refetch()
+            const nextFilters = filterParams(draftFilters).toString()
+            if (value === q && page === 1 && nextFilters === filters) void results.refetch()
             else {
               // Explicit submission refreshes even a previously cached search.
-              queryClient.removeQueries({ queryKey: ['search', value, 1], exact: true })
-              setParams({ q: value, page: '1' })
+              queryClient.removeQueries({ queryKey: searchKey(value, 1, nextFilters), exact: true })
+              const next = new URLSearchParams(nextFilters)
+              next.set('q', value)
+              next.set('page', '1')
+              setParams(next)
             }
           }}
-        />
+        >
+          <AdvancedFilters
+            values={draftFilters}
+            onChange={setDraftFilters}
+            disabled={results.isFetching}
+          />
+        </SearchForm>
         <div className="source-line">
           <span className="mini-icon">✓</span> Powered by RUES / Confecámaras{' '}
           <span>via datos.gov.co</span>
@@ -73,8 +93,21 @@ export function Search() {
                 </div>
               ) : (
                 <>
-                  <div className="table-wrap">
-                    <table>
+                  <div
+                    className="table-wrap search-table-wrap"
+                    role="region"
+                    aria-label="Company search results table"
+                    tabIndex={0}
+                  >
+                    <table className="search-table">
+                      <colgroup>
+                        <col />
+                        <col className="nit-column" />
+                        <col className="status-column" />
+                        <col className="date-column" />
+                        <col className="date-column" />
+                        <col className="profile-column" />
+                      </colgroup>
                       <thead>
                         <tr>
                           <th scope="col">Legal entity</th>
@@ -112,7 +145,7 @@ export function Search() {
                                 ? `-${company.verification_digit}`
                                 : ''}
                             </td>
-                            <td>
+                            <td className="status-cell">
                               <RegistrationStatus status={company.registration_status} />
                             </td>
                             <td className="date-cell">
@@ -140,14 +173,22 @@ export function Search() {
               <nav className="pagination" aria-label="Result pages">
                 <button
                   disabled={page <= 1}
-                  onClick={() => setParams({ q, page: String(page - 1) })}
+                  onClick={() => {
+                    const next = new URLSearchParams(params)
+                    next.set('page', String(page - 1))
+                    setParams(next)
+                  }}
                 >
                   ← Previous
                 </button>
                 <span>Page {page}</span>
                 <button
                   disabled={!results.data.has_more || page >= 100}
-                  onClick={() => setParams({ q, page: String(page + 1) })}
+                  onClick={() => {
+                    const next = new URLSearchParams(params)
+                    next.set('page', String(page + 1))
+                    setParams(next)
+                  }}
                 >
                   Next →
                 </button>

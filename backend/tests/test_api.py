@@ -42,7 +42,7 @@ async def test_validation(client, path):
 
 
 async def test_request_limits(client):
-    assert (await client.get("/health?" + "q=" + "x" * 2100)).status_code == 414
+    assert (await client.get("/health?" + "q=" + "x" * 8300)).status_code == 414
     assert (await client.post("/health", content="x")).status_code == 405
     assert (await client.request("GET", "/health", content="x")).status_code == 413
 

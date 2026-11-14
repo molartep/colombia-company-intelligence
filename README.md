@@ -138,6 +138,7 @@ not silently create schema. The source is registered lazily on its first search 
 | `GET /api/v1/companies?q=...&page=1&page_size=20` | NIT/name candidates, match evidence, pagination, source and stale warnings |
 | `GET /api/v1/companies/{UUID}` | Identity, available registration/CIIU data, field states, source and freshness |
 | `GET /api/v1/companies/{UUID}/sources` | Allowlisted source versions, source row ID, hashes, timestamps, mappings |
+| `GET /api/v1/parameters` | Verified fixed-filter codes, descriptions, and catalog provenance |
 | `GET /api/v1/sources` | Registered source metadata, availability and check/update timestamps |
 | `GET /health` | Process liveness |
 | `GET /ready` | Database connectivity; returns 503 on failure |
@@ -257,3 +258,10 @@ and deployment/privacy/browser-test hardening. These future modules are not impl
 Code is [MIT licensed](LICENSE). Official data is separately attributed to Confecámaras under the
 metadata's CC BY-SA 4.0 license; software permission does not relicense third-party data.
 Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+
+Advanced search now supports multi-select registration statuses, chambers, legal organizations,
+and registration categories, plus exact/prefix CIIU, registration/renewal date ranges, and exact/minimum
+last renewed year. Expand **Advanced filters** and submit Search to apply. **Parameters** in the
+header documents observed fixed codes and source meanings. All filters apply before source
+pagination and remain in URLs/cache keys. See [advanced filter API, semantics, and catalog refresh](docs/advanced-filters.md).

@@ -37,7 +37,7 @@ test('search form waits for submission even after typing pauses', () => {
     })
     act(() => vi.advanceTimersByTime(2000))
     expect(onSearch).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole('button', { name: /Search/ }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Search/ })[0]!)
     expect(onSearch).toHaveBeenCalledExactlyOnceWith('SYNTHETIC')
   } finally {
     vi.useRealTimers()
@@ -59,17 +59,17 @@ test('submitted search opens an animated loading popup and closes it when result
   await userEvent.type(screen.getByLabelText('Company name or NIT'), 'SYNTHETIC')
   expect(fetch).not.toHaveBeenCalled()
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  await userEvent.click(screen.getByRole('button', { name: /Search/ }))
+  await userEvent.click(screen.getAllByRole('button', { name: /Search/ })[0]!)
   const dialog = await screen.findByRole('dialog', { name: 'Retrieving results' })
   expect(dialog).toBeVisible()
   expect(dialog.querySelector('img')).toHaveAttribute('src', '/retrieving-results.gif')
-  expect(screen.getByRole('button', { name: /Search/ })).toBeDisabled()
+  expect(screen.getAllByRole('button', { name: /Search/ })[0]!).toBeDisabled()
   await act(async () =>
     finish({ ok: true, json: async () => ({ items: [], has_more: false, page: 1 }) }),
   )
   expect(await screen.findByText('No matching registrations')).toBeVisible()
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  expect(screen.getByRole('button', { name: /Search/ })).toBeEnabled()
+  expect(screen.getAllByRole('button', { name: /Search/ })[0]!).toBeEnabled()
 })
 
 test('renders official result and profile link', async () => {
@@ -353,7 +353,7 @@ it.each(['name', 'arrow'])(
       fetchMock.mock.calls.filter(([url]) => url.startsWith('/api/v1/companies?')),
     ).toHaveLength(0)
     // A deliberate new submission must still fetch, even when page 1 is already cached.
-    await userEvent.click(screen.getByRole('button', { name: /Search/ }))
+    await userEvent.click(screen.getAllByRole('button', { name: /Search/ })[0]!)
     expect(await screen.findByText('SYNTHETIC REFRESHED SAS')).toBeVisible()
     expect(
       fetchMock.mock.calls.filter(([url]) => url.startsWith('/api/v1/companies?')),

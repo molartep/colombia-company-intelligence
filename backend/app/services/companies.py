@@ -21,6 +21,8 @@ from app.integrations.rues.adapter import (
 )
 from app.models.entities import Company, CompanyAlias, DataSource, SourceRecord
 from app.schemas.api import AttributeState, Profile, RecordView, SearchItem, SearchPage, SourceView
+from app.schemas.filters import SearchFilters
+from app.services.cached_filters import cached_conditions
 from app.services.identity import classify
 
 COMPANY_FIELDS = [
@@ -120,7 +122,11 @@ async def search_companies(
     nit: Nit | None,
     page: int,
     page_size: int,
+    filters: SearchFilters | None = None,
 ) -> SearchPage:
+    filters = filters or SearchFilters()
+    cached_filters = cached_conditions(filters) if filters.active else []
+    filter_kwargs = {"filters": filters} if filters.active else {}
     source = await ensure_source(session)
     if not source.enabled:
         raise SourceError("source_disabled", "The official source is currently disabled.")
@@ -130,10 +136,14 @@ async def search_companies(
         metadata = await adapter.metadata()
         rows = await (
             adapter.search_by_nit(
-                nit.number, page_size + 1, offset, verification_digit=nit.verification_digit
+                nit.number,
+                page_size + 1,
+                offset,
+                verification_digit=nit.verification_digit,
+                **filter_kwargs,
             )
             if nit
-            else adapter.search_by_name(query, page_size + 1, offset)
+            else adapter.search_by_name(query, page_size + 1, offset, **filter_kwargs)
         )
         source.last_checked_at = datetime.now(UTC)
         stamp = metadata.get("rowsUpdatedAt")
@@ -168,6 +178,7 @@ async def search_companies(
                             Company.id.in_(cached),
                         )
                     )
+                    .where(*cached_filters)
                     .order_by(Company.normalized_name, Company.id)
                     .offset(offset)
                     .limit(page_size + 1)
@@ -210,7 +221,7 @@ async def search_companies(
         companies = list(
             await session.scalars(
                 select(Company)
-                .where(condition)
+                .where(condition, *cached_filters)
                 .order_by(Company.normalized_name, Company.id)
                 .offset(offset)
                 .limit(page_size + 1)

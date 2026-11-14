@@ -1,0 +1,685 @@
+{
+  "source_id": "rues-c82u-588k",
+  "source_url": "https://www.datos.gov.co/d/c82u-588k",
+  "verified_at": "2026-11-14T16:13:24.763942+00:00",
+  "dataset_updated_at": "2026-11-06T20:49:30+00:00",
+  "note": "Observed distinct source code/label pairs, not a separately certified taxonomy. Missing labels and unpadded codes are preserved. This versioned snapshot may lag publisher changes.",
+  "groups": [
+    {
+      "key": "status",
+      "title": "Registration status",
+      "code_field": "codigo_estado_matricula",
+      "label_field": "estado_matricula",
+      "description": "Status of this registration record, not proof of entity-wide legal standing. Distinct codes remain separate.",
+      "options": [
+        {
+          "value": "01",
+          "code": "01",
+          "label": "ACTIVA"
+        },
+        {
+          "value": "02",
+          "code": "02",
+          "label": "INACTIVA"
+        },
+        {
+          "value": "03",
+          "code": "03",
+          "label": "CANCELADA"
+        },
+        {
+          "value": "04",
+          "code": "04",
+          "label": "NO COMPETENCIA DE LA CAMARA"
+        },
+        {
+          "value": "05",
+          "code": "05",
+          "label": "NO ASIGNADO"
+        },
+        {
+          "value": "06",
+          "code": "06",
+          "label": "NO MATRICULADO"
+        },
+        {
+          "value": "07",
+          "code": "07",
+          "label": "MATRÍCULA NUEVA, CONSTITUCIÓN POR TRASLADO"
+        },
+        {
+          "value": "09",
+          "code": "09",
+          "label": "MATRÍCULA CANCELADA POR TRASLADO DE DOMICILIO"
+        },
+        {
+          "value": "10",
+          "code": "10",
+          "label": "MATRÍCULA CANCELADA POR FUSIÓN"
+        },
+        {
+          "value": "13",
+          "code": "13",
+          "label": "MATRÍCULA CANCELADA POR RECONSTITUCIÓN."
+        },
+        {
+          "value": "14",
+          "code": "14",
+          "label": "SIN ESTADO"
+        },
+        {
+          "value": "15",
+          "code": "15",
+          "label": "MATRÍCULA CANCELADA LEY 1429"
+        },
+        {
+          "value": "16",
+          "code": "16",
+          "label": "MATRICULA INACTIVA POR PERDIDA DE CALIDAD DE COMERCIANTE"
+        },
+        {
+          "value": "4",
+          "code": "4",
+          "label": null
+        },
+        {
+          "value": "__missing__",
+          "code": null,
+          "label": null
+        }
+      ]
+    },
+    {
+      "key": "chamber",
+      "title": "Chamber of Commerce",
+      "code_field": "codigo_camara",
+      "label_field": "camara_comercio",
+      "description": "Registering chamber. This does not establish the company’s municipality or department.",
+      "options": [
+        {
+          "value": "01",
+          "code": "01",
+          "label": "ARMENIA"
+        },
+        {
+          "value": "02",
+          "code": "02",
+          "label": "BARRANCABERMEJA"
+        },
+        {
+          "value": "03",
+          "code": "03",
+          "label": "BARRANQUILLA"
+        },
+        {
+          "value": "04",
+          "code": "04",
+          "label": "BOGOTA"
+        },
+        {
+          "value": "05",
+          "code": "05",
+          "label": "BUCARAMANGA"
+        },
+        {
+          "value": "06",
+          "code": "06",
+          "label": "BUENAVENTURA"
+        },
+        {
+          "value": "07",
+          "code": "07",
+          "label": "BUGA"
+        },
+        {
+          "value": "08",
+          "code": "08",
+          "label": "CALI"
+        },
+        {
+          "value": "09",
+          "code": "09",
+          "label": "CARTAGENA"
+        },
+        {
+          "value": "10",
+          "code": "10",
+          "label": "CARTAGO"
+        },
+        {
+          "value": "11",
+          "code": "11",
+          "label": "CUCUTA"
+        },
+        {
+          "value": "12",
+          "code": "12",
+          "label": "CHINCHINA"
+        },
+        {
+          "value": "13",
+          "code": "13",
+          "label": "DUITAMA"
+        },
+        {
+          "value": "14",
+          "code": "14",
+          "label": "GIRARDOT"
+        },
+        {
+          "value": "15",
+          "code": "15",
+          "label": "HONDA"
+        },
+        {
+          "value": "16",
+          "code": "16",
+          "label": "IBAGUE"
+        },
+        {
+          "value": "17",
+          "code": "17",
+          "label": "IPIALES"
+        },
+        {
+          "value": "18",
+          "code": "18",
+          "label": "LA DORADA"
+        },
+        {
+          "value": "19",
+          "code": "19",
+          "label": "MAGANGUE"
+        },
+        {
+          "value": "20",
+          "code": "20",
+          "label": "MANIZALES"
+        },
+        {
+          "value": "21",
+          "code": "21",
+          "label": "MEDELLIN PARA ANTIOQUIA"
+        },
+        {
+          "value": "22",
+          "code": "22",
+          "label": "MONTERIA"
+        },
+        {
+          "value": "23",
+          "code": "23",
+          "label": "HUILA"
+        },
+        {
+          "value": "24",
+          "code": "24",
+          "label": "PALMIRA"
+        },
+        {
+          "value": "25",
+          "code": "25",
+          "label": "PAMPLONA"
+        },
+        {
+          "value": "26",
+          "code": "26",
+          "label": "PASTO"
+        },
+        {
+          "value": "27",
+          "code": "27",
+          "label": "PEREIRA"
+        },
+        {
+          "value": "28",
+          "code": "28",
+          "label": "CAUCA"
+        },
+        {
+          "value": "29",
+          "code": "29",
+          "label": "CHOCÓ"
+        },
+        {
+          "value": "30",
+          "code": "30",
+          "label": "LA GUAJIRA"
+        },
+        {
+          "value": "31",
+          "code": "31",
+          "label": "SAN ANDRES"
+        },
+        {
+          "value": "32",
+          "code": "32",
+          "label": "SANTA MARTA PARA EL MAGDALENA"
+        },
+        {
+          "value": "33",
+          "code": "33",
+          "label": "SANTA ROSA DE CABAL"
+        },
+        {
+          "value": "34",
+          "code": "34",
+          "label": "SINCELEJO"
+        },
+        {
+          "value": "35",
+          "code": "35",
+          "label": "SOGAMOSO"
+        },
+        {
+          "value": "36",
+          "code": "36",
+          "label": "TULUA"
+        },
+        {
+          "value": "37",
+          "code": "37",
+          "label": "TUMACO"
+        },
+        {
+          "value": "38",
+          "code": "38",
+          "label": "TUNJA"
+        },
+        {
+          "value": "39",
+          "code": "39",
+          "label": "VALLEDUPAR"
+        },
+        {
+          "value": "40",
+          "code": "40",
+          "label": "VILLAVICENCIO"
+        },
+        {
+          "value": "41",
+          "code": "41",
+          "label": "FLORENCIA PARA EL CAQUETA"
+        },
+        {
+          "value": "42",
+          "code": "42",
+          "label": "AMAZONAS"
+        },
+        {
+          "value": "43",
+          "code": "43",
+          "label": "SEVILLA"
+        },
+        {
+          "value": "44",
+          "code": "44",
+          "label": "URABA"
+        },
+        {
+          "value": "45",
+          "code": "45",
+          "label": "SUR Y ORIENTE DEL TOLIMA"
+        },
+        {
+          "value": "46",
+          "code": "46",
+          "label": "PUTUMAYO"
+        },
+        {
+          "value": "47",
+          "code": "47",
+          "label": "FACATATIVA"
+        },
+        {
+          "value": "48",
+          "code": "48",
+          "label": "ARAUCA"
+        },
+        {
+          "value": "49",
+          "code": "49",
+          "label": "OCANA"
+        },
+        {
+          "value": "50",
+          "code": "50",
+          "label": "CASANARE"
+        },
+        {
+          "value": "51",
+          "code": "51",
+          "label": "ORIENTE ANTIOQUENO"
+        },
+        {
+          "value": "52",
+          "code": "52",
+          "label": "MAGDALENA MEDIO"
+        },
+        {
+          "value": "53",
+          "code": "53",
+          "label": "AGUACHICA"
+        },
+        {
+          "value": "54",
+          "code": "54",
+          "label": "DOSQUEBRADAS"
+        },
+        {
+          "value": "55",
+          "code": "55",
+          "label": "ABURRA SUR"
+        },
+        {
+          "value": "56",
+          "code": "56",
+          "label": "PIEDEMONTE ARAUCANO"
+        },
+        {
+          "value": "57",
+          "code": "57",
+          "label": "SAN JOSE"
+        },
+        {
+          "value": "58",
+          "code": "58",
+          "label": "SOACHA"
+        }
+      ]
+    },
+    {
+      "key": "organization",
+      "title": "Legal organization",
+      "code_field": "codigo_organizacion_juridica",
+      "label_field": "organizacion_juridica",
+      "description": "Legal organization reported by RUES. Labels are reproduced from the source, not inferred legal classifications.",
+      "options": [
+        {
+          "value": "00",
+          "code": "00",
+          "label": null
+        },
+        {
+          "value": "01",
+          "code": "01",
+          "label": "PERSONA NATURAL"
+        },
+        {
+          "value": "03",
+          "code": "03",
+          "label": "SOCIEDAD LIMITADA"
+        },
+        {
+          "value": "04",
+          "code": "04",
+          "label": "SOCIEDAD ANONIMA"
+        },
+        {
+          "value": "05",
+          "code": "05",
+          "label": "SOCIEDAD COLECTIVA"
+        },
+        {
+          "value": "06",
+          "code": "06",
+          "label": "SOCIEDAD EN COMANDITA SIMPLE"
+        },
+        {
+          "value": "07",
+          "code": "07",
+          "label": "SOCIEDAD EN COMANDITA POR ACCIONES"
+        },
+        {
+          "value": "08",
+          "code": "08",
+          "label": "SOCIEDAD EXTRANJERA"
+        },
+        {
+          "value": "09",
+          "code": "09",
+          "label": "EMPRESAS ASOCIATIVAS DE TRABAJO"
+        },
+        {
+          "value": "10",
+          "code": "10",
+          "label": "EMPRESAS UNIPERSONALES"
+        },
+        {
+          "value": "11",
+          "code": "11",
+          "label": "SOCIEDAD AGRARIA DE TRANSFORMACIÓN"
+        },
+        {
+          "value": "12",
+          "code": "12",
+          "label": "OTRAS SOCIEDADES"
+        },
+        {
+          "value": "13",
+          "code": "13",
+          "label": "EMPRESAS INDUSTRIALES Y COMERCIALES DEL ESTADO"
+        },
+        {
+          "value": "16",
+          "code": "16",
+          "label": "SOCIEDADES POR ACCIONES SIMPLIFICADAS SAS"
+        },
+        {
+          "value": "21",
+          "code": "21",
+          "label": "JUNTAS DE ACCION COMUNAL"
+        },
+        {
+          "value": "22",
+          "code": "22",
+          "label": "ENTIDADES DE NATURALEZA COOPERATIVA"
+        },
+        {
+          "value": "23",
+          "code": "23",
+          "label": "FONDO DE EMPLEADOS"
+        },
+        {
+          "value": "24",
+          "code": "24",
+          "label": "ASOCIACIONES MUTUALES"
+        },
+        {
+          "value": "25",
+          "code": "25",
+          "label": "INSTITUCIONES AUXILIARES DEL COOPERATIVISMO"
+        },
+        {
+          "value": "26",
+          "code": "26",
+          "label": "ENTIDADES AMBIENTALISTAS"
+        },
+        {
+          "value": "27",
+          "code": "27",
+          "label": "ENTIDADES CIENTÍFICAS, TECNOLÓGICAS, CULTURALES, E INVESTIGATIVAS"
+        },
+        {
+          "value": "28",
+          "code": "28",
+          "label": "ASOCIACIONES DE COPROPIETARIOS COARRENDATARIOS"
+        },
+        {
+          "value": "29",
+          "code": "29",
+          "label": "ASOCIACIONES AGROPECUARIAS Y CAMPESINAS NACIONALES Y NO NACIONALES"
+        },
+        {
+          "value": "30",
+          "code": "30",
+          "label": "ASOCIACIONES DE PADRES DE FAMILIA"
+        },
+        {
+          "value": "31",
+          "code": "31",
+          "label": "CORPORACIONES"
+        },
+        {
+          "value": "32",
+          "code": "32",
+          "label": "FUNDACIONES"
+        },
+        {
+          "value": "33",
+          "code": "33",
+          "label": "LAS DEMÁS ORGANIZACIONES CIVILES,CORPORACIONES,FUNDACIONES"
+        },
+        {
+          "value": "34",
+          "code": "34",
+          "label": "VEEDURIA"
+        },
+        {
+          "value": "35",
+          "code": "35",
+          "label": "ASOCIACIONES, CORPORACIONES, FUNDACIONES E INSTITUCIONES DE UTILIDAD COMÚN (GREMIALES, DE BENEFICENCIA; PROFESIONALES, JUVENILES, SOCIALES, DEMOCRÁTICAS Y PARTICIPATIVAS, CÍVICAS Y COMUNITARIAS, DE EGRESADOS, DE REHABILITACIÓN SOCIAL Y AYUDA A INDIGENTES Y CLUBES SOCIALES)."
+        },
+        {
+          "value": "36",
+          "code": "36",
+          "label": "ENTIDADES CUYO OBJETO SEA EL DESARROLLO DE PLANES Y PROGRAMAS DE VIVIENDA DE INTERÉS SOCIAL, EXCEPTO SI SE TRATA DE ENTIDADES SIN ÁNIMO DE LUCRO INTEGRADAS POR FAMILIAS INTERESADAS EN LA AUTOCONSTRUCCIÓN DE SUS VIVIENDAS."
+        },
+        {
+          "value": "37",
+          "code": "37",
+          "label": "ASOCIACIONES DE INSTITUCIONES EDUCATIVAS."
+        },
+        {
+          "value": "38",
+          "code": "38",
+          "label": "ASOCIACIONES SIN ÁNIMO DE LUCRO O DE ECONOMÍA SOLIDARIA FORMADAS POR PADRES DE FAMILIA Y EDUCADORES."
+        },
+        {
+          "value": "39",
+          "code": "39",
+          "label": "CORPORACIONES, ASOCIACIONES Y FUNDACIONES CREADAS PARA ADELANTAR ACTIVIDADES EN COMUNIDADES INDÍGENAS."
+        },
+        {
+          "value": "40",
+          "code": "40",
+          "label": "COOPERATIVAS, FEDERACIONES Y CONFEDERACIONES, INSTITUCIONES AUXILIARES DE LA ECONOMÍA SOLIDARIA Y PRECOOPERATIVAS."
+        },
+        {
+          "value": "41",
+          "code": "41",
+          "label": "EMPRESAS DE SERVICIOS EN LAS FORMAS DE ADMINISTRACIONES PÚBLICAS COOPERATIVAS."
+        },
+        {
+          "value": "42",
+          "code": "42",
+          "label": "ORGANIZACIONES POPULARES DE VIVIENDA."
+        },
+        {
+          "value": "43",
+          "code": "43",
+          "label": "ORGANIZACIONES EXTRANJERAS NO GUBERNAMENTALES CON DOMICILIO EN EL EXTERIOR."
+        },
+        {
+          "value": "44",
+          "code": "44",
+          "label": "ASOCIACIÓN CAMPESINA NACIONAL"
+        },
+        {
+          "value": "45",
+          "code": "45",
+          "label": "ASOCIACIÓN CAMPESINA TERRITORIAL DEPARTAMENTAL"
+        },
+        {
+          "value": "46",
+          "code": "46",
+          "label": "ASOCIACIÓN CAMPESINA TERRITORIAL REGIONAL"
+        },
+        {
+          "value": "47",
+          "code": "47",
+          "label": "ASOCIACIÓN CAMPESINA TERRITORIAL MUNICIPAL"
+        },
+        {
+          "value": "48",
+          "code": "48",
+          "label": "ASOCIACIÓN CAMPESINA TERRITORIAL DISTRITAL"
+        },
+        {
+          "value": "49",
+          "code": "49",
+          "label": "ASOCIACIÓN AGROPECUARIA NACIONAL"
+        },
+        {
+          "value": "50",
+          "code": "50",
+          "label": "ASOCIACIÓN AGROPECUARIA TERRITORIAL DEPARTAMENTAL"
+        },
+        {
+          "value": "51",
+          "code": "51",
+          "label": "ASOCIACIÓN AGROPECUARIA TERRITORIAL REGIONAL"
+        },
+        {
+          "value": "52",
+          "code": "52",
+          "label": "ASOCIACIÓN AGROPECUARIA TERRITORIAL MUNICIPAL"
+        },
+        {
+          "value": "53",
+          "code": "53",
+          "label": "ASOCIACIÓN AGROPECUARIA TERRITORIAL DISTRITAL"
+        },
+        {
+          "value": "54",
+          "code": "54",
+          "label": "FEDERACIÓN O CONFEDERACIÓN DE ASOCIACIONES CAMPESINAS DE PRIMER GRADO"
+        },
+        {
+          "value": "55",
+          "code": "55",
+          "label": "FEDERACIÓN O CONFEDERACIÓN DE ASOCIACIONES CAMPESINAS DE PRIMER GRADO CON CONDICIÓN ESPECIAL (Parágrafo 2 del artículo 5 Ley 2219 de 2022)"
+        },
+        {
+          "value": "56",
+          "code": "56",
+          "label": "FEDERACIÓN O CONFEDERACIÓN DE ASOCIACIONES CAMPESINAS DE SEGUNDO GRADO"
+        },
+        {
+          "value": "58",
+          "code": "58",
+          "label": "FEDERACIÓN O CONFEDERACIÓN DE ASOCIACIONES AGROPECUARIAS DE PRIMER GRADO"
+        },
+        {
+          "value": "59",
+          "code": "59",
+          "label": "FEDERACIÓN O CONFEDERACIÓN DE ASOCIACIONES AGROPECUARIAS DE PRIMER GRADO CON CONDICIÓN ESPECIAL (Parágrafo 2 del artículo 5 Ley 2219 de 2022)"
+        },
+        {
+          "value": "60",
+          "code": "60",
+          "label": "FEDERACIÓN O CONFEDERACIÓN DE ASOCIACIONES AGROPECUARIAS DE SEGUNDO GRADO"
+        }
+      ]
+    },
+    {
+      "key": "category",
+      "title": "Registration category",
+      "code_field": "codigo_categoria_matricula",
+      "label_field": "categoria_matricula",
+      "description": "Source registration category. The reported labels distinguish natural persons from principal legal entities or ESALs; this is not an ownership classification.",
+      "options": [
+        {
+          "value": "00",
+          "code": "00",
+          "label": "PERSONA NATURAL"
+        },
+        {
+          "value": "01",
+          "code": "01",
+          "label": "SOCIEDAD ó PERSONA JURIDICA PRINCIPAL ó ESAL"
+        }
+      ]
+    }
+  ]
+}

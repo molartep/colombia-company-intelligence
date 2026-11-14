@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { SearchButton } from './SearchButton'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 export function SearchForm({
   initial = '',
   onSearch,
   disabled = false,
+  children,
 }: {
+  children?: ReactNode
   initial?: string
   onSearch: (value: string) => void
   disabled?: boolean
@@ -44,10 +47,9 @@ export function SearchForm({
           autoComplete="off"
           required
         />
-        <button type="submit" disabled={disabled}>
-          Search <span aria-hidden="true">↗</span>
-        </button>
+        <SearchButton disabled={disabled} />
       </div>
+      {children}
     </form>
   )
 }

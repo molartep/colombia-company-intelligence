@@ -106,3 +106,13 @@ Space-insensitive full-name matches are `normalized_name`; substring matches are
 with explicit evidence. Different entities with colliding compact names remain distinct candidates.
 Migration `a4e58b192f70` adds expression indexes for existing company/alias names without a backfill
 or data rewrite. The source query remains one bounded request, not a fan-out of guessed word splits.
+
+
+Advanced source predicates live in `integrations/rues/filtering.py`; validated request schemas are
+in `schemas/filters.py`. The source adapter combines predicates before global ordering and pagination.
+`services/cached_filters.py` applies equivalent parameterized predicates against the latest JSONB
+source record before cached pagination. No migration is required. The privacy-safe versioned
+parameter catalog is bundled with the application, exposed through `/api/v1/parameters`, and
+refreshed explicitly through bounded aggregation queries. It introduces no normal-search fan-out.
+Frontend draft filters are separate from applied URL values; cache keys contain canonical applied
+filters, and page/profile navigation preserves them. See `advanced-filters.md` for query semantics.
