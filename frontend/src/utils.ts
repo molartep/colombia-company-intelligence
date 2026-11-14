@@ -27,3 +27,16 @@ export function requiresTimestampReview(value: string): boolean {
   // Check the encoded source date so the flag does not depend on the viewer's timezone.
   return value.trim().startsWith('1900-01-01')
 }
+
+export function searchReturnPath(state: unknown): string {
+  if (
+    state &&
+    typeof state === 'object' &&
+    'returnTo' in state &&
+    typeof state.returnTo === 'string'
+  ) {
+    // Navigation state may only restore this app's search route.
+    if (state.returnTo === '/' || state.returnTo.startsWith('/?')) return state.returnTo
+  }
+  return '/'
+}

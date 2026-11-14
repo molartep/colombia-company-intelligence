@@ -107,6 +107,8 @@ async def test_end_to_end_and_pagination(session, record, metadata):
                 assert len(data["items"]) == 2 and data["has_more"]
                 assert data["items"][0]["match_type"] == "exact_nit"
                 assert data["items"][0]["chamber"] == "SYNTHETIC CHAMBER"
+                assert data["items"][0]["registration_date"] == "20200115"
+                assert data["items"][0]["renewal_date"] == "20250120"
                 company_id = data["items"][0]["id"]
                 profile = (await client.get(f"/api/v1/companies/{company_id}")).json()
                 assert profile["primary_ciiu"] == "0011"
@@ -236,3 +238,32 @@ async def test_spacing_variants_live_cache_pagination_and_aliases(session, recor
         renamed = next(i for i in cached.items if i.id == first.items[0].id)
         assert renamed.legal_name == "RENAMED SYNTHETIC SAS"
         assert renamed.match_type == "unresolved"  # An alias is not the current legal name.
+
+
+async def test_search_dates_use_latest_source_record_without_filling_missing_values(
+    session, record, metadata
+):
+    from app.services.companies import search_companies
+
+    row = dict(record)
+    async with httpx.AsyncClient(
+        transport=httpx.MockTransport(
+            lambda r: httpx.Response(200, json=metadata if "/api/views/" in r.url.path else [row])
+        )
+    ) as http:
+        source = RuesDataSource(SocrataClient(http, retries=0))
+        first = await search_companies(session, source, "SYNTHETIC", None, 1, 20)
+        assert first.items[0].registration_date == "20200115"
+        assert first.items[0].renewal_date == "20250120"
+        row.pop("fecha_matricula")
+        row["fecha_renovacion"] = ""
+        row["ultimo_ano_renovado"] = "2025"  # Never substitute a renewal year for a date.
+        latest = await search_companies(session, source, "SYNTHETIC", None, 1, 20)
+        assert latest.items[0].id == first.items[0].id
+        assert latest.items[0].registration_date is None
+        assert latest.items[0].renewal_date is None
+        source.metadata = AsyncMock(side_effect=SourceError("source_timeout", "Synthetic outage"))
+        cached = await search_companies(session, source, "compania", None, 1, 20)
+        assert cached.stale
+        assert cached.items[0].registration_date is None
+        assert cached.items[0].renewal_date is None

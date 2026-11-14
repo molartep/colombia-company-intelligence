@@ -12,8 +12,14 @@ export function ReviewValue({ value }: { value: string }) {
   )
 }
 
-export function RegistrationDate({ value }: { value: string | null }) {
-  if (!value?.trim()) return <MissingValue />
+export function RegistrationDate({
+  value,
+  blankIfMissing = false,
+}: {
+  value: string | null
+  blankIfMissing?: boolean
+}) {
+  if (!value?.trim()) return blankIfMissing ? null : <MissingValue />
   const formatted = registrationDate(value)
   return formatted ? (
     <time dateTime={formatted.iso}>{formatted.display}</time>

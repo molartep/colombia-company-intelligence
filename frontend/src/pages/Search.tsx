@@ -1,18 +1,25 @@
-import { useQuery } from '@tanstack/react-query'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { Failure, SearchLoadingDialog } from '../components/Feedback'
 import { RegistrationStatus } from '../components/RegistrationStatus'
 import { SearchForm } from '../components/SearchForm'
+import { RegistrationDate } from '../components/FieldValues'
 
 export function Search() {
   const [params, setParams] = useSearchParams()
+  const location = useLocation()
+  const queryClient = useQueryClient()
+  const navigationState = { returnTo: `/${location.search}` }
   const q = params.get('q') ?? ''
   const page = Math.min(100, Math.max(1, Number(params.get('page')) || 1))
   const results = useQuery({
     queryKey: ['search', q, page],
     queryFn: ({ signal }) => api.search(q, page, signal),
     enabled: q.trim().length >= 2,
+    // Restore visited pages without a new request when returning from a profile.
+    gcTime: 30 * 60_000,
+    refetchOnMount: false,
   })
   return (
     <>
@@ -31,7 +38,11 @@ export function Search() {
           disabled={results.isFetching}
           onSearch={(value) => {
             if (value === q && page === 1) void results.refetch()
-            else setParams({ q: value, page: '1' })
+            else {
+              // Explicit submission refreshes even a previously cached search.
+              queryClient.removeQueries({ queryKey: ['search', value, 1], exact: true })
+              setParams({ q: value, page: '1' })
+            }
           }}
         />
         <div className="source-line">
@@ -77,6 +88,8 @@ export function Search() {
                           <th scope="col">Legal entity</th>
                           <th scope="col">NIT</th>
                           <th scope="col">Registration status</th>
+                          <th scope="col">Registration date</th>
+                          <th scope="col">Renewal date</th>
                           <th>
                             <span className="sr-only">Open profile</span>
                           </th>
@@ -86,7 +99,11 @@ export function Search() {
                         {results.data.items.map((company) => (
                           <tr key={company.id}>
                             <td>
-                              <Link className="company-link" to={`/companies/${company.id}`}>
+                              <Link
+                                className="company-link"
+                                to={`/companies/${company.id}`}
+                                state={navigationState}
+                              >
                                 {company.legal_name}
                               </Link>
                               <div className="muted small mt-1">
@@ -98,7 +115,7 @@ export function Search() {
                               )}
                             </td>
                             <td className="nit-cell">
-                              {company.nit ?? 'Missing from record'}
+                              {company.nit ?? ''}
                               {company.nit && company.verification_digit
                                 ? `-${company.verification_digit}`
                                 : ''}
@@ -106,10 +123,17 @@ export function Search() {
                             <td>
                               <RegistrationStatus status={company.registration_status} />
                             </td>
+                            <td className="date-cell">
+                              <RegistrationDate value={company.registration_date} blankIfMissing />
+                            </td>
+                            <td className="date-cell">
+                              <RegistrationDate value={company.renewal_date} blankIfMissing />
+                            </td>
                             <td>
                               <Link
                                 aria-label={`View ${company.legal_name}`}
                                 to={`/companies/${company.id}`}
+                                state={navigationState}
                               >
                                 ↗
                               </Link>

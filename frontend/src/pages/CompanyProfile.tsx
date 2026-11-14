@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { Failure, Loading } from '../components/Feedback'
-import { label } from '../utils'
+import { label, searchReturnPath } from '../utils'
 import { RegistrationStatus } from '../components/RegistrationStatus'
 import { MissingValue, RegistrationDate, TimestampValue } from '../components/FieldValues'
 
 export function CompanyProfile() {
   const { id = '' } = useParams()
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams()
+  const location = useLocation()
+  const returnTo = searchReturnPath(location.state)
   const tab = params.get('tab') === 'sources' ? 'sources' : 'overview'
   const [copyStatus, setCopyStatus] = useState('')
   const company = useQuery({
@@ -26,7 +28,7 @@ export function CompanyProfile() {
   const data = company.data
   return (
     <section className="profile">
-      <Link className="back-link" to="/">
+      <Link className="back-link" to={returnTo}>
         ← Company search
       </Link>
       <div className="profile-heading">
@@ -42,7 +44,7 @@ export function CompanyProfile() {
                   {data.verification_digit ? `-${data.verification_digit}` : ''}
                 </span>
               ) : (
-                <MissingValue muted />
+                <MissingValue />
               )}
             </span>
             {data.nit && (
@@ -59,34 +61,33 @@ export function CompanyProfile() {
                 Copy
               </button>
             )}
+            <span role="status" className="small">
+              {copyStatus}
+            </span>
+          </div>
+          <div className="profile-status">
+            Status:{' '}
             {data.registration_status?.trim() ? (
               <RegistrationStatus status={data.registration_status} />
             ) : (
               <MissingValue />
             )}
-            <span role="status" className="small">
-              {copyStatus}
-            </span>
           </div>
         </div>
-        <span className="source-seal">
-          RUES
-          <br />
-          <small>OFFICIAL SOURCE</small>
-        </span>
       </div>
       <nav className="tabs" aria-label="Company sections">
         <Link
           aria-current={tab === 'overview' ? 'page' : undefined}
           to="?tab=overview"
-          onClick={(event) => {
-            event.preventDefault()
-            setParams({ tab: 'overview' })
-          }}
+          state={{ returnTo }}
         >
           Overview
         </Link>
-        <Link aria-current={tab === 'sources' ? 'page' : undefined} to="?tab=sources">
+        <Link
+          aria-current={tab === 'sources' ? 'page' : undefined}
+          to="?tab=sources"
+          state={{ returnTo }}
+        >
           Sources
         </Link>
         <span>
@@ -245,7 +246,7 @@ export function CompanyProfile() {
                   <dd className="hash">{record.payload_hash}</dd>
                 </div>
               </dl>
-              <details>
+              <details className="record-fields">
                 <summary>Public fields & field mappings</summary>
                 <dl>
                   {Object.entries(record.fields).map(([key, value]) => (

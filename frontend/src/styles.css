@@ -376,18 +376,6 @@ footer {
   padding: 4px 10px;
   font-size: 11px;
 }
-.source-seal {
-  font-size: 19px;
-  letter-spacing: 0.1em;
-  padding: 20px;
-  text-align: center;
-  border: 1px solid #b6c8ba;
-  color: #5a7c64;
-}
-.source-seal small {
-  font-size: 8px;
-  letter-spacing: 0.05em;
-}
 .tabs {
   display: flex;
   overflow-x: auto;
@@ -528,9 +516,6 @@ details dl {
     grid-template-columns: 1fr;
     gap: 0;
   }
-  .source-seal {
-    display: none;
-  }
   .panel {
     padding: 20px;
   }
@@ -652,4 +637,19 @@ details dl {
 }
 .availability-dot--unavailable {
   background: #b91c1c;
+}
+
+.profile-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 13px;
+}
+.record-fields {
+  margin-top: 22px;
+}
+
+.date-cell {
+  white-space: nowrap;
 }

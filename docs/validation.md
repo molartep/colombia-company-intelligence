@@ -11,11 +11,11 @@ Unix socket; it is a local validation aid, not an application dependency or a co
   no personal raw records committed.
 - `make smoke`: actual adapter metadata validation plus one bounded exact-NIT and one bounded name
   request; both returned valid official records with source row IDs.
-- **66 backend tests passed**, including real PostgreSQL persistence, separate registration IDs,
+- **67 backend tests passed**, including real PostgreSQL persistence, separate registration IDs,
   payload-version deduplication, foreign-key relationships, pagination, API profile/source routes,
   public-field filtering, cached normalized-name matching, source failure behavior, and migration
   upgrade → downgrade → re-upgrade → Alembic model-drift check.
-- **23 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
+- **25 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
   states, empty results, and company profile/unchecked attribute rendering.
 - Ruff lint and format checks; strict mypy on `app`; ESLint and strict TypeScript.
 - Vite production bundle; Python backend wheel packaging.
@@ -97,3 +97,18 @@ calendar-date formatting, leap years, impossible dates, zero/year-9999 date plac
 1900-01-01 RUES timestamps in different offset forms. All 23 frontend tests, ESLint, strict TypeScript,
 and the production build passed. The existing cached registration profile was also checked in the
 browser in Overview and Sources; raw source values and backend records remain unchanged.
+
+
+Profile-navigation checks cover both result links (legal name and arrow), preserving query/page
+through Sources and Overview, restoring an already-stale cached search without a network request,
+and explicitly submitting a cached search to fetch fresh results. All 25 frontend tests, ESLint,
+strict TypeScript, and the production build passed. The header status now occupies a separate
+labeled line beneath NIT, the RUES seal card is removed, and source-record field disclosures have
+additional separation from the preceding metadata.
+
+
+Search-date columns are supplied by the existing latest-source-record query, without additional
+upstream calls. Backend regression coverage confirms dates come from the latest version and that
+missing/empty values remain null, including cached fallback; older dates and renewal years are not
+substituted. Frontend coverage checks both formatted date columns, truly empty cells for missing
+NIT/dates, and a red missing-NIT pill in the profile. All 67 backend and 25 frontend tests passed.

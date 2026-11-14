@@ -164,9 +164,13 @@ Profiles are cached evidence: they do not silently refresh against RUES when ope
 ## Frontend
 
 The home page provides a submit-only, keyboard-accessible NIT/name search, loading/error/empty states,
-a responsive candidate table, and pagination. Selecting a UUID opens Overview and Sources sections.
+a responsive candidate table, and pagination. Search results include registration and renewal dates;
+missing NITs and dates display as blank cells. Selecting a UUID opens Overview and Sources sections.
+Profile navigation preserves the originating search query and page through Overview and Sources.
+The back link restores cached search results without an automatic request; inactive search pages
+are cached in memory for 30 minutes. Submitting Search explicitly fetches fresh results.
 Overview includes identity, CIIU code, formatted registration dates, a copy-NIT button, freshness,
-and attribute availability. Missing fields use red pills (missing NIT uses grey), while placeholder
+and attribute availability. Missing profile fields, including NIT, use red pills, while placeholder
 or invalid dates use orange Review pills. Sources includes official links, safe public fields, source row IDs, mappings in the
 API, and payload hashes. Future sections are marked coming later. No financial or screening results
 are fabricated. The UI is in English; official company names and labels retain their source spelling.

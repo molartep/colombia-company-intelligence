@@ -13,6 +13,8 @@ export interface SearchItem extends Company {
   registration_number: string | null
   chamber: string | null
   chamber_code: string | null
+  registration_date: string | null
+  renewal_date: string | null
   match_type: 'exact_nit' | 'exact_legal_name' | 'normalized_name' | 'partial_name' | 'unresolved'
   evidence: string[]
   data_source: string

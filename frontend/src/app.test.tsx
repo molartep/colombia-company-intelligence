@@ -7,11 +7,13 @@ import { Search } from './pages/Search'
 import { CompanyProfile } from './pages/CompanyProfile'
 import { vi } from 'vitest'
 
-function wrapper(node: React.ReactNode, path = '/') {
+function wrapper(
+  node: React.ReactNode,
+  path = '/',
+  client = new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+) {
   return render(
-    <QueryClientProvider
-      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
-    >
+    <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[path]}>{node}</MemoryRouter>
     </QueryClientProvider>,
   )
@@ -78,6 +80,8 @@ test('renders official result and profile link', async () => {
         nit: '000123456',
         verification_digit: '7',
         registration_status: 'ACTIVA',
+        registration_date: '20200115',
+        renewal_date: '20240229',
         match_type: 'exact_nit',
       },
     ],
@@ -94,10 +98,19 @@ test('renders official result and profile link', async () => {
     within(table)
       .getAllByRole('columnheader')
       .map((heading) => heading.textContent),
-  ).toEqual(['Legal entity', 'NIT', 'Registration status', 'Open profile'])
+  ).toEqual([
+    'Legal entity',
+    'NIT',
+    'Registration status',
+    'Registration date',
+    'Renewal date',
+    'Open profile',
+  ])
   const legalEntityCell = screen.getByText('SYNTHETIC ANDINA SAS').closest('td')!
   expect(legalEntityCell).not.toHaveTextContent('000123456')
   expect(within(table).getByRole('cell', { name: '000123456-7' })).toBeVisible()
+  expect(within(table).getByRole('cell', { name: 'Jan 15, 2020' })).toBeVisible()
+  expect(within(table).getByRole('cell', { name: 'Feb 29, 2024' })).toBeVisible()
   expect(within(table).getByText('ACTIVA')).toHaveClass('registration-status--active')
   expect(screen.getByRole('button', { name: /Next/ })).toBeDisabled()
 })
@@ -142,6 +155,10 @@ test('profile displays available data and unchecked attributes', async () => {
   )
   expect(await screen.findByRole('heading', { name: 'SYNTHETIC ANDINA SAS' })).toBeVisible()
   expect(screen.getByText('0011')).toBeVisible()
+  expect(screen.getByText('Status:').closest('.profile-status')).toHaveTextContent('ACTIVA')
+  expect(screen.getByText('NIT:').closest('.identity-line')).not.toHaveTextContent('ACTIVA')
+  expect(screen.queryByText('OFFICIAL SOURCE')).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { name: '← Company search' })).toHaveAttribute('href', '/')
   expect(screen.getByText('SYNTHETIC CHAMBER')).toBeVisible()
   expect(screen.getByRole('link', { name: 'Sources' })).toHaveAttribute(
     'href',
@@ -158,7 +175,9 @@ test('results use the requested registration status colors and preserve missing 
       id: `synthetic-status-${i}`,
       legal_name: `SYNTHETIC STATUS COMPANY ${i}`,
       nit: null,
-      verification_digit: null,
+      verification_digit: '0',
+      registration_date: null,
+      renewal_date: null,
       registration_status: status,
     })),
     page: 1,
@@ -170,7 +189,10 @@ test('results use the requested registration status colors and preserve missing 
   expect(within(table).getByText('NO ASIGNADO')).toHaveClass('registration-status--unassigned')
   expect(within(table).getByText('EN LIQUIDACION')).toHaveClass('registration-status--other')
   for (const row of within(table).getAllByRole('row').slice(1)) {
-    expect(within(row).getAllByRole('cell')[1]).toHaveTextContent('Missing from record')
+    const cells = within(row).getAllByRole('cell')
+    expect(cells[1]).toBeEmptyDOMElement()
+    expect(cells[3]).toBeEmptyDOMElement()
+    expect(cells[4]).toBeEmptyDOMElement()
   }
 })
 
@@ -201,7 +223,7 @@ test('profile uses status colors, missing pills, readable dates and review flags
   )
   await screen.findByRole('heading', { name: 'SYNTHETIC ANDINA SAS' })
   const nit = screen.getByText('NIT:').closest('.profile-nit')!
-  expect(within(nit as HTMLElement).getByText('Missing')).toHaveClass('value-pill--muted')
+  expect(within(nit as HTMLElement).getByText('Missing')).toHaveClass('value-pill--missing')
   expect(nit).not.toHaveTextContent('-0')
   expect(screen.queryByRole('button', { name: 'Copy NIT' })).not.toBeInTheDocument()
   expect(screen.getByText('CANCELADA')).toHaveClass('registration-status--cancelled')
@@ -270,3 +292,71 @@ test('Sources shows availability dots and flags placeholder record updates', asy
     'value-pill--review',
   )
 })
+
+it.each(['name', 'arrow'])(
+  'restores the cached search page after navigating profile tabs via the %s link',
+  async (link) => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0 } } })
+    const query = 'SYNTHETIC COMPANY'
+    const cached = {
+      items: [{ ...profileFixture, match_type: 'partial_name' }],
+      page: 3,
+      page_size: 20,
+      has_more: true,
+      stale: false,
+    }
+    client.setQueryData(['search', query, 3], cached, { updatedAt: Date.now() - 120_000 })
+    client.setQueryData(['search', query, 1], { ...cached, page: 1 })
+    const fetchMock = vi.fn(async (url: string) => ({
+      ok: true,
+      json: async () => {
+        if (url.startsWith('/api/v1/companies?'))
+          return {
+            ...cached,
+            page: 1,
+            items: [{ ...cached.items[0], legal_name: 'SYNTHETIC REFRESHED SAS' }],
+          }
+        return url.endsWith('/sources') ? [] : profileFixture
+      },
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    wrapper(
+      <Routes>
+        <Route path="/" element={<Search />} />
+        <Route path="/companies/:id" element={<CompanyProfile />} />
+      </Routes>,
+      '/?q=SYNTHETIC+COMPANY&page=3',
+      client,
+    )
+    expect(screen.getByRole('table')).toBeVisible()
+    expect(fetchMock).not.toHaveBeenCalled()
+    await userEvent.click(
+      screen.getByRole('link', {
+        name: link === 'name' ? 'SYNTHETIC ANDINA SAS' : 'View SYNTHETIC ANDINA SAS',
+      }),
+    )
+    await screen.findByRole('heading', { name: 'SYNTHETIC ANDINA SAS' })
+    await userEvent.click(screen.getByRole('link', { name: 'Sources' }))
+    await screen.findByRole('heading', { name: 'Records & provenance' })
+    expect(screen.getByRole('link', { name: '← Company search' })).toHaveAttribute(
+      'href',
+      '/?q=SYNTHETIC+COMPANY&page=3',
+    )
+    await userEvent.click(screen.getByRole('link', { name: 'Overview' }))
+    await userEvent.click(screen.getByRole('link', { name: '← Company search' }))
+    expect(screen.getByRole('table')).toBeVisible()
+    expect(screen.getByLabelText('Company name or NIT')).toHaveValue(query)
+    expect(screen.getByText('Page 3', { exact: true })).toBeVisible()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(
+      fetchMock.mock.calls.filter(([url]) => url.startsWith('/api/v1/companies?')),
+    ).toHaveLength(0)
+    // A deliberate new submission must still fetch, even when page 1 is already cached.
+    await userEvent.click(screen.getByRole('button', { name: /Search/ }))
+    expect(await screen.findByText('SYNTHETIC REFRESHED SAS')).toBeVisible()
+    expect(
+      fetchMock.mock.calls.filter(([url]) => url.startsWith('/api/v1/companies?')),
+    ).toHaveLength(1)
+    client.clear()
+  },
+)

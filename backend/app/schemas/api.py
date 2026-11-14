@@ -49,6 +49,8 @@ class SearchItem(CompanyView):
     registration_number: str | None = None
     chamber: str | None = None
     chamber_code: str | None = None
+    registration_date: str | None = None
+    renewal_date: str | None = None
     match_type: MatchType
     evidence: list[str]
     data_source: str

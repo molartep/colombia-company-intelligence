@@ -270,6 +270,8 @@ async def search_companies(
                     "registration_number": registration.get("matricula"),
                     "chamber": registration.get("camara_comercio"),
                     "chamber_code": registration.get("codigo_camara"),
+                    "registration_date": registration.get("fecha_matricula") or None,
+                    "renewal_date": registration.get("fecha_renovacion") or None,
                     "match_type": match_type,
                     "evidence": evidence,
                     "data_source": SOURCE_ID,
