@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { SearchForm } from './components/SearchForm'
 import { Search } from './pages/Search'
 import { CompanyProfile } from './pages/CompanyProfile'
+import { SiteHeader } from './components/SiteHeader'
 import { vi } from 'vitest'
 
 function wrapper(
@@ -360,3 +361,34 @@ it.each(['name', 'arrow'])(
     client.clear()
   },
 )
+
+test('home uses the custom logo and correct accessible social profile links', () => {
+  wrapper(
+    <>
+      <SiteHeader />
+      <Search />
+    </>,
+  )
+  expect(screen.queryByText(/A clearer view of/)).not.toBeInTheDocument()
+  expect(screen.queryByText(/Start with identity/)).not.toBeInTheDocument()
+  expect(screen.getByRole('img', { name: /Colombia outline/ })).toHaveAttribute(
+    'src',
+    '/colombia-network-logo.png',
+  )
+  expect(screen.getByRole('link', { name: 'Colombia Company Intelligence home' })).toHaveAttribute(
+    'href',
+    '/',
+  )
+  const social = screen.getByRole('navigation', { name: 'Social media' })
+  expect(within(social).getByRole('link', { name: 'Martin Olarte on GitHub' })).toHaveAttribute(
+    'href',
+    'https://github.com/molartep',
+  )
+  const linkedIn = within(social).getByRole('link', { name: 'Martin Olarte on LinkedIn' })
+  expect(linkedIn).toHaveAttribute('href', 'https://www.linkedin.com/in/martin-olarte-pallares/')
+  for (const link of within(social).getAllByRole('link')) {
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  }
+  expect(screen.getByLabelText('Company name or NIT')).toBeVisible()
+})

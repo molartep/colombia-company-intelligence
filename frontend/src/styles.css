@@ -40,9 +40,11 @@ input {
   outline-offset: 4px;
 }
 .header {
-  padding: 25px 5%;
-  border-bottom: 1px solid #dce3df;
-  background: #fff;
+  padding: 26px 5%;
+  min-height: 194px;
+  border-bottom: 1px solid #242424;
+  background: #000;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -51,34 +53,54 @@ input {
 .brand {
   display: flex;
   align-items: center;
-  gap: 13px;
-  font-size: 15px;
+  gap: 24px;
+  font-size: 21px;
   font-weight: 700;
   letter-spacing: 0.1em;
 }
-.brand-icon {
-  background: #14363c;
-  color: white;
-  border-radius: 9px;
-  font-size: 25px;
-  padding: 5px 10px;
-  letter-spacing: -0.1em;
-}
-.brand-icon span {
-  color: #b2d3a5;
-  font-size: 18px;
+.brand-logo {
+  display: block;
+  width: 128px;
+  height: 144px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .brand-sub {
   display: block;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.15em;
-  margin-top: 3px;
+  margin-top: 8px;
 }
-.header-right {
+.social-links {
   display: flex;
-  gap: 25px;
   align-items: center;
-  font-size: 12px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.social-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #fff;
+  border-radius: 9px;
+  background: transparent;
+  color: #fff;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.social-button svg {
+  width: 19px;
+  height: 19px;
+}
+.social-button:hover {
+  background: #242424;
+  border-color: #fff;
+}
+.header a:focus-visible {
+  outline-color: #fff;
 }
 main {
   max-width: 1300px;
@@ -87,7 +109,7 @@ main {
   min-height: 75vh;
 }
 .hero {
-  padding: 75px 0 60px;
+  padding: 48px 0 44px;
   max-width: 840px;
 }
 .eyebrow {
@@ -124,7 +146,7 @@ h1 em {
   line-height: 1.8;
 }
 .search-form {
-  margin-top: 33px;
+  margin-top: 0;
 }
 .search-form label {
   font-size: 12px;
@@ -151,9 +173,16 @@ h1 em {
   flex: 1;
   border: 0;
   outline-offset: 0;
-  padding: 12px 0;
+  padding: 12px 18px 12px 0;
   font-size: 15px;
   background: white;
+}
+.search-control input:focus {
+  outline: none;
+  box-shadow: none;
+}
+.search-control:focus-within {
+  border-color: #7b858a;
 }
 .search-control button {
   background: #183e40;
@@ -474,18 +503,33 @@ details dl {
 @media (max-width: 700px) {
   .header {
     padding: 20px 5%;
-  }
-  .header-right .badge {
-    display: none;
+    min-height: 128px;
+    gap: 12px;
   }
   .brand {
+    gap: 12px;
     font-size: 12px;
+  }
+  .brand-logo {
+    width: 72px;
+    height: 88px;
+  }
+  .social-links {
+    gap: 6px;
+  }
+  .social-button {
+    width: 34px;
+    height: 34px;
+  }
+  .social-button svg {
+    width: 17px;
+    height: 17px;
   }
   .brand-sub {
     font-size: 7px;
   }
   .hero {
-    padding: 48px 0 38px;
+    padding: 32px 0 36px;
   }
   .hero-description {
     font-size: 14px;
@@ -652,4 +696,19 @@ details dl {
 
 .date-cell {
   white-space: nowrap;
+}
+
+@media (max-width: 380px) {
+  .brand {
+    gap: 8px;
+    font-size: 11px;
+  }
+  .brand-sub {
+    font-size: 6px;
+    letter-spacing: 0.1em;
+  }
+  .brand-logo {
+    width: 58px;
+    height: 78px;
+  }
 }

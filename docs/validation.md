@@ -15,7 +15,7 @@ Unix socket; it is a local validation aid, not an application dependency or a co
   payload-version deduplication, foreign-key relationships, pagination, API profile/source routes,
   public-field filtering, cached normalized-name matching, source failure behavior, and migration
   upgrade → downgrade → re-upgrade → Alembic model-drift check.
-- **25 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
+- **26 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
   states, empty results, and company profile/unchecked attribute rendering.
 - Ruff lint and format checks; strict mypy on `app`; ESLint and strict TypeScript.
 - Vite production bundle; Python backend wheel packaging.
@@ -112,3 +112,10 @@ upstream calls. Backend regression coverage confirms dates come from the latest 
 missing/empty values remain null, including cached fallback; older dates and renewal years are not
 substituted. Frontend coverage checks both formatted date columns, truly empty cells for missing
 NIT/dates, and a red missing-NIT pill in the profile. All 67 backend and 25 frontend tests passed.
+
+
+Home branding checks confirm the old headline/description are removed, the custom transparent
+Colombia network logo is used, and accessible GitHub/LinkedIn icon links point to the requested
+personal profiles with safe new-tab behavior. All 26 frontend tests, ESLint, strict TypeScript,
+and the production build passed. The image asset and its exact generation prompt are tracked in
+`docs/branding.md` and `frontend/public/colombia-network-logo.png`.

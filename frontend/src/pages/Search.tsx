@@ -24,15 +24,7 @@ export function Search() {
   return (
     <>
       <section className="hero">
-        <h1>
-          A clearer view of
-          <br />
-          <em>Colombian companies.</em>
-        </h1>
-        <p className="hero-description">
-          Start with identity. Find registration records, resolve a legal name, and understand the
-          source behind every result.
-        </p>
+        <h1 className="sr-only">Company search</h1>
         <SearchForm
           initial={q}
           disabled={results.isFetching}

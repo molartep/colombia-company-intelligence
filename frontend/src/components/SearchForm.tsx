@@ -48,9 +48,6 @@ export function SearchForm({
           Search <span aria-hidden="true">↗</span>
         </button>
       </div>
-      <p className="text-sm text-slate-500 mt-3">
-        Use the registered legal name, or a NIT with an optional verification digit.
-      </p>
     </form>
   )
 }
