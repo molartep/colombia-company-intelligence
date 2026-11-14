@@ -165,8 +165,9 @@ Profiles are cached evidence: they do not silently refresh against RUES when ope
 
 The home page provides a submit-only, keyboard-accessible NIT/name search, loading/error/empty states,
 a responsive candidate table, and pagination. Selecting a UUID opens Overview and Sources sections.
-Overview includes identity, CIIU code, registration strings, a copy-NIT button, freshness, and attribute
-availability. Sources includes official links, safe public fields, source row IDs, mappings in the
+Overview includes identity, CIIU code, formatted registration dates, a copy-NIT button, freshness,
+and attribute availability. Missing fields use red pills (missing NIT uses grey), while placeholder
+or invalid dates use orange Review pills. Sources includes official links, safe public fields, source row IDs, mappings in the
 API, and payload hashes. Future sections are marked coming later. No financial or screening results
 are fabricated. The UI is in English; official company names and labels retain their source spelling.
 
@@ -207,7 +208,8 @@ Chamber location is not used as a company address. There are no verified CIIU de
 capital-markets/financial/screening fields. Read the [full schema and limitations](docs/sources.md).
 
 Some rows are natural persons or cancelled registrations; NIT and dates can be missing, stale, or
-malformed. Registration dates remain source strings, including sentinel values. Source timestamps
+malformed. Registration dates remain source strings in the API and audit records; the UI formats
+valid dates and flags placeholders instead of interpreting them as actual events. Source timestamps
 lack timezone metadata; Colombia time is an explicitly documented interpretation. Names normalize
 for comparison, without stripping legal suffixes. Name searches ignore word-spacing differences
 (for example, `olartemoure` matches `OLARTE MOURE`); this is candidate matching, never entity merging.

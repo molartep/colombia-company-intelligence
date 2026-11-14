@@ -606,23 +606,50 @@ details dl {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.registration-status--active {
+.registration-status--active,
+.value-pill--present {
   color: #166534;
   background: #f0fdf4;
   border-color: #bbf7d0;
 }
-.registration-status--cancelled {
+.registration-status--cancelled,
+.value-pill--missing {
   color: #991b1b;
   background: #fef2f2;
   border-color: #fecaca;
 }
-.registration-status--unassigned {
+.registration-status--unassigned,
+.value-pill--muted {
   color: #4b5563;
   background: #f3f4f6;
   border-color: #d1d5db;
 }
-.registration-status--other {
+.registration-status--other,
+.value-pill--review {
   color: #9a3412;
   background: #fff7ed;
   border-color: #fed7aa;
+}
+
+.profile-nit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.source-availability {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.availability-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.availability-dot--available {
+  background: #15803d;
+}
+.availability-dot--unavailable {
+  background: #b91c1c;
 }

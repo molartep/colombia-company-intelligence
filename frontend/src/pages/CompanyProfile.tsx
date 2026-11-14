@@ -3,7 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { Failure, Loading } from '../components/Feedback'
-import { dateTime, label } from '../utils'
+import { label } from '../utils'
+import { RegistrationStatus } from '../components/RegistrationStatus'
+import { MissingValue, RegistrationDate, TimestampValue } from '../components/FieldValues'
 
 export function CompanyProfile() {
   const { id = '' } = useParams()
@@ -32,9 +34,16 @@ export function CompanyProfile() {
           <p className="eyebrow">REGISTRATION PROFILE</p>
           <h1>{data.legal_name}</h1>
           <div className="identity-line">
-            <span>
-              NIT {data.nit ?? 'missing from record'}
-              {data.verification_digit ? `-${data.verification_digit}` : ''}
+            <span className="profile-nit">
+              NIT:{' '}
+              {data.nit ? (
+                <span>
+                  {data.nit}
+                  {data.verification_digit ? `-${data.verification_digit}` : ''}
+                </span>
+              ) : (
+                <MissingValue muted />
+              )}
             </span>
             {data.nit && (
               <button
@@ -50,7 +59,11 @@ export function CompanyProfile() {
                 Copy
               </button>
             )}
-            <span className="badge">{data.registration_status ?? 'Status missing'}</span>
+            {data.registration_status?.trim() ? (
+              <RegistrationStatus status={data.registration_status} />
+            ) : (
+              <MissingValue />
+            )}
             <span role="status" className="small">
               {copyStatus}
             </span>
@@ -61,15 +74,6 @@ export function CompanyProfile() {
           <br />
           <small>OFFICIAL SOURCE</small>
         </span>
-      </div>
-      <div className="notice">
-        {data.resolution_note}
-        {data.conflicting_registration_count > 0 && (
-          <p>
-            {data.conflicting_registration_count} other cached registration(s) share this NIT.
-            Identity requires review.
-          </p>
-        )}
       </div>
       <nav className="tabs" aria-label="Company sections">
         <Link
@@ -106,17 +110,10 @@ export function CompanyProfile() {
                   'Legal name': data.legal_name,
                   'Legal organization': data.legal_form,
                   'Primary CIIU code': data.primary_ciiu,
-                  Department: data.department,
-                  Municipality: data.municipality,
                 }).map(([key, value]) => (
                   <div key={key}>
                     <dt>{key}</dt>
-                    <dd>
-                      {value ??
-                        (key === 'Department' || key === 'Municipality'
-                          ? 'Unavailable in source'
-                          : 'Missing from record')}
-                    </dd>
+                    <dd>{value?.trim() ? value : <MissingValue />}</dd>
                   </div>
                 ))}
               </dl>
@@ -128,14 +125,18 @@ export function CompanyProfile() {
                 {Object.entries(data.registration).map(([key, value]) => (
                   <div key={key}>
                     <dt>{label(key)}</dt>
-                    <dd>{value ?? 'Missing from record'}</dd>
+                    <dd>
+                      {key.endsWith('_date') ? (
+                        <RegistrationDate value={value} />
+                      ) : value?.trim() ? (
+                        value
+                      ) : (
+                        <MissingValue />
+                      )}
+                    </dd>
                   </div>
                 ))}
               </dl>
-              <p className="small muted mt-4">
-                Dates are shown in their original source format (typically YYYYMMDD). No geographic
-                inference is made from the chamber.
-              </p>
             </article>
           </div>
           <article className="panel freshness">
@@ -143,15 +144,21 @@ export function CompanyProfile() {
             <dl>
               <div>
                 <dt>Retrieved by this application</dt>
-                <dd>{dateTime(data.retrieved_at)}</dd>
+                <dd>
+                  <TimestampValue value={data.retrieved_at} />
+                </dd>
               </div>
               <div>
                 <dt>Record updated in RUES</dt>
-                <dd>{dateTime(data.source_updated_at)}</dd>
+                <dd>
+                  <TimestampValue value={data.source_updated_at} rues />
+                </dd>
               </div>
               <div>
                 <dt>Official dataset updated</dt>
-                <dd>{dateTime(data.dataset_updated_at)}</dd>
+                <dd>
+                  <TimestampValue value={data.dataset_updated_at} />
+                </dd>
               </div>
             </dl>
             <p className="small muted">
@@ -166,7 +173,13 @@ export function CompanyProfile() {
                 <div key={key}>
                   <dt>{label(key)}</dt>
                   <dd>
-                    {label(state.state)}
+                    {state.state === 'present' ? (
+                      <span className="badge value-pill--present">Present</span>
+                    ) : state.state === 'missing_from_record' ? (
+                      <MissingValue />
+                    ) : (
+                      label(state.state)
+                    )}
                     {state.source_field && (
                       <small className="block muted">{state.source_field}</small>
                     )}
@@ -181,7 +194,6 @@ export function CompanyProfile() {
         <div className="sources-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">AUDITABLE BY DESIGN</p>
               <h2>Records & provenance</h2>
             </div>
           </div>
@@ -189,7 +201,13 @@ export function CompanyProfile() {
             <article className="panel" key={source.id}>
               <h3>{source.name}</h3>
               <p className="muted">{source.description}</p>
-              <p className="mt-4">Availability: {label(source.availability)}</p>
+              <p className="mt-4 source-availability">
+                Availability: {label(source.availability)}
+                <span
+                  className={`availability-dot availability-dot--${source.availability === 'available' ? 'available' : 'unavailable'}`}
+                  aria-hidden="true"
+                />
+              </p>
               <a className="text-link" href={source.dataset_url} target="_blank" rel="noreferrer">
                 Open official dataset ↗
               </a>
@@ -208,15 +226,19 @@ export function CompanyProfile() {
               <dl>
                 <div>
                   <dt>Source row ID</dt>
-                  <dd>{record.external_record_id}</dd>
+                  <dd>{record.external_record_id || <MissingValue />}</dd>
                 </div>
                 <div>
                   <dt>Retrieved</dt>
-                  <dd>{dateTime(record.retrieved_at)}</dd>
+                  <dd>
+                    <TimestampValue value={record.retrieved_at} />
+                  </dd>
                 </div>
                 <div>
                   <dt>Record updated</dt>
-                  <dd>{dateTime(record.source_updated_at)}</dd>
+                  <dd>
+                    <TimestampValue value={record.source_updated_at} rues />
+                  </dd>
                 </div>
                 <div>
                   <dt>Payload SHA-256</dt>

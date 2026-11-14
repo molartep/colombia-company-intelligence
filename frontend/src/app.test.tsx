@@ -115,23 +115,25 @@ test('empty results explain the dataset limitation', async () => {
   expect(await screen.findByText('No matching registrations')).toBeVisible()
 })
 
+const profileFixture = {
+  id: 'synthetic-id',
+  legal_name: 'SYNTHETIC ANDINA SAS',
+  nit: '000123456',
+  registration_status: 'ACTIVA',
+  primary_ciiu: '0011',
+  legal_form: 'SAS',
+  registration: { chamber: 'SYNTHETIC CHAMBER' },
+  attributes: { securities_listing: { state: 'not_yet_checked', source_field: null } },
+  sources: [],
+  retrieved_at: '2025-01-20T10:00:00Z',
+  source_updated_at: null,
+  dataset_updated_at: null,
+  resolution_note: 'Registration-scoped profile.',
+  conflicting_registration_count: 0,
+}
+
 test('profile displays available data and unchecked attributes', async () => {
-  reply({
-    id: 'synthetic-id',
-    legal_name: 'SYNTHETIC ANDINA SAS',
-    nit: '000123456',
-    registration_status: 'ACTIVA',
-    primary_ciiu: '0011',
-    legal_form: 'SAS',
-    registration: { chamber: 'SYNTHETIC CHAMBER' },
-    attributes: { securities_listing: { state: 'not_yet_checked', source_field: null } },
-    sources: [],
-    retrieved_at: '2025-01-20T10:00:00Z',
-    source_updated_at: null,
-    dataset_updated_at: null,
-    resolution_note: 'Registration-scoped profile.',
-    conflicting_registration_count: 0,
-  })
+  reply(profileFixture)
   wrapper(
     <Routes>
       <Route path="/companies/:id" element={<CompanyProfile />} />
@@ -170,4 +172,101 @@ test('results use the requested registration status colors and preserve missing 
   for (const row of within(table).getAllByRole('row').slice(1)) {
     expect(within(row).getAllByRole('cell')[1]).toHaveTextContent('Missing from record')
   }
+})
+
+test('profile uses status colors, missing pills, readable dates and review flags', async () => {
+  reply({
+    ...profileFixture,
+    nit: null,
+    verification_digit: '0',
+    registration_status: 'CANCELADA',
+    legal_form: null,
+    primary_ciiu: null,
+    registration: {
+      registration_date: '20240229',
+      renewal_date: '00000000',
+      cancellation_date: null,
+    },
+    source_updated_at: '1900-01-01T04:56:16Z',
+    attributes: {
+      legal_name: { state: 'present', source_field: 'razon_social' },
+      nit: { state: 'missing_from_record', source_field: 'nit' },
+    },
+  })
+  wrapper(
+    <Routes>
+      <Route path="/companies/:id" element={<CompanyProfile />} />
+    </Routes>,
+    '/companies/synthetic-id',
+  )
+  await screen.findByRole('heading', { name: 'SYNTHETIC ANDINA SAS' })
+  const nit = screen.getByText('NIT:').closest('.profile-nit')!
+  expect(within(nit as HTMLElement).getByText('Missing')).toHaveClass('value-pill--muted')
+  expect(nit).not.toHaveTextContent('-0')
+  expect(screen.queryByRole('button', { name: 'Copy NIT' })).not.toBeInTheDocument()
+  expect(screen.getByText('CANCELADA')).toHaveClass('registration-status--cancelled')
+  const identity = screen.getByRole('heading', { name: 'Company identity' }).closest('article')!
+  expect(within(identity).queryByText('Department')).not.toBeInTheDocument()
+  expect(within(identity).queryByText('Municipality')).not.toBeInTheDocument()
+  expect(within(identity).getAllByText('Missing')).toHaveLength(2)
+  expect(within(identity).getAllByText('Missing')[0]).toHaveClass('value-pill--missing')
+  expect(screen.queryByText(/Registration-scoped profile/)).not.toBeInTheDocument()
+  expect(
+    screen.queryByText(/Dates are shown in their original source format/),
+  ).not.toBeInTheDocument()
+  expect(screen.getByText('Feb 29, 2024')).toHaveAttribute('datetime', '2024-02-29')
+  expect(screen.getByTitle('Source value: 00000000')).toHaveClass('value-pill--review')
+  expect(screen.getByTitle('Source value: 1900-01-01T04:56:16Z')).toHaveClass('value-pill--review')
+  expect(screen.queryByText(/Missing from record/i)).not.toBeInTheDocument()
+  await userEvent.click(screen.getByText('Attribute availability & provenance'))
+  expect(screen.getByText('Present')).toHaveClass('value-pill--present')
+})
+
+test('Sources shows availability dots and flags placeholder record updates', async () => {
+  const sources = [
+    { id: 'synthetic-available', name: 'SYNTHETIC AVAILABLE SOURCE', availability: 'available' },
+    { id: 'synthetic-failed', name: 'SYNTHETIC FAILED SOURCE', availability: 'failed_to_retrieve' },
+  ].map((source) => ({
+    ...source,
+    description: 'Synthetic source fixture',
+    dataset_url: 'https://example.test/dataset',
+  }))
+  const records = [
+    {
+      id: 'synthetic-record',
+      external_record_id: 'synthetic-row',
+      source_id: 'synthetic-available',
+      retrieved_at: '2025-01-20T10:00:00Z',
+      source_updated_at: '1900-01-01T00:00:00Z',
+      payload_hash: 'synthetic-hash',
+      fields: {},
+      source_url: 'https://example.test/dataset',
+    },
+  ]
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => ({
+      ok: true,
+      json: async () => (url.endsWith('/sources') ? records : { ...profileFixture, sources }),
+    })),
+  )
+  wrapper(
+    <Routes>
+      <Route path="/companies/:id" element={<CompanyProfile />} />
+    </Routes>,
+    '/companies/synthetic-id?tab=sources',
+  )
+  await screen.findByRole('heading', { name: 'Records & provenance' })
+  expect(screen.queryByText('AUDITABLE BY DESIGN')).not.toBeInTheDocument()
+  expect(
+    screen.getByText('Availability: available').querySelector('.availability-dot--available'),
+  ).toBeInTheDocument()
+  expect(
+    screen
+      .getByText('Availability: failed to retrieve')
+      .querySelector('.availability-dot--unavailable'),
+  ).toBeInTheDocument()
+  expect(await screen.findByTitle('Source value: 1900-01-01T00:00:00Z')).toHaveClass(
+    'value-pill--review',
+  )
 })

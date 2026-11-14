@@ -15,7 +15,7 @@ Unix socket; it is a local validation aid, not an application dependency or a co
   payload-version deduplication, foreign-key relationships, pagination, API profile/source routes,
   public-field filtering, cached normalized-name matching, source failure behavior, and migration
   upgrade → downgrade → re-upgrade → Alembic model-drift check.
-- **7 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
+- **23 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
   states, empty results, and company profile/unchecked attribute rendering.
 - Ruff lint and format checks; strict mypy on `app`; ESLint and strict TypeScript.
 - Vite production bundle; Python backend wheel packaging.
@@ -89,3 +89,11 @@ that the health command fails for HTTP 503 and connection resets; the exact CI f
 recovered from an initial reset on its second attempt and still failed after four attempts for a
 persistent reset. These checks exercised real HTTP sockets and the actual configured commands;
 they do not substitute for executing Docker Compose on the next CI run.
+
+
+Registration-profile presentation checks cover shared status colors, a missing NIT with a stray
+verification digit, red missing-field pills, green present attributes, source availability dots,
+calendar-date formatting, leap years, impossible dates, zero/year-9999 date placeholders, and
+1900-01-01 RUES timestamps in different offset forms. All 23 frontend tests, ESLint, strict TypeScript,
+and the production build passed. The existing cached registration profile was also checked in the
+browser in Overview and Sources; raw source values and backend records remain unchanged.

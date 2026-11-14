@@ -77,7 +77,10 @@ fiscal screening attributes. Those are **not checked**, never verified negatives
 
 Date columns are text, not typed dates. Observed date strings include `YYYYMMDD`, `0`, and sentinel
 `99991231`; missing/zero values must not be interpreted as actual events. Registration dates remain
-source strings. `fecha_actualizacion` samples use `YYYY/MM/DD HH:MM:SS.fraction` without timezone;
+source strings in the API/audit records. The UI formats valid calendar dates and shows an orange
+Review pill for zero/invalid dates and year-9999 sentinels; original values remain available in
+source fields and Review tooltips. RUES update timestamps with the placeholder date 1900-01-01
+also display Review rather than suggesting a verified update event. `fecha_actualizacion` samples use `YYYY/MM/DD HH:MM:SS.fraction` without timezone;
 the adapter explicitly assumes `America/Bogota`, truncates fractions to microseconds, and converts
 to UTC. This timezone is an application interpretation, **not a timezone certified by metadata**.
 Unparseable update timestamps remain null; the original text remains available in source fields.
