@@ -945,6 +945,12 @@ details dl {
   line-height: 1.6;
   cursor: pointer;
 }
+.multi-select-options .multi-select-all {
+  padding-bottom: 12px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid #dce3df;
+  font-weight: 500;
+}
 .multi-select-options input {
   margin-top: 3px;
   flex-shrink: 0;

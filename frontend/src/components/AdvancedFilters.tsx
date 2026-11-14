@@ -99,6 +99,34 @@ export function AdvancedFilters({
                     role="group"
                     aria-labelledby={`label-${group.key}`}
                   >
+                    <label className="multi-select-all">
+                      <input
+                        type="checkbox"
+                        checked={
+                          group.options.length > 0 &&
+                          group.options.every((option) => values[group.key].includes(option.value))
+                        }
+                        ref={(input) => {
+                          if (input)
+                            input.indeterminate =
+                              group.options.some((option) =>
+                                values[group.key].includes(option.value),
+                              ) &&
+                              !group.options.every((option) =>
+                                values[group.key].includes(option.value),
+                              )
+                        }}
+                        onChange={(event) =>
+                          onChange({
+                            ...values,
+                            [group.key]: event.target.checked
+                              ? group.options.map((option) => option.value)
+                              : [],
+                          })
+                        }
+                      />
+                      <span>Select all</span>
+                    </label>
                     {group.options.map((option) => (
                       <label key={option.value}>
                         <input

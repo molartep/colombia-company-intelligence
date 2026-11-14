@@ -69,7 +69,14 @@ export function Search() {
               <p className="eyebrow">COMPANY DIRECTORY</p>
               <h2>Search results</h2>
             </div>
-            <span className="muted">Page {page} · up to 20 records</span>
+            {results.data && (
+              <span className="muted" aria-live="polite">
+                {results.data.items.length}
+                {results.data.has_more ? '+' : ''}{' '}
+                {results.data.items.length === 1 && !results.data.has_more ? 'record' : 'records'}{' '}
+                found
+              </span>
+            )}
           </div>
           {results.isFetching && <SearchLoadingDialog />}
           {results.isError && (

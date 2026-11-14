@@ -392,3 +392,30 @@ test('home uses the custom logo and correct accessible social profile links', ()
   }
   expect(screen.getByLabelText('Company name or NIT')).toBeVisible()
 })
+
+test.each([
+  [0, false, '0 records found'],
+  [1, false, '1 record found'],
+  [3, false, '3 records found'],
+  [20, true, '20+ records found'],
+] as const)(
+  'results counter shows %s records with has_more=%s',
+  async (count, hasMore, expected) => {
+    reply({
+      items: Array.from({ length: count }, (_, index) => ({
+        id: `synthetic-counter-${index}`,
+        legal_name: `SYNTHETIC MATCH ${index}`,
+        nit: null,
+        registration_status: 'ACTIVA',
+      })),
+      page: 1,
+      has_more: hasMore,
+    })
+    wrapper(<Search />, '/?q=SYNTHETIC')
+    expect(await screen.findByText(expected)).toBeVisible()
+    expect(screen.queryByText(/up to 20 records/)).not.toBeInTheDocument()
+    const next = screen.getByRole('button', { name: /Next/ })
+    if (hasMore) expect(next).toBeEnabled()
+    else expect(next).toBeDisabled()
+  },
+)

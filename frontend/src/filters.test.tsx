@@ -43,7 +43,10 @@ const catalog: ParameterCatalog = {
       code_field: 'codigo_organizacion_juridica',
       label_field: 'organizacion_juridica',
       description: 'Legal organization reported by RUES.',
-      options: [{ value: '16', code: '16', label: 'SOCIEDADES POR ACCIONES SIMPLIFICADAS SAS' }],
+      options: [
+        { value: '01', code: '01', label: 'PERSONA NATURAL' },
+        { value: '16', code: '16', label: 'SOCIEDADES POR ACCIONES SIMPLIFICADAS SAS' },
+      ],
     },
     {
       key: 'category',
@@ -292,7 +295,8 @@ test('returning from a profile restores the filtered page without another compan
   expect(back).toHaveAttribute('href', '/?q=TEST&page=2&status=03&chamber=04')
   await userEvent.click(back)
   await screen.findByRole('link', { name: 'SYNTHETIC FILTERED SAS' })
-  expect(screen.getByText('Page 2 · up to 20 records')).toBeVisible()
+  expect(screen.getByText('1 record found')).toBeVisible()
+  expect(screen.getByText('Page 2')).toBeVisible()
   expect(urls.filter((url) => url.pathname === '/api/v1/companies')).toHaveLength(1)
   expect(urls[0]!.searchParams.get('status')).toBe('03')
   expect(urls[0]!.searchParams.get('chamber')).toBe('04')
@@ -316,7 +320,7 @@ test('parameters uses accessible table tabs and places Open filters below separa
   expect(open.compareDocumentPosition(tabs[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   expect(screen.getAllByRole('table')).toHaveLength(1)
   await userEvent.click(tabs[2]!)
-  expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Legal organization (1)')
+  expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Legal organization (2)')
   expect(screen.getByRole('tabpanel')).toHaveTextContent(
     'SOCIEDADES POR ACCIONES SIMPLIFICADAS SAS',
   )
@@ -329,4 +333,36 @@ test('parameters uses accessible table tabs and places Open filters below separa
   expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Registration status (3)')
   await userEvent.keyboard('{End}')
   expect(tabs[3]).toHaveFocus()
+})
+
+test('select all allows excluding a legal organization and clearing the explicit selection', async () => {
+  const requests = setup('/?q=TEST&page=1')
+  await screen.findByText('SYNTHETIC TEST SAS')
+  await userEvent.click(screen.getByText('Advanced filters'))
+  await screen.findByText('Registration category')
+  await userEvent.click(screen.getByLabelText('Legal organization', { selector: 'summary' }))
+  const options = screen.getByRole('group', { name: 'Legal organization' })
+  const all = within(options).getByRole('checkbox', { name: 'Select all' })
+  expect(within(options).getAllByRole('checkbox')[0]).toBe(all)
+  expect(all).not.toBeChecked()
+  const count = requests.length
+  await userEvent.click(all)
+  for (const checkbox of within(options).getAllByRole('checkbox')) expect(checkbox).toBeChecked()
+  await userEvent.click(within(options).getByRole('checkbox', { name: '01 · PERSONA NATURAL' }))
+  expect(all).toBePartiallyChecked()
+  expect(
+    within(options).getByRole('checkbox', {
+      name: '16 · SOCIEDADES POR ACCIONES SIMPLIFICADAS SAS',
+    }),
+  ).toBeChecked()
+  expect(requests).toHaveLength(count)
+  await userEvent.click(screen.getAllByRole('button', { name: /^Search/ }).at(-1)!)
+  await waitFor(() => expect(requests).toHaveLength(count + 1))
+  expect(requests.at(-1)!.searchParams.getAll('organization')).toEqual(['16'])
+  // A mixed master selects everything; toggling again clears the filter to its default.
+  await userEvent.click(all)
+  expect(all).toBeChecked()
+  await userEvent.click(all)
+  for (const checkbox of within(options).getAllByRole('checkbox'))
+    expect(checkbox).not.toBeChecked()
 })
