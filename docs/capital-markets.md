@@ -131,7 +131,7 @@ All endpoints use local PostgreSQL and Pydantic/OpenAPI schemas:
 curl 'http://127.0.0.1:8000/api/v1/capital-markets/issuers?q=860002964'
 curl 'http://127.0.0.1:8000/api/v1/capital-markets/sources'
 curl 'http://127.0.0.1:8000/api/v1/companies/COMPANY_UUID/capital-markets'
-curl 'http://127.0.0.1:8000/api/v1/companies/COMPANY_UUID/securities?security_category=corporate_bonds&exchange=BVC&page=1&page_size=20'
+curl 'http://127.0.0.1:8000/api/v1/companies/COMPANY_UUID/securities?security_category=corporate_bonds&exchange=BVC&page=1&page_size=10'
 ```
 
 A source-reported `exchange=BVC` is a registration venue, not the same as
@@ -210,3 +210,35 @@ local securities collection and refreshes that collection after each new profile
 Live validation on 2026-11-15 retrieved previously unimported reports for Ecopetrol (5 instruments),
 Bancolombia (18), and Grupo Aval (8). Grupo Aval was exercised by clicking the Capital Markets tab;
 Overview made no capital-markets request. These are dated observations, not hardcoded fixture data.
+
+
+Manual refresh buttons next to stale/failure alerts invoke the Capital Markets endpoint with
+`refresh=true`, bypassing both cache TTLs and failure cooldowns for supported issuer summaries and
+securities reports. Locks still coalesce overlapping requests; repeated clicks are disabled while
+retrieval is pending. Previous good data remains on screen after failures. Directory and BVC
+limitations are unchanged and are explained in the collapsed source-information card. Both this
+card and Overview's Data Source Information card share the same disclosure layout.
+
+
+### Per-source controls and alerts
+
+The source panel is now titled **Data Source Information**. Alert actions reveal this panel and
+focus the relevant source; they do not trigger upstream requests. Refresh buttons inside the panel
+select `refresh_source=sfc_rnve_issuer_details` or `sfc_rnve_securities` together with `refresh=true`.
+Unsupported source IDs and source selection without `refresh=true` return HTTP 422. Legacy
+`refresh=true` without selection remains an API option for refreshing both supported sources.
+Selected-source refresh skips the other connector, including its automatic stale-cache refresh.
+
+Each stale/failure alert includes the source name, last successful retrieval time, source data date,
+last attempt and any recorded sanitized error. Import-directory errors remain global, while summary
+and securities records are restricted to the verified issuer(s) linked to the selected company.
+An error from another issuer cannot become this company's last error or update timestamp.
+
+
+The collapsed **Valores registrados (n)** heading shows the unfiltered cached instrument total.
+The securities endpoint returns `total` (after category/market/status filters) and `unfiltered_total`
+(before those filters). Pages default to 10 records; pagination and counts query local PostgreSQL
+and never trigger source retrieval. The table displays ranges such as `1 - 10 de 18`, with an empty
+range of `0 - 0` when there are no rows. Issuance values matching valid `YYYYMM` are rendered as
+month/year (for example, `198705` → `May, 1987`); other identifiers remain unchanged and the
+original source values remain available in each record's provenance details.

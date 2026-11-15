@@ -21,7 +21,10 @@ _locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
 
 
 async def recent_attempt(
-    session: AsyncSession, issuer_key: str, source_id: str = DETAILS_SOURCE
+    session: AsyncSession,
+    issuer_key: str,
+    source_id: str = DETAILS_SOURCE,
+    refresh_after: datetime | None = None,
 ) -> bool:
     latest = await session.scalar(
         select(Snapshot)
@@ -34,6 +37,8 @@ async def recent_attempt(
     )
     if latest is None:
         return False
+    if refresh_after is not None:
+        return latest.retrieved_at >= refresh_after
     ttl = (
         timedelta(minutes=15)
         if latest.ingestion_status == "failed"
@@ -43,13 +48,16 @@ async def recent_attempt(
 
 
 async def refresh_details(
-    session: AsyncSession, issuer: SecuritiesIssuer, retriever: SummaryRetriever
+    session: AsyncSession,
+    issuer: SecuritiesIssuer,
+    retriever: SummaryRetriever,
+    refresh_after: datetime | None = None,
 ) -> None:
     # Lock within a worker, then use PostgreSQL to suppress duplicate fetches across workers.
     key, issuer_key = issuer.external_id, str(issuer.id)
     lock = _locks.setdefault(key, asyncio.Lock())
     async with lock:
-        if await recent_attempt(session, issuer_key):
+        if await recent_attempt(session, issuer_key, refresh_after=refresh_after):
             return
         if not issuer.regulator_entity_type or not issuer.regulator_entity_code:
             return
@@ -61,7 +69,7 @@ async def refresh_details(
         if not locked:
             return
         # Another worker may have completed between our first cache read and acquiring this lock.
-        if await recent_attempt(session, issuer_key):
+        if await recent_attempt(session, issuer_key, refresh_after=refresh_after):
             return
         try:
             content = await retriever.fetch(

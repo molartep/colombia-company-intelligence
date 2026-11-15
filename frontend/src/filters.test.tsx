@@ -249,32 +249,34 @@ test('returning from a profile restores the filtered page without another compan
       return {
         ok: true,
         json: async () =>
-          url.pathname === '/api/v1/companies/synthetic'
-            ? {
-                id: 'synthetic',
-                legal_name: 'SYNTHETIC FILTERED SAS',
-                nit: null,
-                registration_status: 'CANCELADA',
-                registration: {},
-                attributes: {},
-                sources: [],
-                retrieved_at: null,
-                source_updated_at: null,
-                dataset_updated_at: null,
-              }
-            : {
-                items: [
-                  {
-                    id: 'synthetic',
-                    legal_name: 'SYNTHETIC FILTERED SAS',
-                    nit: null,
-                    registration_status: 'CANCELADA',
-                  },
-                ],
-                page: 2,
-                page_size: 20,
-                has_more: false,
-              },
+          url.pathname.endsWith('/sources')
+            ? []
+            : url.pathname === '/api/v1/companies/synthetic'
+              ? {
+                  id: 'synthetic',
+                  legal_name: 'SYNTHETIC FILTERED SAS',
+                  nit: null,
+                  registration_status: 'CANCELADA',
+                  registration: {},
+                  attributes: {},
+                  sources: [],
+                  retrieved_at: null,
+                  source_updated_at: null,
+                  dataset_updated_at: null,
+                }
+              : {
+                  items: [
+                    {
+                      id: 'synthetic',
+                      legal_name: 'SYNTHETIC FILTERED SAS',
+                      nit: null,
+                      registration_status: 'CANCELADA',
+                    },
+                  ],
+                  page: 2,
+                  page_size: 20,
+                  has_more: false,
+                },
       }
     }),
   )

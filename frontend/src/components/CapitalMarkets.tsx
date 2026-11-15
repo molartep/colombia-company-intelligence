@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api/client'
 import {
   categories,
@@ -7,9 +7,13 @@ import {
   type MarketIssuer,
   type RegistrationStatus,
 } from '../types/capitalMarkets'
-import { Failure, Loading } from './Feedback'
+import { Failure, Loading, RefreshAlert } from './Feedback'
+import { SourceEvidenceStatus } from './SourceEvidenceStatus'
+import { sourceNeedsAttention } from '../sourceStatus'
+import { SourceInformationCard } from './SourceInformationCard'
+import { MarketSourceInformation } from './MarketSourceInformation'
 import { MissingValue } from './FieldValues'
-import { dateTime, registrationDate } from '../utils'
+import { dateTime, registrationDate, issuanceMonth } from '../utils'
 
 const registrationLabels: Record<RegistrationStatus, string> = {
   registered_active: 'Inscrito en RNVE',
@@ -31,8 +35,7 @@ const availability: Record<string, string> = {
     'Fuente temporalmente no disponible. La consulta falló; no significa ausencia de valores. Se reintentará al abrir Capital Markets después de 15 minutos.',
   stale:
     'Se muestran instrumentos de una observación anterior. Su vigencia requiere actualización.',
-  available:
-    'Instrumentos de la fuente SFC consultada. Su registro no verifica negociación vigente.',
+  available: '',
 }
 const date = (value: string | null) =>
   value ? (registrationDate(value)?.display ?? value) : 'No informado'
@@ -81,6 +84,27 @@ function AdministrationValue({
 }
 
 export function CapitalMarkets({ companyId }: { companyId: string }) {
+  const client = useQueryClient()
+  const refresh = useMutation({
+    mutationFn: (source: string) => api.capitalMarkets(companyId, undefined, true, source),
+    onSuccess: (data) => {
+      client.setQueryData(['capital-markets', companyId], data)
+      setPage(1)
+    },
+  })
+  const goToSources = (source?: string) => {
+    const card = document.getElementById('capital-market-sources')
+    if (card instanceof HTMLDetailsElement) card.open = true
+    const target = (source && document.getElementById(`capital-source-${source}`)) || card
+    target?.scrollIntoView?.({
+      behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+        ? 'auto'
+        : 'smooth',
+      block: 'start',
+    })
+    target?.focus({ preventScroll: true })
+  }
+  const refreshData = () => goToSources()
   const [page, setPage] = useState(1)
   const [category, setCategory] = useState('')
   const [exchange, setExchange] = useState('')
@@ -105,7 +129,10 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
     queryFn: ({ signal }) =>
       api.securities(companyId, page, category, exchange, listingStatus, signal),
     enabled:
-      markets.isSuccess && !markets.isFetching && markets.data.rnve.match_status === 'verified',
+      markets.isSuccess &&
+      !markets.isFetching &&
+      !refresh.isPending &&
+      markets.data.rnve.match_status === 'verified',
     staleTime: 5 * 60_000,
   })
   if (markets.isPending) return <Loading />
@@ -120,15 +147,24 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
     <section className="capital-markets" aria-label="Capital Markets">
       <h2>Capital Markets</h2>
       {markets.isFetching && <Loading />}
+      {refresh.isPending && <Loading />}
+      {refresh.isError && (
+        <RefreshAlert refresh={refreshData}>
+          <strong>
+            {data.sources.find((source) => source.id === refresh.variables)?.name ??
+              refresh.variables}
+          </strong>
+          <p>{refresh.error.message} Los datos anteriores se conservan.</p>
+        </RefreshAlert>
+      )}
       <div className="notice" aria-label="Resumen de evidencia">
         <p>{data.summary}</p>
       </div>
-      {data.stale && (
-        <p className="notice warning" role="status">
-          Evidencia desactualizada o última actualización fallida. Se conserva el último registro
-          verificado.
-        </p>
-      )}
+      {data.sources.filter(sourceNeedsAttention).map((source) => (
+        <RefreshAlert key={source.id} refresh={() => goToSources(source.id)}>
+          <SourceEvidenceStatus source={source} />
+        </RefreshAlert>
+      ))}
       <div className="profile-grid">
         <article className="panel">
           <h3>Registro Nacional de Valores y Emisores</h3>
@@ -275,18 +311,18 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
         <article className="panel market-contact">
           <h3>Administración</h3>
           {issuer?.details_availability === 'failed_to_retrieve' && (
-            <p className="notice warning" role="status">
+            <RefreshAlert refresh={refreshData}>
               No se pudo recuperar el resumen RNVE. No significa que los datos estén ausentes. Se
               reintentará al abrir esta pestaña después de 15 minutos.
-            </p>
+            </RefreshAlert>
           )}
           {issuer?.details_availability === 'stale' && (
-            <p className="notice warning" role="status">
+            <RefreshAlert refresh={refreshData}>
               Se conservan los últimos datos recuperados del RNVE.{' '}
               {issuer.details_last_attempt_failed
                 ? 'La actualización falló; se reintentará después de 15 minutos.'
                 : 'La observación requiere actualización.'}
-            </p>
+            </RefreshAlert>
           )}
           <dl>
             <div>
@@ -334,8 +370,10 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
           )}
         </article>
       </div>
-      <article className="panel">
-        <h3>Valores registrados</h3>
+      <SourceInformationCard
+        title={`Valores registrados${securities.data ? ` (${securities.data.unfiltered_total})` : ''}`}
+        id="registered-securities"
+      >
         {!verified ? (
           <p>
             {data.rnve.match_status === 'potential'
@@ -399,8 +437,16 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
             )}
             {securities.data && (
               <>
-                <p className="market-explanation">
-                  {availability[securities.data.availability] ?? securities.data.availability}
+                {['stale', 'failed_to_retrieve', 'not_yet_checked'].includes(
+                  securities.data.availability,
+                ) ? (
+                  <RefreshAlert refresh={refreshData}>
+                    {availability[securities.data.availability] ?? securities.data.availability}
+                  </RefreshAlert>
+                ) : null}
+                <p className="securities-count small muted" role="status">
+                  {securities.data.total}{' '}
+                  {securities.data.total === 1 ? 'record found' : 'records found'}
                 </p>
                 {instruments.length ? (
                   <div className="table-wrap">
@@ -411,7 +457,9 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                           <th>Identificadores</th>
                           <th>Mercado registrado</th>
                           <th>Fechas de inscripción</th>
-                          <th>Estado / importe</th>
+                          <th>Estado</th>
+                          <th>Importe</th>
+                          <th>Calificación reportada</th>
                           <th>Fuente</th>
                         </tr>
                       </thead>
@@ -422,7 +470,7 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                               <strong>{instrument.security_name}</strong>
                               <p>{categories[instrument.security_category]}</p>
                               <span className="muted small">
-                                Emisión: {instrument.issuance_number ?? 'No informada'}
+                                Emisión: {issuanceMonth(instrument.issuance_number)}
                               </span>
                             </td>
                             <td>
@@ -448,15 +496,13 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                               {instrument.stale && (
                                 <p className="badge value-pill--review">Observación anterior</p>
                               )}
-                              <p>
-                                {instrument.authorized_amount === null
-                                  ? 'Importe no informado'
-                                  : `${instrument.currency ?? ''} ${instrument.authorized_amount}`}
-                              </p>
-                              {instrument.credit_rating && (
-                                <p>Calificación reportada: {instrument.credit_rating}</p>
-                              )}
                             </td>
+                            <td>
+                              {instrument.authorized_amount === null
+                                ? 'Importe no informado'
+                                : `${instrument.currency ?? ''} ${instrument.authorized_amount}`}
+                            </td>
+                            <td>{instrument.credit_rating || 'No informada'}</td>
                             <td>
                               <a
                                 className="text-link"
@@ -499,7 +545,13 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                   <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
                     ← Anterior
                   </button>
-                  <span>Página {page}</span>
+                  <span aria-live="polite">
+                    {instruments.length ? (page - 1) * securities.data.page_size + 1 : 0} -{' '}
+                    {instruments.length
+                      ? (page - 1) * securities.data.page_size + instruments.length
+                      : 0}{' '}
+                    de {securities.data.total}
+                  </span>
                   <button disabled={!securities.data.has_more} onClick={() => setPage(page + 1)}>
                     Siguiente →
                   </button>
@@ -508,60 +560,15 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
             )}
           </>
         )}
-      </article>
-      <details className="panel market-provenance">
-        <summary>Fuentes y verificación</summary>
-        {data.sources.map((source) => (
-          <div className="market-source" key={source.id}>
-            <h4>{source.name}</h4>
-            <p>{source.institution}</p>
-            <p>
-              {source.availability === 'failed_to_retrieve'
-                ? 'Fuente temporalmente no disponible'
-                : source.availability === 'not_yet_checked'
-                  ? 'Fuente aún no consultada'
-                  : source.availability === 'requires_authorized_source'
-                    ? 'Requiere una fuente autorizada'
-                    : source.stale
-                      ? 'Snapshot desactualizado'
-                      : 'Snapshot disponible'}
-            </p>
-            {source.id === 'sfc_rnve' && source.latest_snapshot && (
-              <p>
-                {source.latest_snapshot.complete_current
-                  ? 'Cobertura: directorio vigente completo confirmado al importar.'
-                  : 'Cobertura: parcial o no certificada; no permite conclusiones negativas.'}
-              </p>
-            )}
-            <dl>
-              <div>
-                <dt>Último intento</dt>
-                <dd>{dateTime(source.last_attempt_at)}</dd>
-              </div>
-              <div>
-                <dt>Última ingesta exitosa</dt>
-                <dd>{dateTime(source.last_success_at)}</dd>
-              </div>
-              <div>
-                <dt>Fecha publicada</dt>
-                <dd>{dateTime(source.latest_snapshot?.published_at ?? null)}</dd>
-              </div>
-              <div>
-                <dt>Observación / generación del reporte</dt>
-                <dd>{dateTime(source.latest_snapshot?.observed_at ?? null)}</dd>
-              </div>
-            </dl>
-            <a className="text-link" href={source.source_url} target="_blank" rel="noreferrer">
-              Fuente oficial ↗
-            </a>
-          </div>
-        ))}
-        <ul className="market-limitations">
-          {data.limitations.map((note) => (
-            <li key={note}>{note}</li>
-          ))}
-        </ul>
-      </details>
+      </SourceInformationCard>
+      <MarketSourceInformation
+        data={data}
+        refresh={(source) => refresh.mutate(source)}
+        refreshing={refresh.isPending}
+        activeSource={refresh.variables}
+        refreshError={refresh.error}
+        refreshed={refresh.isSuccess}
+      />
     </section>
   )
 }

@@ -1,7 +1,7 @@
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Annotated, cast
+from typing import Annotated, Literal, cast
 from uuid import UUID
 
 import httpx
@@ -44,6 +44,7 @@ from app.services.companies import (
     ensure_source,
     profile,
     records_for,
+    refresh_registration,
     search_companies,
     serialize_record,
 )
@@ -207,8 +208,16 @@ async def get_company(session: AsyncSession, company_id: UUID) -> Company:
 
 
 @app.get("/api/v1/companies/{company_id}", response_model=Profile)
-async def company_profile(company_id: UUID, session: DB) -> Profile:
-    return await profile(session, await get_company(session, company_id))
+async def company_profile(
+    company_id: UUID,
+    session: DB,
+    request: Request,
+    refresh: bool = False,
+) -> Profile:
+    company = await get_company(session, company_id)
+    if refresh:
+        await refresh_registration(session, company, adapter(request))
+    return await profile(session, company)
 
 
 @app.get("/api/v1/companies/{company_id}/sources", response_model=list[RecordView])
@@ -231,13 +240,21 @@ async def parameters() -> ParameterCatalog:
 
 @app.get("/api/v1/companies/{company_id}/capital-markets", response_model=CapitalMarketsProfile)
 async def company_capital_markets(
-    company_id: UUID, session: DB, request: Request
+    company_id: UUID,
+    session: DB,
+    request: Request,
+    refresh: bool = False,
+    refresh_source: Literal["sfc_rnve_issuer_details", "sfc_rnve_securities"] | None = None,
 ) -> CapitalMarketsProfile:
+    if refresh_source and not refresh:
+        raise HTTPException(422, "A source-specific refresh requires refresh=true.")
     return await capital.company_profile(
         session,
         await get_company(session, company_id),
         getattr(request.app.state, "rnve_summary", None),
         getattr(request.app.state, "rnve_securities", None),
+        force_refresh=refresh,
+        refresh_source=refresh_source,
     )
 
 
@@ -249,7 +266,7 @@ async def company_securities(
     exchange: Annotated[str | None, Query(max_length=100)] = None,
     listing_status: ListingStatus | None = None,
     page: Annotated[int, Query(ge=1, le=100)] = 1,
-    page_size: Annotated[int, Query(ge=1, le=50)] = 20,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 10,
 ) -> SecuritiesPage:
     links = await capital.company_links(session, await get_company(session, company_id))
     result = await capital.instrument_views(

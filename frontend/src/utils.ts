@@ -40,3 +40,24 @@ export function searchReturnPath(state: unknown): string {
   }
   return '/'
 }
+
+export function issuanceMonth(value: string | null): string {
+  if (!value) return 'No informada'
+  const match = /^(\d{4})(0[1-9]|1[0-2])$/.exec(value)
+  if (!match || Number(match[1]) === 0) return value
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ]
+  return `${months[Number(match[2]) - 1]}, ${match[1]}`
+}

@@ -129,6 +129,8 @@ class InstrumentView(BaseModel):
 
 
 class SecuritiesPage(BaseModel):
+    total: int
+    unfiltered_total: int
     items: list[InstrumentView]
     page: int
     page_size: int

@@ -141,6 +141,9 @@ class RuesDataSource:
             map_record(row)
         return rows
 
+    async def record_by_id(self, record_id: str) -> list[dict[str, Any]]:
+        return await self.search(":id = " + literal(record_id), 1, 0, ":id ASC")
+
     async def search_by_nit(
         self,
         nit: str,

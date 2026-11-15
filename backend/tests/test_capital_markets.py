@@ -181,7 +181,7 @@ def test_summaries_do_not_imply_listed_equity_or_never_registered():
         RegistrationStatus.NOT_FOUND, False, False, False
     )
     assert "posible coincidencia" in summary(RegistrationStatus.UNKNOWN, True, False, False)
-    assert "desactualizada" in summary(RegistrationStatus.ACTIVE, False, True, True)
+    assert "última actualización falló" not in summary(RegistrationStatus.ACTIVE, False, True, True)
 
 
 def test_issuer_details_allowlist_and_missing_fields():
@@ -276,3 +276,16 @@ async def test_sfc_transport_does_not_receive_socrata_token(monkeypatch):
         client = isolated_app.state.rnve_securities.client
         assert "X-App-Token" not in client.headers
         assert client.timeout.read == get_settings().capital_markets_timeout
+
+
+async def test_rues_manual_refresh_queries_one_exact_source_row(record):
+    from types import SimpleNamespace
+
+    from app.integrations.rues.adapter import RuesDataSource
+
+    client = SimpleNamespace(records=AsyncMock(return_value=[record]))
+    rows = await RuesDataSource(client).record_by_id(record["upstream_id"])
+    assert rows == [record]
+    params = client.records.await_args.args[0]
+    assert params["$limit"] == "1" and params["$offset"] == "0"
+    assert params["$where"] == ":id = 'row-synthetic-001'"

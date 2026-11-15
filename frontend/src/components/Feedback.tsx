@@ -53,3 +53,28 @@ export function SearchLoadingDialog() {
     </dialog>
   )
 }
+
+export function RefreshAlert({
+  children,
+  refresh,
+  refreshing = false,
+}: {
+  children: React.ReactNode
+  refresh: () => void
+  refreshing?: boolean
+}) {
+  return (
+    <div className="notice warning refresh-alert" role="status">
+      <div>{children}</div>
+      <button
+        type="button"
+        className="refresh-button"
+        disabled={refreshing}
+        aria-busy={refreshing}
+        onClick={refresh}
+      >
+        {refreshing ? 'Refreshing…' : 'Refresh data'}
+      </button>
+    </div>
+  )
+}

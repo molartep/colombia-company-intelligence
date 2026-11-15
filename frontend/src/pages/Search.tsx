@@ -4,7 +4,7 @@ import { readFilters, filterParams, searchKey } from '../api/filters'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
-import { Failure, SearchLoadingDialog } from '../components/Feedback'
+import { Failure, SearchLoadingDialog, RefreshAlert } from '../components/Feedback'
 import { RegistrationStatus } from '../components/RegistrationStatus'
 import { SearchForm } from '../components/SearchForm'
 import { RegistrationDate } from '../components/FieldValues'
@@ -85,9 +85,12 @@ export function Search() {
           {results.data && (
             <>
               {results.data.stale && (
-                <div className="notice warning" role="status">
+                <RefreshAlert
+                  refresh={() => void results.refetch()}
+                  refreshing={results.isFetching}
+                >
                   {results.data.warning}
-                </div>
+                </RefreshAlert>
               )}
               {results.data.items.length === 0 ? (
                 <div className="empty">

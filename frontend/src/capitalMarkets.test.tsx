@@ -5,6 +5,26 @@ import { vi } from 'vitest'
 import { CapitalMarkets } from './components/CapitalMarkets'
 import type { MarketsProfile, SecuritiesPage } from './types/capitalMarkets'
 
+const reportSource = {
+  id: 'sfc_rnve_securities',
+  name: 'SYNTHETIC SFC SECURITIES',
+  institution: 'SFC',
+  source_url: 'https://www.superfinanciera.gov.co/official-report',
+  availability: 'available',
+  last_ingestion_status: 'success',
+  last_error: null as string | null,
+  last_attempt_at: '2026-11-14T15:00:00Z',
+  last_success_at: '2026-11-14T15:00:00Z',
+  stale: false,
+  latest_snapshot: {
+    id: 'synthetic-snapshot',
+    retrieved_at: '2026-11-14T15:00:00Z',
+    published_at: null,
+    observed_at: '2026-11-13T15:00:00Z',
+    complete_current: false,
+    content_hash: 'synthetic-hash',
+  },
+}
 const profile: MarketsProfile = {
   company_id: 'synthetic',
   rnve: { status: 'registered_active', match_status: 'verified' },
@@ -36,11 +56,13 @@ const profile: MarketsProfile = {
   ],
   instruments: [],
   securities_availability: 'available',
-  sources: [],
+  sources: [reportSource],
   stale: false,
   limitations: [],
 }
 const securities: SecuritiesPage = {
+  total: 11,
+  unfiltered_total: 11,
   items: [
     {
       id: 'synthetic-bond',
@@ -50,7 +72,7 @@ const securities: SecuritiesPage = {
       ticker: null,
       isin: null,
       ann_code: 'CO1234567890',
-      issuance_number: '001',
+      issuance_number: '198705',
       exchange: 'BVC',
       rnve_registration_date: '2024-02-29',
       bvc_registration_date: '2024-03-01',
@@ -66,7 +88,7 @@ const securities: SecuritiesPage = {
     },
   ],
   page: 1,
-  page_size: 20,
+  page_size: 10,
   has_more: true,
   availability: 'available',
 }
@@ -99,8 +121,16 @@ function setup(data = profile, instruments = securities, failed = false) {
 }
 afterEach(() => vi.unstubAllGlobals())
 
+async function openSecurities() {
+  await userEvent.click(await screen.findByRole('heading', { name: /^Valores registrados/ }))
+}
+
 test('registered debt and SFC BVC dates do not imply listed shares or invented ISINs', async () => {
   setup()
+  expect(
+    (await screen.findByRole('heading', { name: /^Valores registrados/ })).closest('details'),
+  ).not.toHaveAttribute('open')
+  await openSecurities()
   await screen.findByText('BO SYNTHETIC BOND')
   expect(screen.getByText('Inscrito en RNVE')).toBeVisible()
   const bvc = screen
@@ -108,6 +138,14 @@ test('registered debt and SFC BVC dates do not imply listed shares or invented I
     .closest('article')!
   expect(within(bvc).getByText('No verificado')).toBeVisible()
   expect(screen.getByText('ANN: CO1234567890')).toBeVisible()
+  expect(screen.getByText('Emisión: May, 1987')).toBeVisible()
+  for (const name of ['Estado', 'Importe', 'Calificación reportada'])
+    expect(screen.getByRole('columnheader', { name })).toBeVisible()
+  expect(
+    screen.queryByText(
+      'Instrumentos de la fuente SFC consultada. Su registro no verifica negociación vigente.',
+    ),
+  ).not.toBeInTheDocument()
   expect(screen.queryByText('ISIN: CO1234567890')).not.toBeInTheDocument()
   expect(screen.getByText('Ticker no informado')).toBeVisible()
   expect(screen.getByText('COP 1000000.5000')).toBeVisible()
@@ -146,17 +184,19 @@ test('checked absence is qualified and does not claim never registered', async (
 
 test('stale evidence is distinct from source failure and absence', async () => {
   setup(
-    { ...profile, stale: true },
+    { ...profile, stale: true, sources: [{ ...reportSource, stale: true }] },
     { ...securities, availability: 'stale', items: [{ ...securities.items[0]!, stale: true }] },
   )
+  await openSecurities()
   await screen.findByText('BO SYNTHETIC BOND')
-  expect(screen.getByText(/Evidencia desactualizada o última actualización fallida/)).toBeVisible()
+  expect(screen.getByText(/Los datos de esta fuente superan/)).toBeVisible()
   expect(screen.getByText('Observación anterior')).toBeVisible()
   expect(screen.getByText(/Su vigencia requiere actualización/)).toBeVisible()
 })
 
 test('securities filters use API parameters and reset pagination', async () => {
   const requests = setup()
+  await openSecurities()
   await screen.findByText('BO SYNTHETIC BOND')
   await userEvent.click(screen.getByRole('button', { name: /Siguiente/ }))
   await waitFor(() => expect(requests.at(-1)!.searchParams.get('page')).toBe('2'))
@@ -208,7 +248,7 @@ test('RNVE description, contacts, administration and collapsed provenance', asyn
   expect(within(administration).getByText('0')).toBeVisible()
   expect(within(administration).getByText('Missing')).toHaveClass('value-pill--missing')
   expect(screen.queryByText(/Propiedad: no evaluada/)).not.toBeInTheDocument()
-  const summary = screen.getByText('Fuentes y verificación')
+  const summary = screen.getByText('Data Source Information')
   expect(summary.closest('details')).not.toHaveAttribute('open')
   await userEvent.click(summary)
   expect(summary.closest('details')).toHaveAttribute('open')
@@ -347,15 +387,188 @@ test('reopening Capital Markets refreshes a previously cached unchecked securiti
   first.unmount()
   fetched = true
   render(element)
+  await openSecurities()
   expect(await screen.findByText('BO SYNTHETIC BOND')).toBeVisible()
   expect(screen.queryByText(/Valores aún no consultados/)).not.toBeInTheDocument()
 })
 
 test('failed securities retrieval reports unavailability instead of checked absence', async () => {
   setup(profile, { ...securities, items: [], has_more: false, availability: 'failed_to_retrieve' })
+  await openSecurities()
   await screen.findByText(/Se reintentará al abrir Capital Markets después de 15 minutos/)
   expect(
     screen.getByText('No se presenta una conclusión negativa sobre instrumentos.'),
   ).toBeVisible()
   expect(screen.queryByText(/No hay instrumentos en el reporte consultado/)).not.toBeInTheDocument()
+})
+
+test('top alerts navigate to source controls; each control refreshes only its source', async () => {
+  const paths: string[] = []
+  let complete: (() => void) | undefined
+  const held = new Promise<void>((resolve) => {
+    complete = resolve
+  })
+  let refreshed = false
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (path: string) => {
+      paths.push(path)
+      if (path.includes('refresh=true')) {
+        await held
+        refreshed = true
+      }
+      return {
+        ok: true,
+        json: async () =>
+          new URL(path, 'http://test').pathname.endsWith('/capital-markets')
+            ? { ...profile, stale: !refreshed, sources: [{ ...reportSource, stale: !refreshed }] }
+            : {
+                ...securities,
+                items: [
+                  {
+                    ...securities.items[0]!,
+                    security_name: refreshed ? 'SYNTHETIC NEW BOND' : 'SYNTHETIC OLD BOND',
+                  },
+                ],
+              },
+      }
+    }),
+  )
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  render(
+    <QueryClientProvider client={client}>
+      <CapitalMarkets companyId="synthetic" />
+    </QueryClientProvider>,
+  )
+  await openSecurities()
+  await screen.findByText('SYNTHETIC OLD BOND')
+  const alert = screen
+    .getByText(/Los datos de esta fuente superan/)
+    .closest<HTMLElement>('.refresh-alert')!
+  expect(within(alert).getByText(reportSource.name)).toBeVisible()
+  expect(within(alert).getByText('Última recuperación exitosa')).toBeVisible()
+  await userEvent.click(within(alert).getByRole('button', { name: 'Refresh data' }))
+  const card = screen.getByRole('heading', { name: 'Data Source Information' }).closest('details')!
+  expect(card).toHaveAttribute('open')
+  expect(paths.some((p) => p.includes('refresh=true'))).toBe(false)
+  const sourceButton = within(card).getByRole('button', { name: `Refresh ${reportSource.name}` })
+  await userEvent.click(sourceButton)
+  expect(sourceButton).toBeDisabled()
+  complete!()
+  await screen.findByText('SYNTHETIC NEW BOND')
+  expect(paths.filter((p) => p.includes('refresh=true'))).toEqual([
+    '/api/v1/companies/synthetic/capital-markets?refresh=true&refresh_source=sfc_rnve_securities',
+  ])
+})
+
+test('both source cards stay collapsed initially and errors name the affected source', async () => {
+  setup({
+    ...profile,
+    sources: [
+      {
+        ...reportSource,
+        stale: true,
+        last_ingestion_status: 'failed',
+        last_error: 'capital_source_timeout',
+      },
+    ],
+  })
+  const title = await screen.findByRole('heading', { name: 'Data Source Information' })
+  const card = title.closest('details')!
+  expect(card).not.toHaveAttribute('open')
+  const alert = screen
+    .getByText(/La última actualización falló/)
+    .closest<HTMLElement>('.refresh-alert')!
+  expect(within(alert).getByText(reportSource.name)).toBeVisible()
+  expect(within(alert).getByText('capital_source_timeout')).toBeVisible()
+  expect(within(alert).getByText('Último intento')).toBeVisible()
+})
+
+test('failed source refresh retains instruments and displays the request error by that source', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (path: string) => ({
+      ok: !path.includes('refresh=true'),
+      status: path.includes('refresh=true') ? 503 : 200,
+      json: async () =>
+        path.includes('refresh=true')
+          ? { error: { message: 'SYNTHETIC refresh unavailable' } }
+          : new URL(path, 'http://test').pathname.endsWith('/capital-markets')
+            ? profile
+            : securities,
+    })),
+  )
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  render(
+    <QueryClientProvider client={client}>
+      <CapitalMarkets companyId="synthetic" />
+    </QueryClientProvider>,
+  )
+  await openSecurities()
+  await screen.findByText('BO SYNTHETIC BOND')
+  await userEvent.click(screen.getByRole('heading', { name: 'Data Source Information' }))
+  const provider = screen.getByRole('region', { name: reportSource.name })
+  await userEvent.click(
+    within(provider).getByRole('button', { name: `Refresh ${reportSource.name}` }),
+  )
+  expect(await within(provider).findByText(/SYNTHETIC refresh unavailable/)).toBeVisible()
+  expect(screen.getByText('BO SYNTHETIC BOND')).toBeVisible()
+})
+
+test('10-record pages show filtered totals, ranges and a stable overall heading count', async () => {
+  const requests: URL[] = []
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (path: string) => {
+      const url = new URL(path, 'http://test')
+      requests.push(url)
+      const filtered = url.searchParams.has('security_category')
+      const page = Number(url.searchParams.get('page') || 1)
+      const total = filtered ? 1 : 12
+      const offset = (page - 1) * 10
+      const items = Array.from(
+        { length: Math.min(10, Math.max(0, total - offset)) },
+        (_, index) => ({
+          ...securities.items[0]!,
+          id: `synthetic-${offset + index}`,
+          security_name: `SYNTHETIC BOND ${offset + index}`,
+        }),
+      )
+      return {
+        ok: true,
+        json: async () =>
+          url.pathname.endsWith('/capital-markets')
+            ? profile
+            : {
+                ...securities,
+                items,
+                page,
+                page_size: 10,
+                total,
+                unfiltered_total: 12,
+                has_more: offset + items.length < total,
+              },
+      }
+    }),
+  )
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  render(
+    <QueryClientProvider client={client}>
+      <CapitalMarkets companyId="synthetic" />
+    </QueryClientProvider>,
+  )
+  await openSecurities()
+  await screen.findByText('1 - 10 de 12')
+  expect(screen.getByRole('heading', { name: 'Valores registrados (12)' })).toBeVisible()
+  expect(screen.getByText('12 records found')).toBeVisible()
+  expect(screen.getAllByRole('row')).toHaveLength(11)
+  expect(requests.at(-1)!.searchParams.get('page_size')).toBe('10')
+  await userEvent.click(screen.getByRole('button', { name: /Siguiente/ }))
+  await screen.findByText('11 - 12 de 12')
+  expect(screen.getAllByRole('row')).toHaveLength(3)
+  await userEvent.selectOptions(screen.getByLabelText('Categoría'), 'corporate_bonds')
+  await screen.findByText('1 - 1 de 1')
+  expect(screen.getByText('1 record found')).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Valores registrados (12)' })).toBeVisible()
+  expect(requests.at(-1)!.searchParams.get('page')).toBe('1')
 })

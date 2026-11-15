@@ -22,7 +22,11 @@ function wrapper(
 function reply(body: unknown, status = 200) {
   vi.stubGlobal(
     'fetch',
-    vi.fn().mockResolvedValue({ ok: status === 200, status, json: async () => body }),
+    vi.fn(async (url: string) => ({
+      ok: status === 200,
+      status,
+      json: async () => (url.endsWith('/sources') && status === 200 ? [] : body),
+    })),
   )
 }
 afterEach(() => vi.unstubAllGlobals())
@@ -161,10 +165,10 @@ test('profile displays available data and unchecked attributes', async () => {
   expect(screen.queryByText('OFFICIAL SOURCE')).not.toBeInTheDocument()
   expect(screen.getByRole('link', { name: '← Company search' })).toHaveAttribute('href', '/')
   expect(screen.getByText('SYNTHETIC CHAMBER')).toBeVisible()
-  expect(screen.getByRole('link', { name: 'Sources' })).toHaveAttribute(
-    'href',
-    '/companies/synthetic-id?tab=sources',
-  )
+  expect(screen.queryByRole('link', { name: 'Sources' })).not.toBeInTheDocument()
+  expect(screen.queryByText('REGISTRATION PROFILE')).not.toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Data Source Information' })).toBeVisible()
+  await userEvent.click(screen.getByRole('heading', { name: 'Data Source Information' }))
   await userEvent.click(screen.getByText('Attribute availability & provenance'))
   expect(screen.getByText('not yet checked')).toBeVisible()
 })
@@ -241,11 +245,12 @@ test('profile uses status colors, missing pills, readable dates and review flags
   expect(screen.getByTitle('Source value: 00000000')).toHaveClass('value-pill--review')
   expect(screen.getByTitle('Source value: 1900-01-01T04:56:16Z')).toHaveClass('value-pill--review')
   expect(screen.queryByText(/Missing from record/i)).not.toBeInTheDocument()
+  await userEvent.click(screen.getByRole('heading', { name: 'Data Source Information' }))
   await userEvent.click(screen.getByText('Attribute availability & provenance'))
   expect(screen.getByText('Present')).toHaveClass('value-pill--present')
 })
 
-test('Sources shows availability dots and flags placeholder record updates', async () => {
+test('legacy Sources URL shows the combined Overview card, source availability and review flags', async () => {
   const sources = [
     { id: 'synthetic-available', name: 'SYNTHETIC AVAILABLE SOURCE', availability: 'available' },
     { id: 'synthetic-failed', name: 'SYNTHETIC FAILED SOURCE', availability: 'failed_to_retrieve' },
@@ -262,7 +267,8 @@ test('Sources shows availability dots and flags placeholder record updates', asy
       retrieved_at: '2025-01-20T10:00:00Z',
       source_updated_at: '1900-01-01T00:00:00Z',
       payload_hash: 'synthetic-hash',
-      fields: {},
+      fields: { razon_social: 'SYNTHETIC ANDINA SAS' },
+      field_mapping: { legal_name: 'razon_social' },
       source_url: 'https://example.test/dataset',
     },
   ]
@@ -279,7 +285,7 @@ test('Sources shows availability dots and flags placeholder record updates', asy
     </Routes>,
     '/companies/synthetic-id?tab=sources',
   )
-  await screen.findByRole('heading', { name: 'Records & provenance' })
+  await userEvent.click(await screen.findByRole('heading', { name: 'Data Source Information' }))
   expect(screen.queryByText('AUDITABLE BY DESIGN')).not.toBeInTheDocument()
   expect(
     screen.getByText('Availability: available').querySelector('.availability-dot--available'),
@@ -292,6 +298,17 @@ test('Sources shows availability dots and flags placeholder record updates', asy
   expect(await screen.findByTitle('Source value: 1900-01-01T00:00:00Z')).toHaveClass(
     'value-pill--review',
   )
+  expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('aria-current', 'page')
+  expect(screen.queryByRole('link', { name: 'Sources' })).not.toBeInTheDocument()
+  const card = screen
+    .getByRole('heading', { name: 'Data Source Information' })
+    .closest<HTMLDetailsElement>('details.data-source-information')!
+  expect(card.querySelectorAll('article')).toHaveLength(0)
+  await userEvent.click(screen.getByText(/^Registration record ·/))
+  await userEvent.click(screen.getByText('Public fields & field mappings'))
+  expect(screen.getByRole('heading', { name: 'Field mappings' })).toBeVisible()
+  expect(screen.getByText('razon_social', { selector: 'code' })).toBeVisible()
+  expect(within(card).getByText('synthetic-hash')).toBeVisible()
 })
 
 it.each(['name', 'arrow'])(
@@ -337,8 +354,9 @@ it.each(['name', 'arrow'])(
       }),
     )
     await screen.findByRole('heading', { name: 'SYNTHETIC ANDINA SAS' })
-    await userEvent.click(screen.getByRole('link', { name: 'Sources' }))
-    await screen.findByRole('heading', { name: 'Records & provenance' })
+    await userEvent.click(screen.getByRole('heading', { name: 'Data Source Information' }))
+    await userEvent.click(screen.getByText('Attribute availability & provenance'))
+    await screen.findByRole('heading', { name: 'Data Source Information' })
     expect(screen.getByRole('link', { name: '← Company search' })).toHaveAttribute(
       'href',
       '/?q=SYNTHETIC+COMPANY&page=3',
@@ -419,3 +437,66 @@ test.each([
     else expect(next).toBeDisabled()
   },
 )
+
+test('supporting-record failures stay inside the Overview source card', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => ({
+      ok: !url.endsWith('/sources'),
+      status: url.endsWith('/sources') ? 503 : 200,
+      json: async () =>
+        url.endsWith('/sources')
+          ? { error: { message: 'SYNTHETIC records failure' } }
+          : profileFixture,
+    })),
+  )
+  wrapper(
+    <Routes>
+      <Route path="/companies/:id" element={<CompanyProfile />} />
+    </Routes>,
+    '/companies/synthetic-id',
+  )
+  await userEvent.click(await screen.findByRole('heading', { name: 'Data Source Information' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('SYNTHETIC records failure')
+  expect(screen.getByRole('heading', { name: 'Company identity' })).toBeVisible()
+  const card = screen
+    .getByRole('heading', { name: 'Data Source Information' })
+    .closest<HTMLDetailsElement>('details.data-source-information')!
+  expect(within(card).getByRole('button', { name: 'Try again' })).toBeVisible()
+  expect(screen.getByText('SYNTHETIC CHAMBER')).toBeVisible()
+})
+
+test('Overview source information is initially collapsed and can refresh the original registration', async () => {
+  const paths: string[] = []
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (path: string) => {
+      paths.push(path)
+      return {
+        ok: true,
+        json: async () =>
+          path.endsWith('/sources')
+            ? []
+            : {
+                ...profileFixture,
+                legal_name: path.includes('refresh=true')
+                  ? 'SYNTHETIC UPDATED LEGAL NAME'
+                  : profileFixture.legal_name,
+              },
+      }
+    }),
+  )
+  wrapper(
+    <Routes>
+      <Route path="/companies/:id" element={<CompanyProfile />} />
+    </Routes>,
+    '/companies/synthetic-id',
+  )
+  const title = await screen.findByRole('heading', { name: 'Data Source Information' })
+  expect(title.closest('details')).not.toHaveAttribute('open')
+  await userEvent.click(title)
+  await userEvent.click(screen.getByRole('button', { name: 'Refresh data' }))
+  await screen.findByRole('heading', { name: 'SYNTHETIC UPDATED LEGAL NAME' })
+  expect(paths).toContain('/api/v1/companies/synthetic-id?refresh=true')
+  expect(paths.filter((path) => path.endsWith('/sources')).length).toBeGreaterThanOrEqual(2)
+})

@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from datetime import datetime
 from weakref import WeakValueDictionary
 
 from sqlalchemy import text
@@ -20,12 +21,15 @@ _locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
 
 
 async def refresh_securities(
-    session: AsyncSession, issuer: SecuritiesIssuer, retriever: SecuritiesRetriever
+    session: AsyncSession,
+    issuer: SecuritiesIssuer,
+    retriever: SecuritiesRetriever,
+    refresh_after: datetime | None = None,
 ) -> None:
     key, issuer_key = issuer.external_id, str(issuer.id)
     lock = _locks.setdefault(key, asyncio.Lock())
     async with lock:
-        if await recent_attempt(session, issuer_key, SECURITIES_SOURCE):
+        if await recent_attempt(session, issuer_key, SECURITIES_SOURCE, refresh_after):
             return
         if not issuer.regulator_entity_type or not issuer.regulator_entity_code:
             return
@@ -33,7 +37,9 @@ async def refresh_securities(
         locked = await session.scalar(
             text("SELECT pg_try_advisory_xact_lock(hashtextextended(:key, 770211))"), {"key": key}
         )
-        if not locked or await recent_attempt(session, issuer_key, SECURITIES_SOURCE):
+        if not locked or await recent_attempt(
+            session, issuer_key, SECURITIES_SOURCE, refresh_after
+        ):
             return
         try:
             # Bound the whole operation, including pooling waits, retries and Retry-After delays.

@@ -395,3 +395,32 @@ async def profile(session: AsyncSession, company: Company) -> Profile:
         ),
         conflicting_registration_count=conflict_count,
     )
+
+
+async def refresh_registration(
+    session: AsyncSession, company: Company, adapter: RuesDataSource
+) -> None:
+    records = await records_for(session, company.id)
+    record_id = records[0].external_record_id if records else None
+    if not record_id or record_id.startswith("hash:"):
+        raise SourceError(
+            "refresh_identity_unavailable",
+            "This registration lacks a stable source row ID. Search the official source again.",
+        )
+    try:
+        rows = await adapter.record_by_id(record_id)
+        if not rows or map_record(rows[0])["external_record_id"] != record_id:
+            raise SourceError(
+                "source_record_unavailable",
+                "The original registration could not be retrieved. Cached data is preserved.",
+            )
+        await persist(session, rows[0])
+        source = await ensure_source(session)
+        source.last_checked_at, source.availability = datetime.now(UTC), "available"
+        await session.commit()
+    except SourceError:
+        await session.rollback()
+        source = await ensure_source(session)
+        source.last_checked_at, source.availability = datetime.now(UTC), "failed_to_retrieve"
+        await session.commit()
+        raise

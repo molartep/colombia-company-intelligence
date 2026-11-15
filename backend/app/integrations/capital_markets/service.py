@@ -76,7 +76,9 @@ def snapshot_view(snapshot: Snapshot) -> SnapshotView:
     )
 
 
-async def source_views(session: AsyncSession) -> list[MarketSourceView]:
+async def source_views(
+    session: AsyncSession, issuer_ids: list[UUID] | None = None
+) -> list[MarketSourceView]:
     await ensure_sources(session)
     result = []
     for source in await session.scalars(
@@ -84,15 +86,21 @@ async def source_views(session: AsyncSession) -> list[MarketSourceView]:
         .where(DataSource.id.in_([ISSUER_SOURCE, SECURITIES_SOURCE, BVC_SOURCE, DETAILS_SOURCE]))
         .order_by(DataSource.id)
     ):
+        scoped = source.id in {DETAILS_SOURCE, SECURITIES_SOURCE} and issuer_ids is not None
+        conditions = [Snapshot.source_id == source.id]
+        if scoped:
+            conditions.append(
+                Snapshot.details["issuer_id"].astext.in_([str(i) for i in issuer_ids or []])
+            )
         latest = await session.scalar(
             select(Snapshot)
-            .where(Snapshot.source_id == source.id)
+            .where(*conditions)
             .order_by(Snapshot.retrieved_at.desc(), Snapshot.id)
             .limit(1)
         )
         success = await session.scalar(
             select(Snapshot)
-            .where(Snapshot.source_id == source.id, Snapshot.ingestion_status == "success")
+            .where(*conditions, Snapshot.ingestion_status == "success")
             .order_by(Snapshot.retrieved_at.desc(), Snapshot.id)
             .limit(1)
         )
@@ -101,8 +109,20 @@ async def source_views(session: AsyncSession) -> list[MarketSourceView]:
                 id=source.id,
                 name=source.name,
                 institution=source.provider,
-                source_url=source.dataset_url,
-                availability=source.availability,
+                source_url=success.source_url
+                if scoped and success
+                else latest.source_url
+                if scoped and latest
+                else source.dataset_url,
+                availability=(
+                    "failed_to_retrieve"
+                    if latest and latest.ingestion_status == "failed"
+                    else "available"
+                    if success
+                    else "not_yet_checked"
+                )
+                if scoped
+                else source.availability,
                 last_ingestion_status=latest.ingestion_status if latest else "not_yet_checked",
                 last_error=latest.error_details
                 if latest and latest.ingestion_status == "failed"
@@ -292,7 +312,7 @@ async def instrument_views(
     session: AsyncSession,
     issuer_ids: list[UUID],
     page: int = 1,
-    page_size: int = 20,
+    page_size: int = 10,
     category: SecurityCategory | None = None,
     exchange: str | None = None,
     listing_status: ListingStatus | None = None,
@@ -303,12 +323,28 @@ async def instrument_views(
         .join(SourceRecord, SourceRecord.id == SecurityInstrument.source_record_id)
         .where(SecurityInstrument.issuer_id.in_(issuer_ids))
     )
+    unfiltered_total = int(
+        await session.scalar(
+            select(func.count()).select_from(
+                query.with_only_columns(SecurityInstrument.id).subquery()
+            )
+        )
+        or 0
+    )
     if category:
         query = query.where(SecurityInstrument.security_category == category)
     if exchange:
         query = query.where(SecurityInstrument.exchange == exchange.upper())
     if listing_status:
         query = query.where(SecurityInstrument.listing_status == listing_status)
+    total = int(
+        await session.scalar(
+            select(func.count()).select_from(
+                query.with_only_columns(SecurityInstrument.id).subquery()
+            )
+        )
+        or 0
+    )
     records = (
         await session.execute(
             query.order_by(SecurityInstrument.security_name, SecurityInstrument.id)
@@ -376,6 +412,8 @@ async def instrument_views(
         for instrument, snapshot, record in records[:page_size]
     ]
     return SecuritiesPage(
+        total=total,
+        unfiltered_total=unfiltered_total,
         items=items,
         page=page,
         page_size=page_size,
@@ -419,8 +457,6 @@ def summary(status: RegistrationStatus, potential: bool, debt: bool, stale: bool
     else:
         value = "No hay evidencia suficiente para determinar el registro RNVE de esta empresa."
     value += " No se ha verificado un listado vigente de acciones en la BVC."
-    if stale:
-        value += " La evidencia local está desactualizada o la última actualización falló."
     return value
 
 
@@ -429,7 +465,10 @@ async def company_profile(
     company: Company,
     retriever: SummaryRetriever | None = None,
     securities_retriever: SecuritiesRetriever | None = None,
+    force_refresh: bool = False,
+    refresh_source: str | None = None,
 ) -> CapitalMarketsProfile:
+    refresh_after = datetime.now(UTC) if force_refresh else None
     links = await company_links(session, company)
     if retriever or securities_retriever:
         verified_issuers = [i for i, m in links if m.match_status == MatchStatus.VERIFIED]
@@ -437,15 +476,17 @@ async def company_profile(
         await session.commit()
         for issuer in verified_issuers[:2]:
             await session.refresh(issuer)
-            if retriever:
-                await refresh_details(session, issuer, retriever)
-            if securities_retriever:
+            if retriever and refresh_source in (None, DETAILS_SOURCE):
+                await refresh_details(session, issuer, retriever, refresh_after)
+            if securities_retriever and refresh_source in (None, SECURITIES_SOURCE):
                 await session.refresh(issuer)
-                await refresh_securities(session, issuer, securities_retriever)
+                await refresh_securities(session, issuer, securities_retriever, refresh_after)
         # A failed import rolls back and expires ORM objects; reload before serialization.
         await session.refresh(company)
         links = await company_links(session, company)
-    sources = await source_views(session)
+    sources = await source_views(
+        session, [i.id for i, m in links if m.match_status == MatchStatus.VERIFIED]
+    )
     directory = await session.scalar(
         select(Snapshot)
         .where(Snapshot.source_id == ISSUER_SOURCE, Snapshot.ingestion_status == "success")

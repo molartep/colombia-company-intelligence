@@ -309,3 +309,23 @@ On Linux, add `--with-deps` to install browser system libraries. Docker installs
 Successful summaries and securities reports are cached independently for 24 hours; failures are retained separately with a 15-minute retry
 cooldown. Unknown and failed retrievals are not presented as fields absent from the source.
 See [RNVE summary retrieval and source limitations](docs/capital-markets-sources.md#public-rnve-issuer-summary-details).
+
+
+Source-information cards in Overview and Capital Markets start collapsed. Stale-data and
+retrieval-failure alerts include **Refresh data** actions. Manual Capital Markets refresh uses
+`GET /api/v1/companies/{id}/capital-markets?refresh=true` to bypass summary/report cache TTLs
+and failure cooldowns while retaining concurrency limits and previous successful evidence.
+The RNVE issuer directory still requires a new official export; a report refresh never relabels
+that directory as current. Overview uses `GET /api/v1/companies/{id}?refresh=true` to retrieve
+only the original RUES system row, preserving separate registrations even when NITs match.
+Missing or mismatched rows and source failures preserve cached evidence and return an error.
+
+
+Capital Markets refresh actions are source-specific: top alert buttons open and scroll to the
+collapsed **Data Source Information** section; only the buttons inside each source perform a
+refresh. They call `?refresh=true&refresh_source=sfc_rnve_issuer_details` or
+`?refresh=true&refresh_source=sfc_rnve_securities`. A selected refresh never calls the other
+connector. Import-only RNVE directory and unavailable BVC controls are disabled with explanations.
+Alerts identify the affected source, last successful retrieval, source observation date, latest
+attempt and recorded error. Summary/securities timestamps and errors are scoped to the current
+issuer; the source-catalog endpoint continues to show global connector health.

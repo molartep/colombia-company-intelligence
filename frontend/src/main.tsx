@@ -36,12 +36,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           </Routes>
         </main>
         <footer>
-          <span>
-            Colombia Company Intelligence <span className="muted">/ Open source</span>
-          </span>
-          <a href="https://www.datos.gov.co/d/c82u-588k" target="_blank" rel="noreferrer">
-            Data: Confecámaras · CC BY-SA 4.0 ↗
-          </a>
+          <span>Colombia Company Intelligence</span>
         </footer>
       </BrowserRouter>
     </QueryClientProvider>

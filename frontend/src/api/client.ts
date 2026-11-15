@@ -20,8 +20,11 @@ export async function request<T>(path: string, signal?: AbortSignal): Promise<T>
   return response.json() as Promise<T>
 }
 export const api = {
-  capitalMarkets: (id: string, signal?: AbortSignal) =>
-    request<MarketsProfile>(`/api/v1/companies/${encodeURIComponent(id)}/capital-markets`, signal),
+  capitalMarkets: (id: string, signal?: AbortSignal, refresh = false, source?: string) =>
+    request<MarketsProfile>(
+      `/api/v1/companies/${encodeURIComponent(id)}/capital-markets${refresh ? `?refresh=true${source ? `&refresh_source=${encodeURIComponent(source)}` : ''}` : ''}`,
+      signal,
+    ),
   securities: (
     id: string,
     page: number,
@@ -30,7 +33,7 @@ export const api = {
     listingStatus: string,
     signal?: AbortSignal,
   ) => {
-    const params = new URLSearchParams({ page: String(page), page_size: '20' })
+    const params = new URLSearchParams({ page: String(page), page_size: '10' })
     if (category) params.set('security_category', category)
     if (exchange) params.set('exchange', exchange)
     if (listingStatus) params.set('listing_status', listingStatus)
@@ -45,8 +48,11 @@ export const api = {
       `/api/v1/companies?${new URLSearchParams({ q, page: String(page), page_size: '20' })}${filters ? `&${filters}` : ''}`,
       signal,
     ),
-  profile: (id: string, signal?: AbortSignal) =>
-    request<Profile>(`/api/v1/companies/${encodeURIComponent(id)}`, signal),
+  profile: (id: string, signal?: AbortSignal, refresh = false) =>
+    request<Profile>(
+      `/api/v1/companies/${encodeURIComponent(id)}${refresh ? '?refresh=true' : ''}`,
+      signal,
+    ),
   sources: (id: string, signal?: AbortSignal) =>
     request<RecordView[]>(`/api/v1/companies/${encodeURIComponent(id)}/sources`, signal),
 }

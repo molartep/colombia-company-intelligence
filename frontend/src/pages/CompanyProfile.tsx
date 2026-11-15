@@ -1,33 +1,32 @@
+import { DataSourceInformation } from '../components/DataSourceInformation'
 import { CapitalMarkets } from '../components/CapitalMarkets'
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
-import { Failure, Loading } from '../components/Feedback'
+import { Failure, Loading, RefreshAlert } from '../components/Feedback'
 import { label, searchReturnPath } from '../utils'
 import { RegistrationStatus } from '../components/RegistrationStatus'
-import { MissingValue, RegistrationDate, TimestampValue } from '../components/FieldValues'
+import { MissingValue, RegistrationDate } from '../components/FieldValues'
 
 export function CompanyProfile() {
   const { id = '' } = useParams()
   const [params] = useSearchParams()
   const location = useLocation()
   const returnTo = searchReturnPath(location.state)
-  const tab =
-    params.get('tab') === 'capital-markets'
-      ? 'capital-markets'
-      : params.get('tab') === 'sources'
-        ? 'sources'
-        : 'overview'
+  const tab = params.get('tab') === 'capital-markets' ? 'capital-markets' : 'overview'
   const [copyStatus, setCopyStatus] = useState('')
+  const client = useQueryClient()
+  const refresh = useMutation({
+    mutationFn: () => api.profile(id, undefined, true),
+    onSuccess: async (data) => {
+      client.setQueryData(['company', id], data)
+      await client.invalidateQueries({ queryKey: ['records', id] })
+    },
+  })
   const company = useQuery({
     queryKey: ['company', id],
     queryFn: ({ signal }) => api.profile(id, signal),
-  })
-  const records = useQuery({
-    queryKey: ['records', id],
-    queryFn: ({ signal }) => api.sources(id, signal),
-    enabled: tab === 'sources',
   })
   if (company.isPending) return <Loading />
   if (company.isError) return <Failure error={company.error} retry={() => void company.refetch()} />
@@ -39,7 +38,6 @@ export function CompanyProfile() {
       </Link>
       <div className="profile-heading">
         <div>
-          <p className="eyebrow">REGISTRATION PROFILE</p>
           <h1>{data.legal_name}</h1>
           <div className="identity-line">
             <span className="profile-nit">
@@ -90,13 +88,6 @@ export function CompanyProfile() {
           Overview
         </Link>
         <Link
-          aria-current={tab === 'sources' ? 'page' : undefined}
-          to="?tab=sources"
-          state={{ returnTo }}
-        >
-          Sources
-        </Link>
-        <Link
           aria-current={tab === 'capital-markets' ? 'page' : undefined}
           to="?tab=capital-markets"
           state={{ returnTo }}
@@ -115,7 +106,7 @@ export function CompanyProfile() {
       </nav>
       {tab === 'capital-markets' ? (
         <CapitalMarkets companyId={id} />
-      ) : tab === 'overview' ? (
+      ) : (
         <>
           <div className="profile-grid">
             <article className="panel">
@@ -155,135 +146,24 @@ export function CompanyProfile() {
               </dl>
             </article>
           </div>
-          <article className="panel freshness">
-            <h2>Evidence & freshness</h2>
-            <dl>
-              <div>
-                <dt>Retrieved by this application</dt>
-                <dd>
-                  <TimestampValue value={data.retrieved_at} />
-                </dd>
-              </div>
-              <div>
-                <dt>Record updated in RUES</dt>
-                <dd>
-                  <TimestampValue value={data.source_updated_at} rues />
-                </dd>
-              </div>
-              <div>
-                <dt>Official dataset updated</dt>
-                <dd>
-                  <TimestampValue value={data.dataset_updated_at} />
-                </dd>
-              </div>
-            </dl>
-            <p className="small muted">
-              These timestamps describe different events. A recent retrieval does not mean the
-              underlying registration is recent.
-            </p>
-          </article>
-          <details className="panel">
-            <summary>Attribute availability & provenance</summary>
-            <dl>
-              {Object.entries(data.attributes).map(([key, state]) => (
-                <div key={key}>
-                  <dt>{label(key)}</dt>
-                  <dd>
-                    {state.state === 'present' ? (
-                      <span className="badge value-pill--present">Present</span>
-                    ) : state.state === 'missing_from_record' ? (
-                      <MissingValue />
-                    ) : (
-                      label(state.state)
-                    )}
-                    {state.source_field && (
-                      <small className="block muted">{state.source_field}</small>
-                    )}
-                    {state.note && <small className="block">{state.note}</small>}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </details>
-        </>
-      ) : (
-        <div className="sources-section">
-          <div className="section-heading">
-            <div>
-              <h2>Records & provenance</h2>
-            </div>
-          </div>
-          {data.sources.map((source) => (
-            <article className="panel" key={source.id}>
-              <h3>{source.name}</h3>
-              <p className="muted">{source.description}</p>
-              <p className="mt-4 source-availability">
-                Availability: {label(source.availability)}
-                <span
-                  className={`availability-dot availability-dot--${source.availability === 'available' ? 'available' : 'unavailable'}`}
-                  aria-hidden="true"
-                />
-              </p>
-              <a className="text-link" href={source.dataset_url} target="_blank" rel="noreferrer">
-                Open official dataset ↗
-              </a>
-            </article>
-          ))}
-          {records.isPending && <Loading />}
-          {records.isError && (
-            <Failure error={records.error} retry={() => void records.refetch()} />
+          {(refresh.isError ||
+            data.sources.some((source) => source.availability === 'failed_to_retrieve')) && (
+            <RefreshAlert refresh={() => refresh.mutate()} refreshing={refresh.isPending}>
+              {refresh.error?.message ??
+                'The source was unavailable at the last check. Previously retrieved data is preserved.'}
+            </RefreshAlert>
           )}
-          {records.data?.map((record) => (
-            <article className="panel" key={record.id}>
-              <div className="section-heading">
-                <h3>Registration record</h3>
-                <span className="badge">RUES</span>
-              </div>
-              <dl>
-                <div>
-                  <dt>Source row ID</dt>
-                  <dd>{record.external_record_id || <MissingValue />}</dd>
-                </div>
-                <div>
-                  <dt>Retrieved</dt>
-                  <dd>
-                    <TimestampValue value={record.retrieved_at} />
-                  </dd>
-                </div>
-                <div>
-                  <dt>Record updated</dt>
-                  <dd>
-                    <TimestampValue value={record.source_updated_at} rues />
-                  </dd>
-                </div>
-                <div>
-                  <dt>Payload SHA-256</dt>
-                  <dd className="hash">{record.payload_hash}</dd>
-                </div>
-              </dl>
-              <details className="record-fields">
-                <summary>Public fields & field mappings</summary>
-                <dl>
-                  {Object.entries(record.fields).map(([key, value]) => (
-                    <div key={key}>
-                      <dt>{key}</dt>
-                      <dd>{value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </details>
-              {record.source_url && (
-                <a className="text-link" href={record.source_url} target="_blank" rel="noreferrer">
-                  View originating dataset ↗
-                </a>
-              )}
-              <p className="small muted mt-4">
-                Personal identifiers and representative details are excluded from this view. The
-                source row ID identifies the originating record.
-              </p>
-            </article>
-          ))}
-        </div>
+          {refresh.isSuccess && (
+            <p className="small muted" role="status">
+              Registration refreshed from the official source.
+            </p>
+          )}
+          <DataSourceInformation
+            company={data}
+            refresh={() => refresh.mutate()}
+            refreshing={refresh.isPending}
+          />
+        </>
       )}
     </section>
   )

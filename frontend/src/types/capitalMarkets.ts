@@ -82,6 +82,8 @@ export interface MarketSource {
   institution: string
   source_url: string
   availability: string
+  last_ingestion_status?: string
+  last_error?: string | null
   last_attempt_at: string | null
   last_success_at: string | null
   stale: boolean
@@ -109,6 +111,8 @@ export interface MarketsProfile {
   limitations: string[]
 }
 export interface SecuritiesPage {
+  total: number
+  unfiltered_total: number
   items: Instrument[]
   page: number
   page_size: number

@@ -1086,7 +1086,7 @@ details dl {
   background: #fff;
 }
 .instruments-table {
-  min-width: 1050px;
+  min-width: 1300px;
 }
 .instruments-table td {
   vertical-align: top;
@@ -1117,4 +1117,210 @@ details dl {
 .market-contact > .small {
   margin-top: 18px;
   line-height: 1.8;
+}
+
+.data-source-information h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+.source-introduction {
+  font-size: 13px;
+  margin-top: 10px;
+  line-height: 1.7;
+}
+.source-providers {
+  margin-top: 24px;
+}
+.source-provider {
+  padding: 20px;
+  background: #f6f8f6;
+  border-radius: 6px;
+}
+.source-provider + .source-provider {
+  margin-top: 12px;
+}
+.source-provider-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.source-provider > p {
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+.source-freshness,
+.source-records {
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: 1px solid #e3e9e5;
+}
+.source-freshness dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.source-freshness dl > div {
+  display: block;
+  border: 0;
+  padding: 0;
+}
+.source-freshness dd {
+  margin-top: 10px;
+}
+.source-freshness > p {
+  margin-top: 18px;
+  line-height: 1.7;
+}
+.source-disclosure {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e3e9e5;
+}
+.source-disclosure > summary {
+  cursor: pointer;
+  line-height: 1.6;
+}
+.source-disclosure > p {
+  margin-top: 14px;
+  line-height: 1.7;
+}
+.source-disclosure small {
+  margin-top: 6px;
+  line-height: 1.6;
+}
+.source-disclosure code {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.source-records .source-disclosure {
+  margin-top: 14px;
+}
+.source-disclosure .text-link {
+  display: inline-block;
+  margin-top: 18px;
+}
+.source-privacy-note {
+  margin-top: 20px;
+  line-height: 1.7;
+}
+@media (max-width: 640px) {
+  .source-freshness dl {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .source-provider {
+    padding: 16px;
+  }
+}
+
+.source-card-heading {
+  cursor: pointer;
+}
+.source-card-heading h2 {
+  display: inline;
+  margin: 0;
+}
+.source-card-content {
+  margin-top: 24px;
+}
+.source-provider .source-provider {
+  background: white;
+}
+.source-providers > .source-provider + .source-provider {
+  margin-top: 20px;
+}
+.source-freshness--four dl {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.source-scope-note {
+  margin-top: 18px;
+}
+.source-refresh {
+  margin-top: 16px;
+}
+.source-provider > .text-link + .source-refresh {
+  margin-inline-start: 20px;
+}
+.refresh-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.refresh-alert > div {
+  min-width: 0;
+}
+.refresh-button {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border: 1px solid #bccbc2;
+  border-radius: 5px;
+  background: white;
+  color: #173d2b;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.refresh-button:hover:not(:disabled) {
+  background: #edf4ef;
+}
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.refresh-button[aria-busy='true'] {
+  cursor: wait;
+}
+@media (max-width: 640px) {
+  .refresh-alert {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .source-freshness--four dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+.source-evidence-status > p {
+  margin-top: 8px;
+  line-height: 1.6;
+}
+.source-evidence-status dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.source-evidence-status dl > div {
+  display: block;
+  border: 0;
+  padding: 0;
+}
+.source-evidence-status dd {
+  margin-top: 6px;
+}
+.source-error {
+  margin-top: 14px;
+  overflow-wrap: anywhere;
+}
+.source-provider:focus {
+  outline: 2px solid #7b9683;
+  outline-offset: 4px;
+}
+#capital-market-sources,
+.source-provider {
+  scroll-margin-top: 24px;
+}
+@media (max-width: 640px) {
+  .source-evidence-status dl {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.securities-count {
+  margin: 20px 0 12px;
 }
