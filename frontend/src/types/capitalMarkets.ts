@@ -25,6 +25,27 @@ export interface MarketIssuer {
   issuer_name: string
   regulator_entity_code: string | null
   regulator_entity_type: string | null
+  regulator_entity_type_description?: string | null
+  contacts?: {
+    institutional_email: string | null
+    address: string | null
+    city: string | null
+    phone: string | null
+    website: string | null
+    social_networks: string[]
+  }
+  administration?: {
+    board_members_count: number | null
+    legal_representative: string | null
+    rnve_information_representative: string | null
+  }
+  contacts_source_url?: string | null
+  contacts_retrieved_at?: string | null
+  administration_source_url?: string | null
+  administration_retrieved_at?: string | null
+  details_availability?: 'available' | 'not_yet_checked' | 'failed_to_retrieve' | 'stale'
+  details_last_attempt_at?: string | null
+  details_last_attempt_failed?: boolean
   registration_status: RegistrationStatus
   last_verified_at: string
   source_url: string

@@ -43,11 +43,11 @@ BVC corroboration remains unavailable pending an authorized reproducible source.
 | Código de entidad | Source entity code; three-digit representation. |
 | Nombre entidad | Issuer name, separate from RUES legal identity. |
 | NIT | Original source identifier; explicit source-specific normalization policy below. |
-| Direccion | Not copied into queryable source-record payloads or public APIs. |
-| Ciudad | Not used to populate company geography. |
-| Teléfono | Excluded from queryable/public payloads. |
-| Correo electronico | Excluded from queryable/public payloads. |
-| Página web | Not used for external fetching; excluded from queryable payloads. |
+| Direccion | Business contact address, exposed separately from RUES identity. |
+| Ciudad | RNVE contact city; never used to populate RUES company geography. |
+| Teléfono | Requested business contact field; preserved with source provenance. |
+| Correo electronico | Requested business contact field; preserved with source provenance. |
+| Página web | Displayed as a safe HTTP(S) link; never fetched by the server. |
 | Nivel de supervisión | Not interpreted as registration/listing status. |
 | Organismo de supervisión | Not interpreted as ownership or a listing finding. |
 
@@ -151,5 +151,69 @@ Reports retain the source institution's applicable terms; MIT applies to softwar
 of regulatory files. Retention/access policies remain deployment responsibilities.
 
 No full issuer export, source report binary, personal-contact fixture, or fabricated listing database
-is committed. Standard tests use synthetic workbooks/HTML. Only the explicit operator refresh/smoke
-commands contact regulators; company-profile reads use local data.
+is committed. Standard tests use synthetic workbooks/HTML and mocked page retrieval. Registration/listing evidence
+uses local snapshots; Capital Markets tab access automatically retrieves missing/stale summary details.
+
+
+## Public RNVE issuer-summary details
+
+The rendered official issuer-summary page was inspected for Grupo Aval at
+[the public RNVE summary](https://www.superfinanciera.gov.co/SIMEV2/rnve/resumenentidad/142/1/0)
+on 2026-11-15. It reports `142 - Holdings Financieros`; do not substitute the older
+`066 - SOCIEDADES INVERSORAS` record for this regulatory identity.
+
+Only two-cell table rows with these labels are imported: `Nombre:`, `NIT:`, `Tipo Entidad:`,
+`Código Entidad:`, `Correo institucional`, `Dirección`, `Ciudad`, `Teléfono`, `Web`,
+`Redes Sociales`, `Nro. Miembros Junta Directiva`, `Representante Legal principal`, and
+`Representante Legal principal responsable de la informacion presentada al RNVE`.
+Social links are collected only within the social-network row. Empty fields remain missing;
+page-footer regulator contacts, representative identification numbers, and unrelated fields are
+excluded. Only confirmed issuer matches receive contact/administration cards on company profiles.
+
+The public summary is a rendered SPA. Its page requests an API key for direct service access, so
+we do not extract credentials or call those services separately. Playwright navigates to the ordinary
+public page in an isolated Chromium context and waits for its own basic/RNVE responses and tables.
+Only HTTPS GET requests to the fixed SFC host are allowed; images, fonts, media and third-party
+analytics are blocked. No existing user browser session or cookies are used.
+
+The Capital Markets endpoint performs a read-through refresh for up to two verified issuer links.
+Successful observations are cached for `CAPITAL_MARKETS_MAX_AGE_HOURS` (24 hours by default);
+failures have a 15-minute cooldown. Worker locks plus a PostgreSQL advisory lock prevent duplicate
+fetches for one issuer, with at most two pages per backend process and a total per-page deadline.
+A source failure preserves earlier values and is distinct from absent fields. No identity match
+means no page retrieval. Name-only candidate records are never attributed automatically.
+
+An observed Bancolombia summary appends a `podrá girar` legal trading-name clause to the workbook
+name. This limited variation is accepted only with independently matching NIT and regulatory codes;
+the exact summary name is preserved in the raw record. Other conflicting names are rejected.
+
+Manual rendered-HTML import remains available as an administrative fallback:
+
+```bash
+cd backend
+python -m app.jobs.refresh_capital_markets --entity 142:001 \
+  --issuer-details-report /path/to/rendered-rnve-summary.html \
+  --details-source-url https://www.superfinanciera.gov.co/SIMEV2/rnve/resumenentidad/142/1/0
+```
+
+The issuer must already be imported. URL, name, NIT and regulatory type/code must match.
+Unrendered HTML shells and mismatched identities are rejected. Keep the original acquisition
+context: a content hash alone cannot authenticate an operator-supplied file. The independent
+`sfc_rnve_issuer_details` source stores snapshots, selected raw fields and retrieval times;
+failed imports preserve the last successful details. Contacts use details when present,
+otherwise the workbook. Administration and social networks are now automatically retrieved on
+Capital Markets access when a verified issuer lacks fresh details. No official update time is
+invented, and importing details does not refresh directory coverage or registration evidence.
+
+
+### Automatic retrieval live validation
+
+On 2026-11-15, previously unimported summary pages were retrieved through the application API for
+Banco de Bogotá (`001:001`), Bancolombia (`001:007`) and Ecopetrol (`260:036`). All three passed
+identity validation and supplied board size and legal representatives. Repeat reads used the local
+cache. These observations are not test fixtures or guarantees about future site availability.
+
+For local development, install Chromium after installing backend dependencies:
+`python -m playwright install --no-shell chromium`. Linux hosts may also need
+`python -m playwright install --with-deps --no-shell chromium`.
+The backend Docker image installs Chromium and its system dependencies during build.

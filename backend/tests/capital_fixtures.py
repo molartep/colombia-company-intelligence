@@ -45,10 +45,10 @@ def issuer_xlsx(rows=None):
                 code,
                 name,
                 nit,
-                "SYNTHETIC PRIVATE ADDRESS",
+                "SYNTHETIC BUSINESS ADDRESS",
                 "SYNTHETIC CITY",
                 "SYNTHETIC PHONE",
-                "SYNTHETIC PRIVATE EMAIL",
+                "registry@example.test",
                 "",
                 "",
                 "",
@@ -96,4 +96,29 @@ def security_html(issuer="SYNTHETIC EMISOR SAS", rows=None):
         f"<html><h1>Valores Inscritos</h1><div>{escape(issuer)}</div>"
         f"<span>Títulos vigentes al {stamp}</span>"
         f"<table><tr>{header}</tr>{body}</table><p>Registros encontrados {len(rows)}</p></html>"
+    ).encode()
+
+
+def issuer_details_html(**overrides):
+    fields = {
+        "Nombre:": "SYNTHETIC EMISOR SAS",
+        "NIT:": SYNTHETIC_NIT + verification_digit(SYNTHETIC_NIT),
+        "Tipo Entidad:": "001 - SYNTHETIC ENTITY TYPE",
+        "Código Entidad:": "001",
+        "Correo institucional": "registry@example.test",
+        "Dirección": "SYNTHETIC BUSINESS ADDRESS",
+        "Ciudad": "SYNTHETIC CITY",
+        "Teléfono": "0000000",
+        "Web": "www.example.test",
+        "Redes Sociales": "",
+        "Nro. Miembros Junta Directiva": "7",
+        "Representante Legal principal": "SYNTHETIC REPRESENTATIVE",
+        "Representante Legal principal responsable de la informacion presentada al RNVE": "",
+        "Documento representante": "SYNTHETIC PRIVATE ID",
+    }
+    fields.update(overrides)
+    return (
+        "<table>"
+        + "".join(f"<tr><td>{escape(k)}</td><td>{escape(v)}</td></tr>" for k, v in fields.items())
+        + "</table><footer>super@example.test</footer>"
     ).encode()

@@ -1108,3 +1108,13 @@ details dl {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.market-provenance > summary {
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.market-contact > .small {
+  margin-top: 18px;
+  line-height: 1.8;
+}

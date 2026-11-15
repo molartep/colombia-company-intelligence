@@ -2,7 +2,7 @@ import hashlib
 import json
 import uuid
 from datetime import UTC, date, datetime
-from typing import Literal
+from typing import Any, Literal
 
 from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.core.errors import SourceError
 from app.core.normalization import normalize_name
+from app.integrations.capital_markets.issuer_details import DETAILS_SOURCE
 from app.integrations.capital_markets.matching import reconcile
 from app.integrations.capital_markets.parsers import parse_issuers, parse_securities
 from app.integrations.capital_markets.reports import BvcUnavailable, store_artifact
@@ -52,6 +53,12 @@ async def ensure_sources(session: AsyncSession) -> None:
             ),
         ),
         (
+            DETAILS_SOURCE,
+            "SFC · Datos del emisor RNVE",
+            DIRECTORY_URL,
+            "Issuer contact and administration fields from public RNVE summary pages.",
+        ),
+        (
             BVC_SOURCE,
             "Bolsa de Valores de Colombia · Listing corroboration",
             "https://www.bvc.com.co/",
@@ -79,7 +86,7 @@ async def ensure_sources(session: AsyncSession) -> None:
 
 
 async def raw_record(
-    session: AsyncSession, source: str, external_id: str, raw: dict[str, str], url: str
+    session: AsyncSession, source: str, external_id: str, raw: dict[str, Any], url: str
 ) -> uuid.UUID:
     digest = hashlib.sha256(
         json.dumps(raw, ensure_ascii=False, sort_keys=True).encode()
@@ -354,4 +361,61 @@ async def ingest_securities(
         await record_failure(
             session, SECURITIES_SOURCE, url, exc, digest, {"issuer_id": issuer_key}
         )
+        raise
+
+
+async def ingest_issuer_details(
+    session: AsyncSession, issuer: SecuritiesIssuer, content: bytes, url: str
+) -> CapitalMarketsSourceSnapshot:
+    from app.integrations.capital_markets.issuer_details import (
+        DETAILS_SOURCE,
+        parse_issuer_details,
+        validate_details_url,
+    )
+
+    issuer_key = str(issuer.id)
+    digest = None
+    try:
+        validate_details_url(
+            url, issuer.regulator_entity_type or "", issuer.regulator_entity_code or ""
+        )
+        row = parse_issuer_details(
+            content,
+            issuer_name=issuer.issuer_name,
+            source_nit=issuer.source_nit,
+            entity_type=issuer.regulator_entity_type or "",
+            entity_code=issuer.regulator_entity_code or "",
+        )
+        digest = store_artifact(content, get_settings().capital_markets_storage_dir)
+        await session.execute(text("SELECT pg_advisory_xact_lock(770209)"))
+        await ensure_sources(session)
+        snapshot = CapitalMarketsSourceSnapshot(
+            source_id=DETAILS_SOURCE,
+            retrieved_at=datetime.now(UTC),
+            source_url=url,
+            content_hash=digest,
+            record_count=1,
+            ingestion_status="success",
+            details={
+                "issuer_id": issuer_key,
+                "coverage": "issuer_contact_and_administration",
+                "observed_at": None,
+            },
+        )
+        session.add(snapshot)
+        await session.flush()
+        await raw_record(
+            session,
+            DETAILS_SOURCE,
+            issuer.external_id,
+            {**row.raw, "social_urls": row.social_urls},
+            url,
+        )
+        source = await session.get(DataSource, DETAILS_SOURCE)
+        assert source
+        source.last_checked_at, source.availability = datetime.now(UTC), "available"
+        await session.commit()
+        return snapshot
+    except Exception as exc:
+        await record_failure(session, DETAILS_SOURCE, url, exc, digest, {"issuer_id": issuer_key})
         raise

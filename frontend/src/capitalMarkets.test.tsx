@@ -31,6 +31,7 @@ const profile: MarketsProfile = {
       source_url: 'https://www.superfinanciera.gov.co/SIMEV2/rnve/emisoresinscritosvigentes',
       match_status: 'verified',
       snapshot_id: 'synthetic-snapshot',
+      details_availability: 'available',
     },
   ],
   instruments: [],
@@ -172,4 +173,151 @@ test('API errors remain errors instead of negative regulatory findings', async (
   setup(profile, securities, true)
   expect(await screen.findByRole('alert')).toHaveTextContent('Capital markets data unavailable.')
   expect(screen.queryByText('Sin coincidencia en la fuente consultada')).not.toBeInTheDocument()
+})
+
+test('RNVE description, contacts, administration and collapsed provenance', async () => {
+  setup({
+    ...profile,
+    issuers: [
+      {
+        ...profile.issuers[0]!,
+        regulator_entity_type_description: 'SYNTHETIC ENTITY TYPE',
+        contacts: {
+          institutional_email: 'registry@example.test',
+          address: null,
+          city: null,
+          phone: null,
+          website: 'www.example.test',
+          social_networks: [],
+        },
+        administration: {
+          board_members_count: 0,
+          legal_representative: 'SYNTHETIC REPRESENTATIVE',
+          rnve_information_representative: null,
+        },
+      },
+    ],
+  })
+  await screen.findByText('001 — SYNTHETIC ENTITY TYPE')
+  expect(screen.getByText('registry@example.test')).toBeVisible()
+  expect(screen.getByRole('link', { name: 'www.example.test ↗' })).toHaveAttribute(
+    'href',
+    'https://www.example.test/',
+  )
+  const administration = screen.getByRole('heading', { name: 'Administración' }).closest('article')!
+  expect(within(administration).getByText('0')).toBeVisible()
+  expect(within(administration).getByText('Missing')).toHaveClass('value-pill--missing')
+  expect(screen.queryByText(/Propiedad: no evaluada/)).not.toBeInTheDocument()
+  const summary = screen.getByText('Fuentes y verificación')
+  expect(summary.closest('details')).not.toHaveAttribute('open')
+  await userEvent.click(summary)
+  expect(summary.closest('details')).toHaveAttribute('open')
+})
+
+test('missing contact and administration values use red Missing pills', async () => {
+  setup()
+  await screen.findByRole('heading', { name: 'Administración' })
+  for (const heading of ['Datos de contacto', 'Administración']) {
+    const panel = screen.getByRole('heading', { name: heading }).closest('article')!
+    const missing = within(panel).getAllByText('Missing')
+    expect(missing).toHaveLength(heading === 'Administración' ? 3 : 6)
+    missing.forEach((pill) => expect(pill).toHaveClass('value-pill--missing'))
+  }
+})
+
+test('candidate contacts are not attributed', async () => {
+  setup({
+    ...profile,
+    rnve: { status: 'unknown', match_status: 'potential' },
+    issuers: [
+      {
+        ...profile.issuers[0]!,
+        match_status: 'potential',
+        contacts: {
+          institutional_email: 'candidate@example.test',
+          address: null,
+          city: null,
+          phone: null,
+          website: null,
+          social_networks: [],
+        },
+      },
+    ],
+  })
+  await screen.findByRole('heading', { name: 'Datos de contacto' })
+  expect(screen.queryByText('candidate@example.test')).not.toBeInTheDocument()
+})
+
+test.each(['javascript:alert(1)', 'https://https://www.example.test'])(
+  'unsafe RNVE website %s does not become a hyperlink',
+  async (website) => {
+    setup({
+      ...profile,
+      issuers: [
+        {
+          ...profile.issuers[0]!,
+          contacts: {
+            institutional_email: null,
+            address: null,
+            city: null,
+            phone: null,
+            website,
+            social_networks: [],
+          },
+        },
+      ],
+    })
+    await screen.findByText(website)
+    expect(screen.queryByRole('link', { name: `${website} ↗` })).not.toBeInTheDocument()
+  },
+)
+
+test('failed summary retrieval is unavailable rather than missing source evidence', async () => {
+  setup({
+    ...profile,
+    issuers: [
+      {
+        ...profile.issuers[0]!,
+        details_availability: 'failed_to_retrieve',
+        details_last_attempt_failed: true,
+      },
+    ],
+  })
+  await screen.findByText(/No se pudo recuperar el resumen RNVE/)
+  const panel = screen.getByRole('heading', { name: 'Administración' }).closest('article')!
+  expect(within(panel).getAllByText('Unavailable')).toHaveLength(3)
+  expect(within(panel).queryByText('Missing')).not.toBeInTheDocument()
+})
+
+test('unchecked administration is distinct from fields missing in a checked summary', async () => {
+  setup({
+    ...profile,
+    issuers: [{ ...profile.issuers[0]!, details_availability: 'not_yet_checked' }],
+  })
+  await screen.findByRole('heading', { name: 'Administración' })
+  const panel = screen.getByRole('heading', { name: 'Administración' }).closest('article')!
+  expect(within(panel).getAllByText('Not yet checked')).toHaveLength(3)
+  expect(within(panel).queryByText('Missing')).not.toBeInTheDocument()
+})
+
+test('failed refresh retains cached administration with an explicit stale notice', async () => {
+  setup({
+    ...profile,
+    issuers: [
+      {
+        ...profile.issuers[0]!,
+        details_availability: 'stale',
+        details_last_attempt_failed: true,
+        administration: {
+          board_members_count: 7,
+          legal_representative: 'SYNTHETIC CACHED REPRESENTATIVE',
+          rnve_information_representative: null,
+        },
+      },
+    ],
+  })
+  await screen.findByText('SYNTHETIC CACHED REPRESENTATIVE')
+  expect(screen.getByText(/Se conservan los últimos datos recuperados/)).toBeVisible()
+  const panel = screen.getByRole('heading', { name: 'Administración' }).closest('article')!
+  expect(within(panel).getByText('7')).toBeVisible()
 })

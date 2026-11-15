@@ -22,8 +22,9 @@ from app.core.logging import configure_logging
 from app.core.normalization import InvalidIdentifier, looks_like_nit, normalize_name, normalize_nit
 from app.db.session import engine, get_session
 
-# Regulatory data are served from local snapshots; no profile-view regulatory fan-out.
+# Registration/listing evidence uses snapshots; summary details refresh on tab access.
 from app.integrations.capital_markets import service as capital
+from app.integrations.capital_markets.summary_renderer import RnveSummaryRenderer
 from app.integrations.capital_markets.types import ListingStatus, MatchStatus, SecurityCategory
 from app.integrations.rues.adapter import RuesDataSource
 from app.integrations.rues.parameters import parameter_catalog
@@ -63,7 +64,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.rues = RuesDataSource(
             SocrataClient(client, settings.socrata_retries, settings.upstream_concurrency)
         )
-        yield
+        app.state.rnve_summary = RnveSummaryRenderer(settings.capital_markets_timeout)
+        try:
+            yield
+        finally:
+            await app.state.rnve_summary.close()
     await engine.dispose()
 
 
@@ -215,8 +220,14 @@ async def parameters() -> ParameterCatalog:
 
 
 @app.get("/api/v1/companies/{company_id}/capital-markets", response_model=CapitalMarketsProfile)
-async def company_capital_markets(company_id: UUID, session: DB) -> CapitalMarketsProfile:
-    return await capital.company_profile(session, await get_company(session, company_id))
+async def company_capital_markets(
+    company_id: UUID, session: DB, request: Request
+) -> CapitalMarketsProfile:
+    return await capital.company_profile(
+        session,
+        await get_company(session, company_id),
+        getattr(request.app.state, "rnve_summary", None),
+    )
 
 
 @app.get("/api/v1/companies/{company_id}/securities", response_model=SecuritiesPage)

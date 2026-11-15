@@ -703,7 +703,7 @@ async def test_capital_ingestion_idempotence_debt_only_and_api(
             )
             assert len(issuers.json()["items"]) == 1
             sources = await client.get("/api/v1/capital-markets/sources")
-            assert len(sources.json()) == 3
+            assert len(sources.json()) == 4
             assert all(
                 s["latest_snapshot"]["content_hash"] for s in sources.json() if s["latest_snapshot"]
             )
@@ -1095,3 +1095,180 @@ async def test_capital_security_rename_preserves_instrument_uuid_and_raw_name_hi
         )
     }
     assert "BO SYNTHETIC BOND" in names and "BO SYNTHETIC RENAMED BOND" in names
+
+
+async def test_issuer_contact_and_administration_import(session, tmp_path, monkeypatch):
+    from capital_fixtures import issuer_details_html, issuer_xlsx
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuer_details, ingest_issuers
+    from app.integrations.capital_markets.issuer_details import DETAILS_SOURCE
+    from app.integrations.capital_markets.service import issuer_views
+    from app.models.capital_markets import SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    assert issuer
+    url = "https://www.superfinanciera.gov.co/SIMEV2/rnve/resumenentidad/1/1/0"
+    for _ in range(2):
+        await ingest_issuer_details(session, issuer, issuer_details_html(), url)
+    assert (
+        await session.scalar(
+            select(func.count())
+            .select_from(SourceRecord)
+            .where(SourceRecord.source_id == DETAILS_SOURCE)
+        )
+        == 1
+    )
+    view = (await issuer_views(session, [(issuer, None)]))[0]
+    assert view.regulator_entity_type_description == "SYNTHETIC ENTITY TYPE"
+    assert view.contacts.institutional_email == "registry@example.test"
+    assert view.administration.board_members_count == 7
+    assert view.administration.rnve_information_representative is None
+    assert view.administration_source_url == url and view.administration_retrieved_at
+    await ingest_issuer_details(
+        session, issuer, issuer_details_html(**{"Nro. Miembros Junta Directiva": "9"}), url
+    )
+    with pytest.raises(ValueError):
+        await ingest_issuer_details(
+            session, issuer, issuer_details_html(**{"Tipo Entidad:": "066 - OTHER"}), url
+        )
+    view = (await issuer_views(session, [(issuer, None)]))[0]
+    assert view.administration.board_members_count == 9
+    assert (
+        await session.scalar(
+            select(func.count())
+            .select_from(SourceRecord)
+            .where(SourceRecord.source_id == DETAILS_SOURCE)
+        )
+        == 2
+    )
+
+
+@pytest.mark.parametrize("fail_first", [False, True])
+async def test_capital_tab_automatic_details_cache_and_failure(
+    session, record, tmp_path, monkeypatch, fail_first
+):
+    from datetime import UTC, datetime, timedelta
+    from types import SimpleNamespace
+
+    from capital_fixtures import issuer_details_html, issuer_xlsx
+    from sqlalchemy import update
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.integrations.capital_markets.issuer_details import DETAILS_SOURCE
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.models.capital_markets import CapitalMarketsSourceSnapshot as Snapshot
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    company_id = company.id
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    fake = SimpleNamespace(fetch=AsyncMock(return_value=issuer_details_html()))
+    if fail_first:
+        fake.fetch.side_effect = SourceError("rnve_summary_unavailable", "SYNTHETIC failure")
+    monkeypatch.setattr(app.state, "rnve_summary", fake, raising=False)
+
+    async def override():
+        yield session
+
+    app.dependency_overrides[get_session] = override
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as c:
+            path = f"/api/v1/companies/{company_id}/capital-markets"
+            response = await c.get(path)
+            assert response.status_code == 200, response.text
+            issuer = response.json()["issuers"][0]
+            assert issuer["details_availability"] == (
+                "failed_to_retrieve" if fail_first else "available"
+            )
+            assert issuer["administration"]["board_members_count"] == (None if fail_first else 7)
+            assert issuer["details_last_attempt_failed"] is fail_first
+            assert fake.fetch.await_count == 1
+            assert (await c.get(path)).status_code == 200
+            assert fake.fetch.await_count == 1  # Cached success or failure cooldown.
+            if not fail_first:
+                await session.execute(
+                    update(Snapshot)
+                    .where(Snapshot.source_id == DETAILS_SOURCE)
+                    .values(retrieved_at=datetime.now(UTC) - timedelta(hours=25))
+                )
+                await session.commit()
+                fake.fetch.side_effect = SourceError(
+                    "rnve_summary_unavailable", "SYNTHETIC failure"
+                )
+                failed = await c.get(path)
+                assert failed.status_code == 200, failed.text
+                retained = failed.json()["issuers"][0]
+                assert retained["details_availability"] == "stale"
+                assert retained["details_last_attempt_failed"]
+                assert retained["administration"]["board_members_count"] == 7
+                assert fake.fetch.await_count == 2
+                assert (await c.get(path)).status_code == 200
+                assert fake.fetch.await_count == 2
+    finally:
+        app.dependency_overrides.clear()
+
+
+async def test_simultaneous_summary_requests_fetch_once(session, tmp_path, monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+
+    from capital_fixtures import issuer_details_html, issuer_xlsx
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.automatic_details import refresh_details
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.models.capital_markets import SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer_id = await session.scalar(select(SecuritiesIssuer.id))
+    await session.commit()
+    factory = async_sessionmaker(session.bind, expire_on_commit=False)
+
+    async def fetch(*args):
+        await asyncio.sleep(0.02)
+        return issuer_details_html()
+
+    retriever = SimpleNamespace(fetch=AsyncMock(side_effect=fetch))
+
+    async def request():
+        async with factory() as independent:
+            issuer = await independent.get(SecuritiesIssuer, issuer_id)
+            assert issuer
+            await refresh_details(independent, issuer, retriever)
+            await independent.commit()
+
+    await asyncio.gather(request(), request())
+    assert retriever.fetch.await_count == 1
+
+
+async def test_name_only_candidate_never_triggers_automatic_summary(
+    session, record, tmp_path, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from capital_fixtures import issuer_xlsx
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.integrations.capital_markets.service import company_profile
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    company = await persist(session, record)
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx([(company.legal_name, "", "001", "001")]))
+    retriever = SimpleNamespace(fetch=AsyncMock())
+    result = await company_profile(session, company, retriever)
+    assert result.rnve.match_status == "potential"
+    retriever.fetch.assert_not_awaited()

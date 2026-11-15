@@ -174,8 +174,8 @@ def parse_issuers(
                 raise ValueError("Invalid regulatory entity type/code.")
             kind, code = kind.zfill(3), code.zfill(3)
             nit, dv, eligible = issuer_nit(row["NIT"], kind, nit_mode)
-            # Do not persist contacts or separate personal details as queryable records.
-            public = {k: row[k] for k in ISSUER_HEADERS[:6]}
+            # Keep only the requested issuer contact fields; exclude other personal data.
+            public = {k: row[k] for k in ISSUER_HEADERS[:11]}
             rows.append(
                 IssuerRow(
                     external_id=f"{kind}:{code}",

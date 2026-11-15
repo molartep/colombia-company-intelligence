@@ -1,8 +1,14 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
-import { categories, type ListingStatus, type RegistrationStatus } from '../types/capitalMarkets'
+import {
+  categories,
+  type ListingStatus,
+  type MarketIssuer,
+  type RegistrationStatus,
+} from '../types/capitalMarkets'
 import { Failure, Loading } from './Feedback'
+import { MissingValue } from './FieldValues'
 import { dateTime, registrationDate } from '../utils'
 
 const registrationLabels: Record<RegistrationStatus, string> = {
@@ -31,6 +37,49 @@ const availability: Record<string, string> = {
 const date = (value: string | null) =>
   value ? (registrationDate(value)?.display ?? value) : 'No informado'
 
+function PublicLink({ value }: { value: string | null | undefined }) {
+  if (!value) return <MissingValue />
+  let href: string | undefined
+  try {
+    const url = new URL(/^www\./i.test(value) ? `https://${value}` : value)
+    if (
+      ['https:', 'http:'].includes(url.protocol) &&
+      url.hostname.includes('.') &&
+      !url.username &&
+      !url.password
+    )
+      href = url.href
+  } catch {
+    /* Preserve source text when it is not a valid public link. */
+  }
+  if (href)
+    return (
+      <a className="text-link" href={href} target="_blank" rel="noreferrer">
+        {value} ↗
+      </a>
+    )
+  return <>{value}</>
+}
+
+function AdministrationValue({
+  value,
+  issuer,
+}: {
+  value?: string | number | null
+  issuer?: MarketIssuer
+}) {
+  if (value !== null && value !== undefined && value !== '') return <>{value}</>
+  if (issuer?.details_availability === 'available' || issuer?.details_availability === 'stale')
+    return <MissingValue />
+  return (
+    <span
+      className={`badge ${issuer?.details_availability === 'failed_to_retrieve' ? 'value-pill--missing' : 'value-pill--muted'}`}
+    >
+      {issuer?.details_availability === 'failed_to_retrieve' ? 'Unavailable' : 'Not yet checked'}
+    </span>
+  )
+}
+
 export function CapitalMarkets({ companyId }: { companyId: string }) {
   const [page, setPage] = useState(1)
   const [category, setCategory] = useState('')
@@ -38,6 +87,8 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
   const [listingStatus, setListingStatus] = useState('')
   const markets = useQuery({
     queryKey: ['capital-markets', companyId],
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
     queryFn: ({ signal }) => api.capitalMarkets(companyId, signal),
     staleTime: 5 * 60_000,
   })
@@ -52,10 +103,14 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
   if (markets.isError) return <Failure error={markets.error} retry={() => void markets.refetch()} />
   const data = markets.data
   const verified = data.rnve.match_status === 'verified'
+  const issuer = verified
+    ? data.issuers.find((item) => item.match_status === 'verified')
+    : undefined
   const instruments = securities.data?.items ?? []
   return (
     <section className="capital-markets" aria-label="Capital Markets">
       <h2>Capital Markets</h2>
+      {markets.isFetching && <Loading />}
       <div className="notice" aria-label="Resumen de evidencia">
         <p>{data.summary}</p>
       </div>
@@ -95,10 +150,15 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                   <dd>{issuer.source_nit ?? 'No informado'}</dd>
                 </div>
                 <div>
-                  <dt>Tipo / código de entidad</dt>
+                  <dt>Tipo de entidad</dt>
                   <dd>
-                    {issuer.regulator_entity_type} / {issuer.regulator_entity_code}
+                    {issuer.regulator_entity_type ?? <MissingValue />} —{' '}
+                    {issuer.regulator_entity_type_description ?? <MissingValue />}
                   </dd>
+                </div>
+                <div>
+                  <dt>Código de entidad</dt>
+                  <dd>{issuer.regulator_entity_code ?? <MissingValue />}</dd>
                 </div>
                 <div>
                   <dt>Verificado</dt>
@@ -118,10 +178,6 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
               </a>
             </div>
           ))}
-          <p className="small muted">
-            Propiedad: no evaluada. La forma jurídica se consulta en Overview y no determina
-            propiedad pública o privada.
-          </p>
         </article>
         <article className="panel">
           <h3>Bolsa de Valores de Colombia</h3>
@@ -153,6 +209,120 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
             Una inscripción RNVE o una fecha BVC reportada por SFC no verifica cotización actual ni
             liquidez.
           </p>
+        </article>
+      </div>
+      <div className="profile-grid">
+        <article className="panel market-contact">
+          <h3>Datos de contacto</h3>
+          <dl>
+            {(
+              [
+                ['Correo institucional', issuer?.contacts?.institutional_email],
+                ['Dirección', issuer?.contacts?.address],
+                ['Ciudad', issuer?.contacts?.city],
+                ['Teléfono', issuer?.contacts?.phone],
+              ] as const
+            ).map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value || <MissingValue />}</dd>
+              </div>
+            ))}
+            <div>
+              <dt>Web</dt>
+              <dd>
+                <PublicLink value={issuer?.contacts?.website} />
+              </dd>
+            </div>
+            <div>
+              <dt>Redes Sociales</dt>
+              <dd>
+                {issuer?.contacts?.social_networks?.length ? (
+                  issuer.contacts.social_networks.map((value) => (
+                    <p key={value}>
+                      <PublicLink value={value} />
+                    </p>
+                  ))
+                ) : (
+                  <AdministrationValue issuer={issuer} />
+                )}
+              </dd>
+            </div>
+          </dl>
+          {issuer?.contacts_source_url && (
+            <p className="small muted">
+              <a
+                className="text-link"
+                href={issuer.contacts_source_url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Fuente RNVE ↗
+              </a>{' '}
+              · Obtenido: {dateTime(issuer.contacts_retrieved_at ?? null)}
+            </p>
+          )}
+        </article>
+        <article className="panel market-contact">
+          <h3>Administración</h3>
+          {issuer?.details_availability === 'failed_to_retrieve' && (
+            <p className="notice warning" role="status">
+              No se pudo recuperar el resumen RNVE. No significa que los datos estén ausentes. Se
+              reintentará al abrir esta pestaña después de 15 minutos.
+            </p>
+          )}
+          {issuer?.details_availability === 'stale' && (
+            <p className="notice warning" role="status">
+              Se conservan los últimos datos recuperados del RNVE.{' '}
+              {issuer.details_last_attempt_failed
+                ? 'La actualización falló; se reintentará después de 15 minutos.'
+                : 'La observación requiere actualización.'}
+            </p>
+          )}
+          <dl>
+            <div>
+              <dt>Nro. Miembros Junta Directiva</dt>
+              <dd>
+                <AdministrationValue
+                  value={issuer?.administration?.board_members_count}
+                  issuer={issuer}
+                />
+              </dd>
+            </div>
+            <div>
+              <dt>Representante Legal principal</dt>
+              <dd>
+                <AdministrationValue
+                  value={issuer?.administration?.legal_representative}
+                  issuer={issuer}
+                />
+              </dd>
+            </div>
+            <div>
+              <dt>
+                Representante Legal principal responsable de la informacion presentada al RNVE
+              </dt>
+              <dd>
+                <AdministrationValue
+                  value={issuer?.administration?.rnve_information_representative}
+                  issuer={issuer}
+                />
+              </dd>
+            </div>
+          </dl>
+          {issuer?.administration_source_url && (
+            <p className="small muted">
+              <a
+                className="text-link"
+                href={issuer.administration_source_url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Fuente RNVE ↗
+              </a>{' '}
+              · Obtenido: {dateTime(issuer.administration_retrieved_at ?? null)}
+            </p>
+          )}
         </article>
       </div>
       <article className="panel">
@@ -330,8 +500,8 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
           </>
         )}
       </article>
-      <article className="panel">
-        <h3>Fuentes y verificación</h3>
+      <details className="panel market-provenance">
+        <summary>Fuentes y verificación</summary>
         {data.sources.map((source) => (
           <div className="market-source" key={source.id}>
             <h4>{source.name}</h4>
@@ -382,7 +552,7 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
             <li key={note}>{note}</li>
           ))}
         </ul>
-      </article>
+      </details>
     </section>
   )
 }

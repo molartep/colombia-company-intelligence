@@ -46,9 +46,10 @@ Refresh securities for **one imported issuer** at a time, using its source-defin
 .venv/bin/python -m app.jobs.refresh_capital_markets --reconcile
 ```
 
-There is no public refresh/upload endpoint. There is no automatic per-profile regulatory request,
-all-issuer securities crawl, Celery, Redis, or undocumented issuer API. Profile reads may reconcile
-local match rows under a transaction lock, but never fetch regulators.
+The Capital Markets tab automatically renders stale or missing summaries for verified issuers.
+Directory and securities refreshes remain explicit administrative operations; there is no public
+upload endpoint or all-issuer crawl. Profile reads may reconcile local matches under a transaction
+lock, released before summary network retrieval.
 
 Docker import example (from the repository root):
 
@@ -148,7 +149,9 @@ flowchart LR
     Parser --> DB[(PostgreSQL snapshots / issuers / instruments / matches)]
     RUES[Phase 1 RUES registrations and aliases] --> Match[Conservative deterministic matching]
     DB --> Match
-    Match --> API[Local versioned APIs]
+    Match --> API[Versioned APIs]
+    API -->|verified issuer, missing/stale cache| Render[Isolated Chromium summary renderer]
+    Render -->|public RNVE page| Parser
     API --> UI[Company Capital Markets section]
     BVC[BVC authorized feed not verified] -.-> Unknown[BVC unknown / ownership not assessed]
     Unknown --> API
@@ -177,3 +180,9 @@ dates, symbols/ISINs, and verified ownership are not live established. See
 [the full source assessment](capital-markets-sources.md). New integrations should add their own
 schema validation, immutable evidence, source-specific identifiers and matching policy; they must
 not reuse the RUES search interface inappropriately or weaken verified-listing semantics.
+
+RNVE profiles include the source entity-type description, business contact details and the requested
+administration fields. Workbook contacts are available after reimporting an existing issuer export;
+administration is retrieved automatically on Capital Markets access as documented in
+[the source guide](capital-markets-sources.md#public-rnve-issuer-summary-details).
+Absent source values show red `Missing` pills. Unchecked and failed retrievals have separate states. Sources and verification are collapsed by default.

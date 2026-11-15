@@ -9,6 +9,7 @@ install:
 	python3.12 -m venv backend/.venv
 	backend/.venv/bin/pip install -r backend/requirements-dev.lock
 	backend/.venv/bin/pip install --no-deps -e backend
+	backend/.venv/bin/python -m playwright install --no-shell chromium
 	cd frontend && npm ci
 
 migrate:

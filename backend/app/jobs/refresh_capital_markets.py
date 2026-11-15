@@ -11,6 +11,7 @@ from app.core.config import get_settings
 from app.core.errors import SourceError
 from app.db.session import Session, engine
 from app.integrations.capital_markets.ingestion import (
+    ingest_issuer_details,
     ingest_issuers,
     ingest_securities,
     record_failure,
@@ -68,6 +69,15 @@ async def run(args: argparse.Namespace) -> None:
                     raise ValueError(
                         "Import the issuer first, then use its exact source entity key TYPE:CODE."
                     )
+                if args.issuer_details_report:
+                    snapshot = await ingest_issuer_details(
+                        session,
+                        issuer,
+                        read_report(args.issuer_details_report),
+                        args.details_source_url,
+                    )
+                    print(f"Issuer details snapshot {snapshot.id}: {snapshot.record_count} record")
+                    return
                 url = securities_url(issuer.regulator_entity_type, issuer.regulator_entity_code)
                 issuer_key = str(issuer.id)
                 if args.securities_report:
@@ -120,6 +130,8 @@ def main() -> None:
         type=Path,
         help="Saved official issuer-specific HTML instead of a live GET",
     )
+    parser.add_argument("--issuer-details-report", type=Path)
+    parser.add_argument("--details-source-url")
     parser.add_argument("--nit-format", choices=["preserve", "concatenated-dv"], default="preserve")
     parser.add_argument(
         "--registration-status",
@@ -137,6 +149,13 @@ def main() -> None:
     args = parser.parse_args()
     if args.securities_report and not args.entity:
         parser.error("--securities-report requires --entity")
+    if args.issuer_details_report and (
+        not args.entity or not args.details_source_url or args.securities_report
+    ):
+        parser.error(
+            "--issuer-details-report requires --entity and --details-source-url, "
+            "without --securities-report"
+        )
     try:
         asyncio.run(run(args))
     except (ValueError, OSError, SourceError) as exc:

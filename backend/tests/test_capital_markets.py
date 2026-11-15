@@ -31,7 +31,9 @@ def test_issuer_schema_source_codes_nit_rule_and_private_fields():
     assert stamp and row.external_id == "001:001"
     assert row.nit == SYNTHETIC_NIT and row.identity_eligible
     assert row.verification_digit == verification_digit(SYNTHETIC_NIT)
-    assert "Direccion" not in row.raw and "Correo electronico" not in row.raw
+    assert row.raw["Direccion"] == "SYNTHETIC BUSINESS ADDRESS"
+    assert row.raw["Correo electronico"] == "registry@example.test"
+    assert "Nivel de supervisión" not in row.raw
     preserved, _ = parse_issuers(issuer_xlsx())
     assert preserved[0].nit != row.nit and not preserved[0].identity_eligible
 
@@ -180,3 +182,83 @@ def test_summaries_do_not_imply_listed_equity_or_never_registered():
     )
     assert "posible coincidencia" in summary(RegistrationStatus.UNKNOWN, True, False, False)
     assert "desactualizada" in summary(RegistrationStatus.ACTIVE, False, True, True)
+
+
+def test_issuer_details_allowlist_and_missing_fields():
+    from capital_fixtures import issuer_details_html
+
+    from app.integrations.capital_markets.issuer_details import parse_issuer_details
+
+    row = parse_issuer_details(
+        issuer_details_html(),
+        issuer_name="SYNTHETIC EMISOR SAS",
+        source_nit=SYNTHETIC_NIT + verification_digit(SYNTHETIC_NIT),
+        entity_type="001",
+        entity_code="001",
+    )
+    assert row.raw["Correo institucional"] == "registry@example.test"
+    assert row.raw["Nro. Miembros Junta Directiva"] == "7"
+    assert row.raw["Redes Sociales"] == "" and row.social_urls == []
+    assert "Documento representante" not in row.raw
+    assert "super@example.test" not in str(row.raw)
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("Nombre:", "OTHER SYNTHETIC COMPANY"),
+        ("Tipo Entidad:", "066 - OTHER"),
+        ("Código Entidad:", "002"),
+        ("NIT:", "900999999-1"),
+    ],
+)
+def test_issuer_details_reject_other_identities(field, value):
+    from capital_fixtures import issuer_details_html
+
+    from app.integrations.capital_markets.issuer_details import parse_issuer_details
+
+    with pytest.raises(ValueError):
+        parse_issuer_details(
+            issuer_details_html(**{field: value}),
+            issuer_name="SYNTHETIC EMISOR SAS",
+            source_nit=SYNTHETIC_NIT + verification_digit(SYNTHETIC_NIT),
+            entity_type="001",
+            entity_code="001",
+        )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://example.test/SIMEV2/rnve/resumenentidad/1/1/0",
+        "https://www.superfinanciera.gov.co/SIMEV2/rnve/resumenentidad/66/1/0",
+        "https://user@www.superfinanciera.gov.co/SIMEV2/rnve/resumenentidad/1/1/0",
+    ],
+)
+def test_issuer_details_reject_wrong_source_url(url):
+    from app.integrations.capital_markets.issuer_details import validate_details_url
+
+    with pytest.raises(ValueError):
+        validate_details_url(url, "001", "001")
+
+
+def test_issuer_details_social_links_only_from_social_row():
+    from capital_fixtures import issuer_details_html
+
+    from app.integrations.capital_markets.issuer_details import parse_issuer_details
+
+    content = (
+        issuer_details_html().replace(
+            b"<td>Redes Sociales</td><td></td>",
+            b'<td>Redes Sociales</td><td><a href="https://www.example.test/social">Social</a></td>',
+        )
+        + b'<footer><a href="https://www.example.test/regulator">Regulator</a></footer>'
+    )
+    row = parse_issuer_details(
+        content,
+        issuer_name="SYNTHETIC EMISOR SAS",
+        source_nit=SYNTHETIC_NIT + verification_digit(SYNTHETIC_NIT),
+        entity_type="001",
+        entity_code="001",
+    )
+    assert row.social_urls == ["https://www.example.test/social"]

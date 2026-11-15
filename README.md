@@ -9,7 +9,7 @@ resolution, PostgreSQL caching and raw audit records, a FastAPI API, and a respo
 There is no production demo data. Tests use clearly synthetic companies.
 
 **Phase 2 is implemented:** official SFC issuer XLSX import, bounded public SFC securities-report
-refreshes, local RNVE profiles, conservative NIT matching, snapshots, and a Capital Markets tab.
+refreshes, RNVE profiles with automatically retrieved summary details, conservative NIT matching, snapshots, and a Capital Markets tab.
 Issuer exports are downloaded through the public portal and imported administratively. BVC current
 listing corroboration remains unavailable; it is reported as unknown, never inferred from RNVE.
 See [capital-markets operations](docs/capital-markets.md) and [verified sources and limitations](docs/capital-markets-sources.md).
@@ -97,7 +97,9 @@ make frontend
 
 Alternatively copy `.env` to `backend/.env` for backend commands; it is ignored by Git. Pydantic
 reads `.env` relative to the working directory, and exported environment variables take precedence.
-`make install` uses pinned Python development dependencies and `npm ci`; the frontend lockfile is
+`make install` installs pinned Python dependencies, Chromium for RNVE summary rendering, and frontend
+packages with `npm ci`. On Linux, first install browser system libraries using
+`backend/.venv/bin/python -m playwright install --with-deps --no-shell chromium`. The frontend lockfile is
 committed. Runtime and dev lockfiles were resolved on Python 3.12 for Linux/macOS; re-resolve when
 upgrading Python or dependencies. Production Docker installs the smaller runtime lockfile.
 
@@ -119,7 +121,7 @@ The frontend never calls Socrata directly.
 | `API_PROXY_TARGET` | Frontend dev proxy target, normally `http://127.0.0.1:8000` |
 | `CAPITAL_MARKETS_STORAGE_DIR` | Private regulatory report storage; defaults to `var/capital-markets` |
 | `CAPITAL_MARKETS_MAX_AGE_HOURS` | Snapshot freshness threshold, default 24 hours; not a publishing-frequency guarantee |
-| `CAPITAL_MARKETS_TIMEOUT`, `CAPITAL_MARKETS_RETRIES` | Public report transport limits: 30 seconds, 2 bounded retries by default |
+| `CAPITAL_MARKETS_TIMEOUT`, `CAPITAL_MARKETS_RETRIES` | 30-second report/summary deadline; 2 HTTP report retries. Summary failures instead use a 15-minute cooldown. |
 | `TEST_DATABASE_URL` | Separate disposable database used only by PostgreSQL tests |
 
 Never commit `.env`, tokens, database files, or real source-record fixtures. Do not prefix source
@@ -298,3 +300,12 @@ selected issuer's own key for other entities. Imports default to incomplete cove
 unfiltered current report and its count before using `--complete-current --expected-count N`.
 Report files are private, content-addressed, and excluded from Git. See the operating guide for
 Docker imports, snapshot/identity semantics, source-access limitations and optional live checks.
+
+
+RNVE contact and administration details refresh automatically when opening **Capital Markets**
+for a verified issuer. Local backend setup also requires
+`backend/.venv/bin/python -m playwright install --no-shell chromium` (included in `make install`).
+On Linux, add `--with-deps` to install browser system libraries. Docker installs these dependencies.
+Successful details are cached for 24 hours; failures are retained separately with a 15-minute retry
+cooldown. Unknown and failed retrievals are not presented as fields absent from the source.
+See [RNVE summary retrieval and source limitations](docs/capital-markets-sources.md#public-rnve-issuer-summary-details).

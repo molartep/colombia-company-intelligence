@@ -1,4 +1,6 @@
+import re
 from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -6,9 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.normalization import looks_like_nit, normalize_name, normalize_nit
+from app.integrations.capital_markets.automatic_details import refresh_details
 from app.integrations.capital_markets.ingestion import ensure_sources
+from app.integrations.capital_markets.issuer_details import DETAILS_SOURCE
 from app.integrations.capital_markets.matching import reconcile
 from app.integrations.capital_markets.parsers import optional
+from app.integrations.capital_markets.summary_renderer import SummaryRetriever
 from app.integrations.capital_markets.types import (
     BVC_SOURCE,
     DIRECTORY_URL,
@@ -74,7 +79,7 @@ async def source_views(session: AsyncSession) -> list[MarketSourceView]:
     result = []
     for source in await session.scalars(
         select(DataSource)
-        .where(DataSource.id.in_([ISSUER_SOURCE, SECURITIES_SOURCE, BVC_SOURCE]))
+        .where(DataSource.id.in_([ISSUER_SOURCE, SECURITIES_SOURCE, BVC_SOURCE, DETAILS_SOURCE]))
         .order_by(DataSource.id)
     ):
         latest = await session.scalar(
@@ -111,16 +116,158 @@ async def source_views(session: AsyncSession) -> list[MarketSourceView]:
     return result
 
 
-def issuer_view(issuer: SecuritiesIssuer, match: IssuerCompanyMatch | None = None) -> IssuerView:
+def issuer_view(
+    issuer: SecuritiesIssuer,
+    match: IssuerCompanyMatch | None = None,
+    record: SourceRecord | None = None,
+    details: SourceRecord | None = None,
+) -> IssuerView:
+    raw = record.raw_payload if record else {}
+    detail_raw = details.raw_payload if details else {}
+    contact: dict[str, Any] = {
+        "institutional_email": optional(raw.get("Correo electronico", "")),
+        "address": optional(raw.get("Direccion", "")),
+        "city": optional(raw.get("Ciudad", "")),
+        "phone": optional(raw.get("Teléfono", "")),
+        "website": optional(raw.get("Página web", "")),
+        "social_networks": [],
+    }
+    if details:
+        for key, field in [
+            ("institutional_email", "Correo institucional"),
+            ("address", "Dirección"),
+            ("city", "Ciudad"),
+            ("phone", "Teléfono"),
+            ("website", "Web"),
+        ]:
+            contact[key] = optional(detail_raw.get(field, ""))
+        social = detail_raw.get("social_urls") or (
+            [detail_raw["Redes Sociales"]] if optional(detail_raw.get("Redes Sociales", "")) else []
+        )
+        contact["social_networks"] = social
+    board = detail_raw.get("Nro. Miembros Junta Directiva", "")
+    administration = {
+        "board_members_count": int(board)
+        if board.isascii() and board.isdigit() and int(board) <= 1000
+        else None,
+        "legal_representative": optional(detail_raw.get("Representante Legal principal", "")),
+        "rnve_information_representative": optional(
+            detail_raw.get(
+                "Representante Legal principal responsable de la informacion presentada al RNVE", ""
+            )
+        ),
+    }
     return IssuerView.model_validate(
         {
             **{k: getattr(issuer, k) for k in IssuerView.model_fields if hasattr(issuer, k)},
             "source_url": DIRECTORY_URL,
             "snapshot_id": issuer.last_snapshot_id,
+            "regulator_entity_type_description": optional(
+                raw.get("Descripción tipo de entidad", "")
+                or re.sub(r"^[0-9]{1,3}\s*[-–]\s*", "", detail_raw.get("Tipo Entidad:", ""))
+            ),
+            "contacts": contact,
+            "administration": administration,
+            "administration_source_url": details.source_url if details else None,
+            "administration_retrieved_at": details.retrieved_at if details else None,
+            "contacts_source_url": details.source_url
+            if details
+            else record.source_url
+            if record
+            else None,
+            "contacts_retrieved_at": details.retrieved_at
+            if details
+            else record.retrieved_at
+            if record
+            else None,
             "match_method": match.match_method if match else None,
             "match_status": match.match_status if match else None,
         }
     )
+
+
+async def issuer_views(
+    session: AsyncSession, links: list[tuple[SecuritiesIssuer, IssuerCompanyMatch | None]]
+) -> list[IssuerView]:
+    ids = [issuer.raw_source_record_id for issuer, _ in links if issuer.raw_source_record_id]
+    records = (
+        {
+            r.id: r
+            for r in await session.scalars(select(SourceRecord).where(SourceRecord.id.in_(ids)))
+        }
+        if ids
+        else {}
+    )
+    ranked = (
+        select(
+            SourceRecord.id,
+            func.row_number()
+            .over(
+                partition_by=SourceRecord.external_record_id,
+                order_by=(SourceRecord.retrieved_at.desc(), SourceRecord.id),
+            )
+            .label("position"),
+        )
+        .where(
+            SourceRecord.source_id == DETAILS_SOURCE,
+            SourceRecord.external_record_id.in_([i.external_id for i, _ in links]),
+        )
+        .subquery()
+    )
+    detail_rows = await session.scalars(
+        select(SourceRecord)
+        .join(ranked, SourceRecord.id == ranked.c.id)
+        .where(ranked.c.position == 1)
+    )
+    details: dict[str | None, SourceRecord] = {}
+    for detail_row in detail_rows:
+        details.setdefault(detail_row.external_record_id, detail_row)
+    ranked_attempts = (
+        select(
+            Snapshot.id,
+            func.row_number()
+            .over(
+                partition_by=Snapshot.details["issuer_id"].astext,
+                order_by=(Snapshot.retrieved_at.desc(), Snapshot.id),
+            )
+            .label("position"),
+        )
+        .where(
+            Snapshot.source_id == DETAILS_SOURCE,
+            Snapshot.details["issuer_id"].astext.in_([str(i.id) for i, _ in links]),
+        )
+        .subquery()
+    )
+    attempts = {
+        row.details["issuer_id"]: row
+        for row in await session.scalars(
+            select(Snapshot)
+            .join(ranked_attempts, Snapshot.id == ranked_attempts.c.id)
+            .where(ranked_attempts.c.position == 1)
+        )
+    }
+    result = []
+    for issuer, match in links:
+        detail = details.get(issuer.external_id)
+        attempt = attempts.get(str(issuer.id))
+        view = issuer_view(
+            issuer,
+            match,
+            records.get(issuer.raw_source_record_id) if issuer.raw_source_record_id else None,
+            detail,
+        )
+        failed = bool(attempt and attempt.ingestion_status == "failed")
+        view.details_last_attempt_at = attempt.retrieved_at if attempt else None
+        view.details_last_attempt_failed = failed
+        if detail:
+            old = (datetime.now(UTC) - detail.retrieved_at).total_seconds() > (
+                get_settings().capital_markets_max_age_hours * 3600
+            )
+            view.details_availability = "stale" if old or failed else "available"
+        elif failed:
+            view.details_availability = "failed_to_retrieve"
+        result.append(view)
+    return result
 
 
 async def company_links(
@@ -275,8 +422,20 @@ def summary(status: RegistrationStatus, potential: bool, debt: bool, stale: bool
     return value
 
 
-async def company_profile(session: AsyncSession, company: Company) -> CapitalMarketsProfile:
+async def company_profile(
+    session: AsyncSession, company: Company, retriever: SummaryRetriever | None = None
+) -> CapitalMarketsProfile:
     links = await company_links(session, company)
+    if retriever:
+        verified_issuers = [i for i, m in links if m.match_status == MatchStatus.VERIFIED]
+        # Release reconciliation's global lock before any network wait.
+        await session.commit()
+        for issuer in verified_issuers[:2]:
+            await session.refresh(issuer)
+            await refresh_details(session, issuer, retriever)
+        # A failed import rolls back and expires ORM objects; reload before serialization.
+        await session.refresh(company)
+        links = await company_links(session, company)
     sources = await source_views(session)
     directory = await session.scalar(
         select(Snapshot)
@@ -353,7 +512,7 @@ async def company_profile(session: AsyncSession, company: Company) -> CapitalMar
         ),
         exchange_listing=ExchangeFinding(),
         ownership=OwnershipFinding(),
-        issuers=[issuer_view(i, m) for i, m in links],
+        issuers=await issuer_views(session, [(i, m) for i, m in links]),
         instruments=instruments.items,
         securities_availability=instruments.availability,
         sources=sources,
@@ -398,7 +557,7 @@ async def issuer_search(session: AsyncSession, query: str, page: int, page_size:
         )
     )
     return IssuerPage(
-        items=[issuer_view(i) for i in rows[:page_size]],
+        items=await issuer_views(session, [(i, None) for i in rows[:page_size]]),
         page=page,
         page_size=page_size,
         has_more=len(rows) > page_size,

@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -43,6 +44,21 @@ class MarketSourceView(BaseModel):
     latest_snapshot: SnapshotView | None
 
 
+class IssuerContacts(BaseModel):
+    institutional_email: str | None = None
+    address: str | None = None
+    city: str | None = None
+    phone: str | None = None
+    website: str | None = None
+    social_networks: list[str] = Field(default_factory=list)
+
+
+class IssuerAdministration(BaseModel):
+    board_members_count: int | None = None
+    legal_representative: str | None = None
+    rnve_information_representative: str | None = None
+
+
 class IssuerView(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
@@ -60,6 +76,18 @@ class IssuerView(BaseModel):
     source_id: str
     source_url: str
     snapshot_id: UUID
+    regulator_entity_type_description: str | None = None
+    contacts: IssuerContacts = Field(default_factory=IssuerContacts)
+    administration: IssuerAdministration = Field(default_factory=IssuerAdministration)
+    contacts_source_url: str | None = None
+    contacts_retrieved_at: datetime | None = None
+    administration_source_url: str | None = None
+    administration_retrieved_at: datetime | None = None
+    details_availability: Literal["available", "not_yet_checked", "failed_to_retrieve", "stale"] = (
+        "not_yet_checked"
+    )
+    details_last_attempt_at: datetime | None = None
+    details_last_attempt_failed: bool = False
     match_method: MatchMethod | None = None
     match_status: MatchStatus | None = None
 

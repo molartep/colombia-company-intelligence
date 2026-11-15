@@ -32,3 +32,5 @@ websockets==17.4
 defusedxml==0.7.1
 et-xmlfile==2.0.0
 openpyxl==3.1.5
+
+playwright==1.65.2
