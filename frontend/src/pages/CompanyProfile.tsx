@@ -1,3 +1,4 @@
+import { CapitalMarkets } from '../components/CapitalMarkets'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
@@ -12,7 +13,12 @@ export function CompanyProfile() {
   const [params] = useSearchParams()
   const location = useLocation()
   const returnTo = searchReturnPath(location.state)
-  const tab = params.get('tab') === 'sources' ? 'sources' : 'overview'
+  const tab =
+    params.get('tab') === 'capital-markets'
+      ? 'capital-markets'
+      : params.get('tab') === 'sources'
+        ? 'sources'
+        : 'overview'
   const [copyStatus, setCopyStatus] = useState('')
   const company = useQuery({
     queryKey: ['company', id],
@@ -90,6 +96,13 @@ export function CompanyProfile() {
         >
           Sources
         </Link>
+        <Link
+          aria-current={tab === 'capital-markets' ? 'page' : undefined}
+          to="?tab=capital-markets"
+          state={{ returnTo }}
+        >
+          Capital Markets
+        </Link>
         <span>
           Financials <small>Coming later</small>
         </span>
@@ -100,7 +113,9 @@ export function CompanyProfile() {
           Screening <small>Coming later</small>
         </span>
       </nav>
-      {tab === 'overview' ? (
+      {tab === 'capital-markets' ? (
+        <CapitalMarkets companyId={id} />
+      ) : tab === 'overview' ? (
         <>
           <div className="profile-grid">
             <article className="panel">

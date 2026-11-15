@@ -187,3 +187,11 @@ pages. Exact distinctions, anomalous codes, missing descriptions, timestamps, re
 and live query checks are documented in [advanced-filters.md](advanced-filters.md). No personal
 records or aggregate counts are included in the versioned option catalog. Source filters use the
 verified code fields, all four CIIU fields, text calendar dates, and last-renewed-year field.
+
+
+## SFC / RNVE and BVC (Phase 2)
+
+Capital-markets sources are independent of RUES identity/registration fields. See
+[capital-markets source discovery](capital-markets-sources.md) for the verified SFC issuer XLSX,
+public issuer-specific securities reports, source-defined identifiers and unverified BVC access.
+These sources do not populate RUES legal form, infer ownership, or certify current BVC trading.

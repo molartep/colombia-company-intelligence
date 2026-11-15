@@ -6,6 +6,7 @@ COPY app ./app
 RUN pip install --no-cache-dir -r requirements.lock && pip install --no-cache-dir --no-deps . && useradd --create-home cci
 COPY alembic.ini ./
 COPY alembic ./alembic
+RUN mkdir -p /app/var/capital-markets && chown -R cci:cci /app/var
 USER cci
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]

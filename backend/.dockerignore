@@ -4,3 +4,6 @@ __pycache__
 .mypy_cache
 .ruff_cache
 .env
+
+# Private report artifacts must never enter the build context.
+var/

@@ -11,11 +11,11 @@ Unix socket; it is a local validation aid, not an application dependency or a co
   no personal raw records committed.
 - `make smoke`: actual adapter metadata validation plus one bounded exact-NIT and one bounded name
   request; both returned valid official records with source row IDs.
-- **92 backend tests passed**, including real PostgreSQL persistence, separate registration IDs,
+- **126 backend tests passed**, including real PostgreSQL persistence, separate registration IDs,
   payload-version deduplication, foreign-key relationships, pagination, API profile/source routes,
   public-field filtering, cached normalized-name matching, source failure behavior, and migration
   upgrade → downgrade → re-upgrade → Alembic model-drift check.
-- **31 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
+- **43 frontend tests passed**: submit-only search, animated retrieval-dialog lifecycle, result/profile link rendering, NIT column separation, registration-status colors, source-error
   states, empty results, and company profile/unchecked attribute rendering.
 - Ruff lint and format checks; strict mypy on `app`; ESLint and strict TypeScript.
 - Vite production bundle; Python backend wheel packaging.
@@ -170,3 +170,51 @@ The fixed catalog is a versioned snapshot of observed code/label pairs, not a se
 legal taxonomy or a live facet-count service. Newly published codes require explicit refresh and
 review. Standard tests remain fully independent of government services; only the optional refresh
 and live checks contact RUES. Docker remains unavailable locally and was not executed for this change.
+
+
+## Phase 2 capital-markets validation — 2026-11-14
+
+Baseline before changes: **92 backend tests** against real PostgreSQL and **37 frontend tests**,
+plus frontend lint/type/build, passed. Final **126 backend tests** and **43 frontend tests** passed.
+The final backend run had no warnings. Ruff lint/format, strict mypy (38 source files), ESLint,
+strict TypeScript, Vite production build and backend wheel packaging passed.
+
+Database validation includes migration head → base → head, model-drift checks, and an explicit
+downgrade to the Phase 1 revision followed by upgrade with existing RUES data preserved. Phase 2
+tests exercise idempotence, immutable source history, transactional rollback after a partial upsert,
+failed-refresh preservation, shared-NIT ambiguity, name-only/historical-name candidates, NIT priority
+over unrelated same-name entities, rejected-link safeguards, status history, stale/incomplete negative
+guards, securities pagination/filtering and privacy-safe provenance. Fixtures are synthetic.
+
+Live source checks actually executed:
+
+- Official SFC public issuer Excel export downloaded through its visible report button; **311 rows**
+  parsed, matching the unfiltered directory count. All 141 ordinary-corporate identifiers passed
+  the opt-in DV rule; 170 special-structure rows were preserved without corporate verification.
+- Real additive migration applied to the separate local preview database; the 311-row issuer file
+  imported successfully with snapshot hash and no fabricated records.
+- Banco de Bogotá resolved through the real RUES API at NIT **860002964**, DV **4**. Its RNVE key
+  **001:001** matched by exact eligible NIT. The full capital-markets endpoint returned
+  `registered_active`, `match_status=verified`, BVC listing `unknown`, and `equity_listed=null`.
+- Its public SFC report returned **15 instruments**, ingested through the actual CLI. The securities
+  endpoint paginated them as ten then five, with the correct lookahead flags.
+- Bancolombia's distinct **001:007** public report parsed **18 rows** during discovery; its code was
+  never used globally for other issuers.
+- The documented optional smoke command passed against the official issuer workbook and Banco de
+  Bogotá report, without a database or raw-record output.
+- Isolated Chrome displayed the real company's Capital Markets tab and 15 instruments. Selecting
+  corporate bonds returned seven rows through the running API. Desktop/mobile screenshots were
+  inspected, with no horizontal page overflow at 390px (instrument tables scroll internally).
+- BVC landing/local issuer pages returned HTTP 403. No private endpoint or access bypass was used.
+
+Not verified live: cancelled/historical directory export formats, filtered-export coverage, combined
+issuer/securities Excel/PDF formats, BVC current listings/tickers/ISINs, or ownership. These remain
+explicit limitations. No government dependency was added to standard tests. Docker is unavailable
+locally; Compose execution and GitHub CI for these changes are not claimed. Existing CI includes
+the new tests and pinned parser dependencies; Docker configuration includes private report storage.
+
+See [source discovery](capital-markets-sources.md) and [run/import/smoke commands](capital-markets.md).
+
+Security-rename regression also passed: stable ANN/issuance/venue/date identifiers preserve the
+instrument UUID while original names remain in source-record history. The real 15-instrument
+report was refreshed after the identity refinement without duplicating instruments.

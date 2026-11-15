@@ -15,7 +15,7 @@ from app.db.session import get_session
 from app.integrations.rues.adapter import RuesDataSource
 from app.integrations.socrata import SocrataClient
 from app.main import adapter, app
-from app.models.entities import CompanyAlias, SourceRecord
+from app.models.entities import Company, CompanyAlias, SourceRecord
 from app.services.companies import ensure_source, persist
 
 pytestmark = pytest.mark.postgres
@@ -615,3 +615,483 @@ async def test_filtered_live_pages_and_cached_outage_use_same_source_constraints
                 assert await session.scalar(select(func.count()).select_from(Company)) == 12
         finally:
             app.dependency_overrides.clear()
+
+
+async def test_capital_ingestion_idempotence_debt_only_and_api(
+    session, record, tmp_path, monkeypatch
+):
+    from capital_fixtures import issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.reports import securities_url
+    from app.integrations.capital_markets.service import company_profile
+    from app.integrations.capital_markets.types import MatchStatus
+    from app.models.capital_markets import (
+        CapitalMarketsSourceSnapshot,
+        IssuerCompanyMatch,
+        SecuritiesIssuer,
+        SecurityInstrument,
+    )
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    for _ in range(2):
+        await ingest_issuers(
+            session,
+            issuer_xlsx(),
+            nit_mode="concatenated-dv",
+            complete_current=True,
+            expected_count=1,
+        )
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    assert issuer and issuer.company_id == company.id
+    assert await session.scalar(select(func.count()).select_from(SecuritiesIssuer)) == 1
+    assert (await session.scalar(select(IssuerCompanyMatch))).match_status == MatchStatus.VERIFIED
+    assert company.legal_name == record["razon_social"]  # SFC never overwrites RUES identity.
+    for _ in range(2):
+        await ingest_securities(session, issuer, security_html(), securities_url("001", "001"))
+    assert await session.scalar(select(func.count()).select_from(SecurityInstrument)) == 2
+    assert await session.scalar(select(func.count()).select_from(CapitalMarketsSourceSnapshot)) == 4
+    assert await session.scalar(select(func.count()).select_from(SourceRecord)) == 4
+    profile = await company_profile(session, company)
+    assert profile.rnve.status == "registered_active"
+    assert profile.equity_listed is None and profile.exchange_listing.status == "unknown"
+    assert profile.ownership.type == "unknown"
+    assert "deuda" in profile.summary
+    assert all(i.ticker is None and i.isin is None for i in profile.instruments)
+    assert profile.instruments[0].ann_code
+
+    async def override_session():
+        yield session
+
+    app.dependency_overrides[get_session] = override_session
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.get(f"/api/v1/companies/{company.id}/capital-markets")
+            assert response.status_code == 200, response.text
+            assert response.json()["rnve"]["status"] == "registered_active"
+            assert response.json()["equity_listed"] is None
+            first = await client.get(
+                f"/api/v1/companies/{company.id}/securities", params={"page_size": 1}
+            )
+            assert len(first.json()["items"]) == 1 and first.json()["has_more"]
+            second = await client.get(
+                f"/api/v1/companies/{company.id}/securities", params={"page_size": 1, "page": 2}
+            )
+            assert first.json()["items"][0]["id"] != second.json()["items"][0]["id"]
+            assert not second.json()["has_more"]
+            bonds = await client.get(
+                f"/api/v1/companies/{company.id}/securities",
+                params={"security_category": "corporate_bonds", "exchange": "BVC"},
+            )
+            assert len(bonds.json()["items"]) == 1
+            listed = await client.get(
+                f"/api/v1/companies/{company.id}/securities",
+                params={"listing_status": "verified_listed"},
+            )
+            assert listed.json()["items"] == []
+            issuers = await client.get(
+                "/api/v1/capital-markets/issuers", params={"q": record["nit"]}
+            )
+            assert len(issuers.json()["items"]) == 1
+            sources = await client.get("/api/v1/capital-markets/sources")
+            assert len(sources.json()) == 3
+            assert all(
+                s["latest_snapshot"]["content_hash"] for s in sources.json() if s["latest_snapshot"]
+            )
+            assert "SYNTHETIC PRIVATE" not in response.text
+            assert (
+                await client.get(
+                    f"/api/v1/companies/{company.id}/securities?security_category=invalid"
+                )
+            ).status_code == 422
+    finally:
+        app.dependency_overrides.clear()
+
+
+async def test_capital_atomic_failure_history_and_ambiguous_registration(
+    session, record, tmp_path, monkeypatch
+):
+    from capital_fixtures import SYNTHETIC_NIT, issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets import ingestion
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.service import company_profile
+    from app.integrations.capital_markets.types import MatchStatus
+    from app.models.capital_markets import (
+        CapitalMarketsSourceSnapshot,
+        IssuerCompanyMatch,
+        SecuritiesIssuer,
+        SecurityInstrument,
+    )
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    original = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    await ingestion.ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    await ingestion.ingest_securities(
+        session, issuer, security_html(), "https://www.superfinanciera.gov.co/report"
+    )
+    original_id, issuer_id = original.id, issuer.id
+    original_raw = ingestion.raw_record
+
+    async def fail_second(session, source, external_id, raw, url):
+        if external_id == "001:002":
+            raise ValueError("Synthetic failure after one upsert")
+        return await original_raw(session, source, external_id, raw, url)
+
+    monkeypatch.setattr(ingestion, "raw_record", fail_second)
+    nit = SYNTHETIC_NIT + verification_digit(SYNTHETIC_NIT)
+    with pytest.raises(ValueError):
+        await ingestion.ingest_issuers(
+            session,
+            issuer_xlsx(
+                [
+                    ("SYNTHETIC CHANGED NAME", nit, "001", "001"),
+                    ("SYNTHETIC SECOND", "0009999990", "001", "002"),
+                ]
+            ),
+            nit_mode="concatenated-dv",
+        )
+    monkeypatch.setattr(ingestion, "raw_record", original_raw)
+    issuer = await session.get(SecuritiesIssuer, issuer_id)
+    original = await session.get(Company, original_id)
+    assert issuer.issuer_name == "SYNTHETIC EMISOR SAS"
+    assert await session.scalar(select(func.count()).select_from(SecuritiesIssuer)) == 1
+    assert await session.scalar(select(func.count()).select_from(SecurityInstrument)) == 2
+    assert (
+        await session.scalar(
+            select(func.count())
+            .select_from(CapitalMarketsSourceSnapshot)
+            .where(CapitalMarketsSourceSnapshot.ingestion_status == "failed")
+        )
+        == 1
+    )
+    assert (await company_profile(session, original)).stale
+    # A later duplicate RUES registration with the same NIT invalidates automatic uniqueness.
+    duplicate = await persist(
+        session,
+        dict(
+            record,
+            upstream_id="synthetic-duplicate-registration",
+            digito_verificacion=verification_digit(record["nit"]),
+        ),
+    )
+    await session.commit()
+    duplicate_profile = await company_profile(session, duplicate)
+    assert duplicate_profile.rnve.match_status == "potential"
+    assert duplicate_profile.instruments == []
+    original_profile = await company_profile(session, original)
+    assert original_profile.rnve.match_status == "potential"
+    assert all(
+        m.match_status != MatchStatus.VERIFIED
+        for m in await session.scalars(select(IssuerCompanyMatch))
+    )
+
+
+async def test_capital_negative_requires_complete_fresh_source_and_name_only_is_potential(
+    session, record, tmp_path, monkeypatch
+):
+    from capital_fixtures import issuer_xlsx
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.integrations.capital_markets.service import company_profile
+    from app.models.capital_markets import SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    company = await persist(session, dict(record, nit="000999999"))
+    await session.commit()
+    assert (await company_profile(session, company)).rnve.status == "unknown"
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    assert (await company_profile(session, company)).rnve.status == "unknown"
+    await ingest_issuers(
+        session, issuer_xlsx(), nit_mode="concatenated-dv", complete_current=True, expected_count=1
+    )
+    result = await company_profile(session, company)
+    assert result.rnve.status == "not_found_in_checked_source"
+    assert "no descarta registros históricos" in result.summary
+    with pytest.raises(ValueError):
+        await ingest_issuers(session, b"broken spreadsheet")
+    result = await company_profile(session, company)
+    assert result.rnve.status == "unknown" and result.stale
+    # Source has no NIT: exact name may suggest a candidate, never a verified link.
+    await ingest_issuers(
+        session, issuer_xlsx([(company.legal_name, "", "001", "002")]), nit_mode="concatenated-dv"
+    )
+    result = await company_profile(session, company)
+    assert result.rnve.match_status == "potential" and result.rnve.status == "unknown"
+    assert result.instruments == []
+    # Similar subsidiary name is not linked to its parent.
+    parent = await persist(
+        session,
+        dict(
+            record,
+            upstream_id="synthetic-parent",
+            razon_social="SYNTHETIC PARENT SAS",
+            nit="000888888",
+        ),
+    )
+    await session.commit()
+    await ingest_issuers(
+        session, issuer_xlsx([("SYNTHETIC PARENT SUBSIDIARY SAS", "", "001", "003")])
+    )
+    assert (await company_profile(session, parent)).issuers == []
+    assert await session.scalar(select(func.count()).select_from(SecuritiesIssuer)) == 3
+
+
+async def test_capital_status_history_and_stale_complete_snapshot(
+    session, record, tmp_path, monkeypatch
+):
+    from datetime import UTC, datetime, timedelta
+
+    from capital_fixtures import SYNTHETIC_NIT, issuer_xlsx
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.service import company_profile
+    from app.integrations.capital_markets.types import ISSUER_SOURCE, RegistrationStatus
+    from app.models.capital_markets import CapitalMarketsSourceSnapshot, SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    first = await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    await ingest_issuers(
+        session,
+        issuer_xlsx(
+            [
+                (
+                    "SYNTHETIC RENAMED ISSUER",
+                    SYNTHETIC_NIT + verification_digit(SYNTHETIC_NIT),
+                    "001",
+                    "001",
+                )
+            ]
+        ),
+        nit_mode="concatenated-dv",
+        registration_status=RegistrationStatus.CANCELLED,
+    )
+    assert (await company_profile(session, company)).rnve.status == "registered_cancelled"
+    raw = list(
+        await session.scalars(select(SourceRecord).where(SourceRecord.source_id == ISSUER_SOURCE))
+    )
+    assert {r.raw_payload["Nombre entidad"] for r in raw} == {
+        "SYNTHETIC EMISOR SAS",
+        "SYNTHETIC RENAMED ISSUER",
+    }
+    assert company.legal_name == record["razon_social"]
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    other = "000999999"
+    newest = await ingest_issuers(
+        session,
+        issuer_xlsx([("SYNTHETIC OTHER", other + verification_digit(other), "001", "002")]),
+        nit_mode="concatenated-dv",
+        complete_current=True,
+        expected_count=1,
+    )
+    assert (await company_profile(session, company)).rnve.status == "historical"
+    assert await session.scalar(select(func.count()).select_from(SecuritiesIssuer)) == 2
+    absent = await persist(session, dict(record, upstream_id="synthetic-absent", nit="000888888"))
+    await session.commit()
+    newest.details = {
+        **newest.details,
+        "observed_at": (datetime.now(UTC) - timedelta(days=2)).isoformat(),
+    }
+    await session.commit()
+    result = await company_profile(session, absent)
+    assert result.rnve.status == "unknown" and result.stale
+    assert await session.get(CapitalMarketsSourceSnapshot, first.id) is not None
+
+
+async def test_capital_migration_preserves_existing_phase1_data(session, record, migrated):
+    import asyncio
+
+    from app.models.entities import Company
+
+    await ensure_source(session)
+    company = await persist(session, record)
+    company_id = company.id
+    await session.commit()
+    cfg = Config(str(Path(__file__).parents[1] / "alembic.ini"))
+    await asyncio.to_thread(command.downgrade, cfg, "a4e58b192f70")
+    await asyncio.to_thread(command.upgrade, cfg, "head")
+    await asyncio.to_thread(command.check, cfg)
+    session.expire_all()
+    preserved = await session.get(Company, company_id)
+    assert preserved and preserved.nit == record["nit"]
+    assert preserved.legal_name == record["razon_social"]
+
+
+async def test_capital_name_collision_cannot_displace_verified_nit_or_turn_rejection_into_absence(
+    session, record, tmp_path, monkeypatch
+):
+    from capital_fixtures import issuer_xlsx
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.service import company_profile
+    from app.integrations.capital_markets.types import MatchStatus
+    from app.models.capital_markets import IssuerCompanyMatch, SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    original = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    await ingest_issuers(
+        session, issuer_xlsx(), nit_mode="concatenated-dv", complete_current=True, expected_count=1
+    )
+    unrelated = await persist(
+        session,
+        dict(
+            record,
+            upstream_id="synthetic-name-collision",
+            nit="000999999",
+            razon_social="SYNTHETIC EMISOR SAS",
+            digito_verificacion=verification_digit("000999999"),
+        ),
+    )
+    await session.commit()
+    assert (await company_profile(session, unrelated)).rnve.match_status == "potential"
+    assert (await company_profile(session, original)).rnve.match_status == "verified"
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    assert issuer.company_id == original.id
+    # Simulate a changed regulatory identity before either company's next local reconciliation.
+    issuer.nit = "000999999"
+    issuer.verification_digit = verification_digit("000999999")
+    await session.commit()
+    assert (await company_profile(session, unrelated)).rnve.match_status == "verified"
+    assert (await company_profile(session, original)).rnve.match_status == "potential"
+    match = await session.scalar(
+        select(IssuerCompanyMatch).where(IssuerCompanyMatch.company_id == unrelated.id)
+    )
+    match.match_status = MatchStatus.REJECTED
+    await session.commit()
+    result = await company_profile(session, unrelated)
+    assert result.rnve.status == "unknown"  # A rejected identity is not a negative source lookup.
+    assert match.match_status == MatchStatus.REJECTED
+
+
+async def test_capital_securities_history_review_notes_and_failed_refresh(
+    session, record, tmp_path, monkeypatch
+):
+    from capital_fixtures import issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.service import company_profile
+    from app.models.capital_markets import SecuritiesIssuer, SecurityInstrument
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    await ingest_securities(
+        session, issuer, security_html(), "https://www.superfinanciera.gov.co/synthetic-report"
+    )
+    one = [
+        [
+            "BO SYNTHETIC BOND",
+            "SYNTHETIC-ANN",
+            "001",
+            "AUT",
+            "BVC",
+            "N/A",
+            "29/02/2024",
+            "31/02/2024",
+            "BAD AMOUNT",
+            "COP",
+            "AAA",
+        ]
+    ]
+    await ingest_securities(
+        session,
+        issuer,
+        security_html(rows=one),
+        "https://www.superfinanciera.gov.co/synthetic-report",
+    )
+    result = await company_profile(session, company)
+    assert len(result.instruments) == 2
+    current = next(i for i in result.instruments if i.security_name == "BO SYNTHETIC BOND")
+    old = next(i for i in result.instruments if i.security_name == "ACE SYNTHETIC DEBT")
+    assert current.authorized_amount is None and current.bvc_registration_date is None
+    assert len(current.quality_notes) == 2
+    assert old.observation_status == "previously_observed" and old.stale
+    issuer_id, company_id = issuer.id, company.id
+    with pytest.raises(ValueError):
+        await ingest_securities(
+            session,
+            issuer,
+            b"<html>schema changed</html>",
+            "https://www.superfinanciera.gov.co/synthetic-report",
+        )
+    company = await session.get(Company, company_id)
+    result = await company_profile(session, company)
+    assert result.securities_availability == "stale"
+    assert all(i.stale for i in result.instruments)
+    assert (
+        await session.scalar(
+            select(func.count())
+            .select_from(SecurityInstrument)
+            .where(SecurityInstrument.issuer_id == issuer_id)
+        )
+        == 2
+    )
+
+
+async def test_capital_security_rename_preserves_instrument_uuid_and_raw_name_history(
+    session, tmp_path, monkeypatch
+):
+    from capital_fixtures import issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
+    from app.integrations.capital_markets.types import SECURITIES_SOURCE
+    from app.models.capital_markets import SecuritiesIssuer, SecurityInstrument
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    await ingest_securities(
+        session, issuer, security_html(), "https://www.superfinanciera.gov.co/synthetic-report"
+    )
+    before = {i.ann_code: i.id for i in await session.scalars(select(SecurityInstrument))}
+    renamed = security_html().replace(b"BO SYNTHETIC BOND", b"BO SYNTHETIC RENAMED BOND")
+    await ingest_securities(
+        session, issuer, renamed, "https://www.superfinanciera.gov.co/synthetic-report"
+    )
+    after = {i.ann_code: i.id for i in await session.scalars(select(SecurityInstrument))}
+    assert before == after and len(after) == 2
+    names = {
+        r.raw_payload["Nombre del título"]
+        for r in await session.scalars(
+            select(SourceRecord).where(SourceRecord.source_id == SECURITIES_SOURCE)
+        )
+    }
+    assert "BO SYNTHETIC BOND" in names and "BO SYNTHETIC RENAMED BOND" in names

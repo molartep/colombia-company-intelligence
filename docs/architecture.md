@@ -116,3 +116,23 @@ parameter catalog is bundled with the application, exposed through `/api/v1/para
 refreshed explicitly through bounded aggregation queries. It introduces no normal-search fan-out.
 Frontend draft filters are separate from applied URL values; cache keys contain canonical applied
 filters, and page/profile navigation preserves them. See `advanced-filters.md` for query semantics.
+
+
+## Capital-markets evidence layer (Phase 2)
+
+The additive `4e07f6ee2d99` migration introduces `securities_issuers`, `security_instruments`,
+`capital_markets_snapshots`, and `issuer_company_matches`. Existing companies, aliases, raw records,
+and RUES search contracts remain intact. Issuers can exist before any local company registration.
+
+`integrations/capital_markets` separates safe XLSX/HTML parsing, fixed-host public report transport,
+transactional ingestion, conservative matching, local API serialization, and rule-based summaries.
+Snapshots retain source/observation/retrieval/publication distinctions and immutable file hashes.
+Partial unique indexes prevent multiple verified links for a company or issuer; no NIT primary keys
+or parent/subsidiary merges are introduced. Machine links are re-evaluated as cached RUES data grow.
+
+Profile reads use local data, with no regulatory fan-out. The administrative CLI imports official
+issuer exports and refreshes one selected securities report. Unknown BVC/ownership findings remain
+unknown. SSRF protection is structural: the transport constructs one allowlisted official report
+URL from validated issuer codes and refuses redirects. Public APIs cannot trigger ingestion.
+See [data-flow diagram, operations and safeguards](capital-markets.md) and
+[verified report schema](capital-markets-sources.md).

@@ -8,15 +8,25 @@ with source records, mappings, and separate retrieval/update timestamps.
 resolution, PostgreSQL caching and raw audit records, a FastAPI API, and a responsive React UI.
 There is no production demo data. Tests use clearly synthetic companies.
 
-This phase does **not** determine ownership, securities listings, financial condition, acquisitions,
-public procurement, regulatory findings, fiscal responsibility, or AI summaries. Those attributes
-are marked not yet checked. A missing result is not evidence that an entity does not exist.
+**Phase 2 is implemented:** official SFC issuer XLSX import, bounded public SFC securities-report
+refreshes, local RNVE profiles, conservative NIT matching, snapshots, and a Capital Markets tab.
+Issuer exports are downloaded through the public portal and imported administratively. BVC current
+listing corroboration remains unavailable; it is reported as unknown, never inferred from RNVE.
+See [capital-markets operations](docs/capital-markets.md) and [verified sources and limitations](docs/capital-markets-sources.md).
+
+The application does **not** determine ownership, financial condition, acquisitions, procurement,
+fiscal responsibility, or AI summaries. RUES legal form, RNVE registration, and BVC listing are
+separate concepts. A missing result is not evidence that an entity has never registered or issued securities.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     Browser[React + TypeScript\nTanStack Query / Router] --> API[FastAPI v1]
+    API --> Markets[Local RNVE / securities profiles]
+    Reports[SFC official XLSX / public reports] --> Admin[Administrative import and refresh]
+    Admin --> DB
+    Markets --> DB
     API --> Service[Normalization + deterministic resolution]
     Service --> DB[(PostgreSQL 16\nCompanies / aliases / raw records)]
     Service --> Adapter[RUES adapter]
@@ -107,6 +117,9 @@ The frontend never calls Socrata directly.
 | `UPSTREAM_CONCURRENCY` | 4 active upstream operations per API process |
 | `CORS_ORIGINS` | JSON list; allows `localhost:5173` and `127.0.0.1:5173` by default |
 | `API_PROXY_TARGET` | Frontend dev proxy target, normally `http://127.0.0.1:8000` |
+| `CAPITAL_MARKETS_STORAGE_DIR` | Private regulatory report storage; defaults to `var/capital-markets` |
+| `CAPITAL_MARKETS_MAX_AGE_HOURS` | Snapshot freshness threshold, default 24 hours; not a publishing-frequency guarantee |
+| `CAPITAL_MARKETS_TIMEOUT`, `CAPITAL_MARKETS_RETRIES` | Public report transport limits: 30 seconds, 2 bounded retries by default |
 | `TEST_DATABASE_URL` | Separate disposable database used only by PostgreSQL tests |
 
 Never commit `.env`, tokens, database files, or real source-record fixtures. Do not prefix source
@@ -138,6 +151,10 @@ not silently create schema. The source is registered lazily on its first search 
 | `GET /api/v1/companies?q=...&page=1&page_size=20` | NIT/name candidates, match evidence, pagination, source and stale warnings |
 | `GET /api/v1/companies/{UUID}` | Identity, available registration/CIIU data, field states, source and freshness |
 | `GET /api/v1/companies/{UUID}/sources` | Allowlisted source versions, source row ID, hashes, timestamps, mappings |
+| `GET /api/v1/companies/{UUID}/capital-markets` | Local RNVE findings, independent BVC/ownership states, summary and provenance |
+| `GET /api/v1/companies/{UUID}/securities` | Paginated registered instruments with category/venue/listing-status filters |
+| `GET /api/v1/capital-markets/issuers` | Local issuer directory search by NIT/name |
+| `GET /api/v1/capital-markets/sources` | Ingestion availability, attempts/successes, snapshots and freshness |
 | `GET /api/v1/parameters` | Verified fixed-filter codes, descriptions, and catalog provenance |
 | `GET /api/v1/sources` | Registered source metadata, availability and check/update timestamps |
 | `GET /health` | Process liveness |
@@ -253,7 +270,8 @@ verified negative finding. Nothing here substitutes for an authoritative registr
 
 See [the roadmap](docs/roadmap.md) for capital markets, financials, selectable screening, and grounded
 briefings. Next priorities are source contract monitoring, reviewed multi-registration reconciliation,
-and deployment/privacy/browser-test hardening. These future modules are not implemented now.
+and deployment/privacy/browser-test hardening. Financials, screening, and AI briefings remain future work;
+Phase 2 coverage and access limits are documented separately.
 
 Code is [MIT licensed](LICENSE). Official data is separately attributed to Confecámaras under the
 metadata's CC BY-SA 4.0 license; software permission does not relicense third-party data.
@@ -265,3 +283,18 @@ and registration categories, plus exact/prefix CIIU, registration/renewal date r
 last renewed year. Expand **Advanced filters** and submit Search to apply. **Parameters** in the
 header documents observed fixed codes and source meanings. All filters apply before source
 pagination and remain in URLs/cache keys. See [advanced filter API, semantics, and catalog refresh](docs/advanced-filters.md).
+
+
+For capital-markets ingestion, apply `make migrate`, download the official SFC **DESCARGAR EMISORES →
+REPORTE EXCEL**, then run from `backend/`:
+
+```sh
+.venv/bin/python -m app.jobs.refresh_capital_markets --issuer-report /absolute/path/Emisores.xlsx --nit-format concatenated-dv
+.venv/bin/python -m app.jobs.refresh_capital_markets --entity 001:001
+```
+
+The second command is a Banco de Bogotá example using that issuer's verified type/code; use the
+selected issuer's own key for other entities. Imports default to incomplete coverage. Confirm an
+unfiltered current report and its count before using `--complete-current --expected-count N`.
+Report files are private, content-addressed, and excluded from Git. See the operating guide for
+Docker imports, snapshot/identity semantics, source-access limitations and optional live checks.

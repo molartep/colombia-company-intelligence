@@ -1,4 +1,4 @@
-.PHONY: up down install migrate backend frontend test test-db lint format build smoke refresh-parameters
+.PHONY: up down install migrate backend frontend test test-db lint format build smoke refresh-parameters refresh-capital-markets
 up:
 	docker compose up --build --wait --wait-timeout 120
 
@@ -45,3 +45,7 @@ smoke:
 
 refresh-parameters:
 	backend/.venv/bin/python scripts/refresh_parameters.py
+
+# Explicit arguments required; see docs/capital-markets.md.
+refresh-capital-markets:
+	cd backend && .venv/bin/python -m app.jobs.refresh_capital_markets $(ARGS)

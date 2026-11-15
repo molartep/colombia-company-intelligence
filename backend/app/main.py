@@ -21,11 +21,21 @@ from app.core.errors import DatabaseUnavailable, SourceError
 from app.core.logging import configure_logging
 from app.core.normalization import InvalidIdentifier, looks_like_nit, normalize_name, normalize_nit
 from app.db.session import engine, get_session
+
+# Regulatory data are served from local snapshots; no profile-view regulatory fan-out.
+from app.integrations.capital_markets import service as capital
+from app.integrations.capital_markets.types import ListingStatus, MatchStatus, SecurityCategory
 from app.integrations.rues.adapter import RuesDataSource
 from app.integrations.rues.parameters import parameter_catalog
 from app.integrations.socrata import SocrataClient
 from app.models.entities import Company, DataSource
 from app.schemas.api import ErrorResponse, Profile, RecordView, SearchPage, SourceView
+from app.schemas.capital_markets import (
+    CapitalMarketsProfile,
+    IssuerPage,
+    MarketSourceView,
+    SecuritiesPage,
+)
 from app.schemas.filters import CompanySearchRequest, SearchFilters
 from app.schemas.parameters import ParameterCatalog
 from app.services.companies import (
@@ -202,3 +212,49 @@ async def sources(session: DB) -> list[DataSource]:
 @app.get("/api/v1/parameters", response_model=ParameterCatalog)
 async def parameters() -> ParameterCatalog:
     return ParameterCatalog.model_validate(parameter_catalog())
+
+
+@app.get("/api/v1/companies/{company_id}/capital-markets", response_model=CapitalMarketsProfile)
+async def company_capital_markets(company_id: UUID, session: DB) -> CapitalMarketsProfile:
+    return await capital.company_profile(session, await get_company(session, company_id))
+
+
+@app.get("/api/v1/companies/{company_id}/securities", response_model=SecuritiesPage)
+async def company_securities(
+    company_id: UUID,
+    session: DB,
+    security_category: SecurityCategory | None = None,
+    exchange: Annotated[str | None, Query(max_length=100)] = None,
+    listing_status: ListingStatus | None = None,
+    page: Annotated[int, Query(ge=1, le=100)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 20,
+) -> SecuritiesPage:
+    links = await capital.company_links(session, await get_company(session, company_id))
+    result = await capital.instrument_views(
+        session,
+        [i.id for i, m in links if m.match_status == MatchStatus.VERIFIED],
+        page,
+        page_size,
+        security_category,
+        exchange,
+        listing_status,
+    )
+    await session.commit()
+    return result
+
+
+@app.get("/api/v1/capital-markets/issuers", response_model=IssuerPage)
+async def capital_issuers(
+    session: DB,
+    q: Annotated[str, Query(max_length=160)] = "",
+    page: Annotated[int, Query(ge=1, le=100)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 20,
+) -> IssuerPage:
+    return await capital.issuer_search(session, q.strip(), page, page_size)
+
+
+@app.get("/api/v1/capital-markets/sources", response_model=list[MarketSourceView])
+async def capital_sources(session: DB) -> list[MarketSourceView]:
+    result = await capital.source_views(session)
+    await session.commit()
+    return result
