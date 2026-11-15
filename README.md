@@ -263,6 +263,9 @@ verified negative finding. Nothing here substitutes for an authoritative registr
   A no-match is limited to this dataset and this bounded search.
 - **Schema-changed error:** run `make smoke`, inspect current metadata, and update the adapter and tests
   after review. Do not map renamed fields speculatively.
+- **Playwright image build fails with `libatomic.so.1`:** the bundled Node executable needs Debian's
+  `libatomic1` before `playwright install --with-deps` can start. The backend Dockerfile installs
+  this bootstrap dependency first; rebuild with `docker compose up --build --wait`.
 - **Port occupied:** free 5432/8000/5173 or update Compose mappings and the dev proxy/CORS settings together.
 - **New PostgreSQL credentials with old volume:** an existing volume retains its original credentials.
   Restore matching settings or intentionally recreate a disposable volume; do not delete valuable data.
