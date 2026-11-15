@@ -20,11 +20,13 @@ logger = logging.getLogger(__name__)
 _locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
 
 
-async def recent_attempt(session: AsyncSession, issuer_key: str) -> bool:
+async def recent_attempt(
+    session: AsyncSession, issuer_key: str, source_id: str = DETAILS_SOURCE
+) -> bool:
     latest = await session.scalar(
         select(Snapshot)
         .where(
-            Snapshot.source_id == DETAILS_SOURCE,
+            Snapshot.source_id == source_id,
             Snapshot.details["issuer_id"].astext == issuer_key,
         )
         .order_by(Snapshot.retrieved_at.desc(), Snapshot.id)

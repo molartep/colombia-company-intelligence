@@ -121,7 +121,7 @@ The frontend never calls Socrata directly.
 | `API_PROXY_TARGET` | Frontend dev proxy target, normally `http://127.0.0.1:8000` |
 | `CAPITAL_MARKETS_STORAGE_DIR` | Private regulatory report storage; defaults to `var/capital-markets` |
 | `CAPITAL_MARKETS_MAX_AGE_HOURS` | Snapshot freshness threshold, default 24 hours; not a publishing-frequency guarantee |
-| `CAPITAL_MARKETS_TIMEOUT`, `CAPITAL_MARKETS_RETRIES` | 30-second report/summary deadline; 2 HTTP report retries. Summary failures instead use a 15-minute cooldown. |
+| `CAPITAL_MARKETS_TIMEOUT`, `CAPITAL_MARKETS_RETRIES` | 30-second report/summary deadline; 2 HTTP report retries. Both sources use a 15-minute failure cooldown. |
 | `TEST_DATABASE_URL` | Separate disposable database used only by PostgreSQL tests |
 
 Never commit `.env`, tokens, database files, or real source-record fixtures. Do not prefix source
@@ -302,10 +302,10 @@ Report files are private, content-addressed, and excluded from Git. See the oper
 Docker imports, snapshot/identity semantics, source-access limitations and optional live checks.
 
 
-RNVE contact and administration details refresh automatically when opening **Capital Markets**
+RNVE contact/administration details and separate securities reports refresh automatically when opening **Capital Markets**
 for a verified issuer. Local backend setup also requires
 `backend/.venv/bin/python -m playwright install --no-shell chromium` (included in `make install`).
 On Linux, add `--with-deps` to install browser system libraries. Docker installs these dependencies.
-Successful details are cached for 24 hours; failures are retained separately with a 15-minute retry
+Successful summaries and securities reports are cached independently for 24 hours; failures are retained separately with a 15-minute retry
 cooldown. Unknown and failed retrievals are not presented as fields absent from the source.
 See [RNVE summary retrieval and source limitations](docs/capital-markets-sources.md#public-rnve-issuer-summary-details).

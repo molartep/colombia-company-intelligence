@@ -130,9 +130,12 @@ Snapshots retain source/observation/retrieval/publication distinctions and immut
 Partial unique indexes prevent multiple verified links for a company or issuer; no NIT primary keys
 or parent/subsidiary merges are introduced. Machine links are re-evaluated as cached RUES data grow.
 
-Registration/listing evidence uses local snapshots. Capital Markets reads refresh missing or stale RNVE issuer summaries through a bounded, isolated Playwright renderer (24-hour success cache, 15-minute failure cooldown). The administrative CLI imports official
+Registration/listing evidence uses snapshots. Capital Markets reads refresh missing or stale RNVE
+summaries through isolated Chromium and separate securities reports through a bounded HTTPX client.
+Both sources have independent 24-hour success caches and 15-minute failure cooldowns. The administrative CLI imports official
 issuer exports and refreshes one selected securities report. Unknown BVC/ownership findings remain
 unknown. SSRF protection is structural: the transport constructs one allowlisted official report
-URL from validated issuer codes and refuses redirects. Public APIs cannot trigger ingestion.
+URL from validated issuer codes and refuses redirects. Capital Markets access can trigger bounded
+summary/report ingestion for verified issuers; other profile reads, filters and pagination stay local.
 See [data-flow diagram, operations and safeguards](capital-markets.md) and
 [verified report schema](capital-markets-sources.md).

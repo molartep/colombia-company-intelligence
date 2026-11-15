@@ -24,6 +24,10 @@ def securities_url(entity_type: str, entity_code: str) -> str:
     return SECURITIES_BASE + "?" + urlencode({"entidad": entity_code, "tipoEntidad": entity_type})
 
 
+class SecuritiesRetriever(Protocol):
+    async def securities(self, entity_type: str, entity_code: str) -> bytes: ...
+
+
 class OfficialReports:
     """Only the observed public report page; not a proxy or undocumented API client."""
 

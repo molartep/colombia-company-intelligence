@@ -262,3 +262,17 @@ def test_issuer_details_social_links_only_from_social_row():
         entity_code="001",
     )
     assert row.social_urls == ["https://www.example.test/social"]
+
+
+async def test_sfc_transport_does_not_receive_socrata_token(monkeypatch):
+    from fastapi import FastAPI
+
+    from app.core.config import get_settings
+    from app.main import lifespan
+
+    monkeypatch.setattr(get_settings(), "socrata_app_token", "SYNTHETIC-SOCRATA-TOKEN")
+    isolated_app = FastAPI()
+    async with lifespan(isolated_app):
+        client = isolated_app.state.rnve_securities.client
+        assert "X-App-Token" not in client.headers
+        assert client.timeout.read == get_settings().capital_markets_timeout

@@ -9,10 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.core.normalization import looks_like_nit, normalize_name, normalize_nit
 from app.integrations.capital_markets.automatic_details import refresh_details
+from app.integrations.capital_markets.automatic_securities import refresh_securities
 from app.integrations.capital_markets.ingestion import ensure_sources
 from app.integrations.capital_markets.issuer_details import DETAILS_SOURCE
 from app.integrations.capital_markets.matching import reconcile
 from app.integrations.capital_markets.parsers import optional
+from app.integrations.capital_markets.reports import SecuritiesRetriever
 from app.integrations.capital_markets.summary_renderer import SummaryRetriever
 from app.integrations.capital_markets.types import (
     BVC_SOURCE,
@@ -423,16 +425,23 @@ def summary(status: RegistrationStatus, potential: bool, debt: bool, stale: bool
 
 
 async def company_profile(
-    session: AsyncSession, company: Company, retriever: SummaryRetriever | None = None
+    session: AsyncSession,
+    company: Company,
+    retriever: SummaryRetriever | None = None,
+    securities_retriever: SecuritiesRetriever | None = None,
 ) -> CapitalMarketsProfile:
     links = await company_links(session, company)
-    if retriever:
+    if retriever or securities_retriever:
         verified_issuers = [i for i, m in links if m.match_status == MatchStatus.VERIFIED]
         # Release reconciliation's global lock before any network wait.
         await session.commit()
         for issuer in verified_issuers[:2]:
             await session.refresh(issuer)
-            await refresh_details(session, issuer, retriever)
+            if retriever:
+                await refresh_details(session, issuer, retriever)
+            if securities_retriever:
+                await session.refresh(issuer)
+                await refresh_securities(session, issuer, securities_retriever)
         # A failed import rolls back and expires ORM objects; reload before serialization.
         await session.refresh(company)
         links = await company_links(session, company)

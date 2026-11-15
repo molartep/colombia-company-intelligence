@@ -321,3 +321,41 @@ test('failed refresh retains cached administration with an explicit stale notice
   const panel = screen.getByRole('heading', { name: 'Administración' }).closest('article')!
   expect(within(panel).getByText('7')).toBeVisible()
 })
+
+test('reopening Capital Markets refreshes a previously cached unchecked securities response', async () => {
+  let fetched = false
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (path: string) => ({
+      ok: true,
+      json: async () =>
+        path.endsWith('/capital-markets')
+          ? profile
+          : fetched
+            ? securities
+            : { ...securities, items: [], has_more: false, availability: 'not_yet_checked' },
+    })),
+  )
+  const element = (
+    <QueryClientProvider client={client}>
+      <CapitalMarkets companyId="synthetic" />
+    </QueryClientProvider>
+  )
+  const first = render(element)
+  await screen.findByText(/Valores aún no consultados/)
+  first.unmount()
+  fetched = true
+  render(element)
+  expect(await screen.findByText('BO SYNTHETIC BOND')).toBeVisible()
+  expect(screen.queryByText(/Valores aún no consultados/)).not.toBeInTheDocument()
+})
+
+test('failed securities retrieval reports unavailability instead of checked absence', async () => {
+  setup(profile, { ...securities, items: [], has_more: false, availability: 'failed_to_retrieve' })
+  await screen.findByText(/Se reintentará al abrir Capital Markets después de 15 minutos/)
+  expect(
+    screen.getByText('No se presenta una conclusión negativa sobre instrumentos.'),
+  ).toBeVisible()
+  expect(screen.queryByText(/No hay instrumentos en el reporte consultado/)).not.toBeInTheDocument()
+})

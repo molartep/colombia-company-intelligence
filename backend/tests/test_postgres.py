@@ -1272,3 +1272,187 @@ async def test_name_only_candidate_never_triggers_automatic_summary(
     result = await company_profile(session, company, retriever)
     assert result.rnve.match_status == "potential"
     retriever.fetch.assert_not_awaited()
+
+
+@pytest.mark.parametrize("initial_failure", [False, True, "malformed", "timeout"])
+async def test_capital_tab_automatically_fetches_securities_and_preserves_cache(
+    session, record, tmp_path, monkeypatch, initial_failure
+):
+    from datetime import UTC, datetime, timedelta
+    from types import SimpleNamespace
+
+    from capital_fixtures import issuer_details_html, issuer_xlsx, security_html
+    from sqlalchemy import update
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.types import SECURITIES_SOURCE
+    from app.models.capital_markets import CapitalMarketsSourceSnapshot as Snapshot
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    company_id = company.id
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    summary = SimpleNamespace(fetch=AsyncMock(return_value=issuer_details_html()))
+    reports = SimpleNamespace(securities=AsyncMock(return_value=security_html()))
+    if initial_failure == "malformed":
+        reports.securities.return_value = b"SYNTHETIC schema-changed response"
+    elif initial_failure == "timeout":
+        reports.securities.side_effect = TimeoutError("SYNTHETIC deadline")
+    elif initial_failure:
+        reports.securities.side_effect = SourceError(
+            "capital_source_unavailable", "SYNTHETIC failure"
+        )
+    monkeypatch.setattr(app.state, "rnve_summary", summary, raising=False)
+    monkeypatch.setattr(app.state, "rnve_securities", reports, raising=False)
+
+    async def override():
+        yield session
+
+    app.dependency_overrides[get_session] = override
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as c:
+            path = f"/api/v1/companies/{company_id}"
+            first = await c.get(path + "/capital-markets")
+            assert first.status_code == 200, first.text
+            assert first.json()["securities_availability"] == (
+                "failed_to_retrieve" if initial_failure else "available"
+            )
+            assert first.json()["issuers"][0]["administration"]["board_members_count"] == 7
+            reports.securities.assert_awaited_once_with("001", "001")
+            await c.get(path + "/capital-markets")
+            instruments = await c.get(path + "/securities?page_size=1")
+            assert len(instruments.json()["items"]) == (0 if initial_failure else 1)
+            assert instruments.json()["has_more"] is (not initial_failure)
+            assert (
+                reports.securities.await_count == 1
+            )  # Both profile cache and pagination are local.
+            if initial_failure:
+                return
+            await session.execute(
+                update(Snapshot)
+                .where(Snapshot.source_id == SECURITIES_SOURCE)
+                .values(retrieved_at=datetime.now(UTC) - timedelta(hours=25))
+            )
+            await session.commit()
+            reports.securities.side_effect = SourceError(
+                "capital_source_unavailable", "SYNTHETIC failure"
+            )
+            failed = await c.get(path + "/capital-markets")
+            assert failed.status_code == 200, failed.text
+            assert failed.json()["securities_availability"] == "stale"
+            instruments = (await c.get(path + "/securities")).json()
+            assert len(instruments["items"]) == 2 and all(i["stale"] for i in instruments["items"])
+            assert reports.securities.await_count == 2
+            await c.get(path + "/capital-markets")
+            assert reports.securities.await_count == 2
+            # The cooldown expires independently of the 24-hour success cache.
+            await session.execute(
+                update(Snapshot)
+                .where(
+                    Snapshot.source_id == SECURITIES_SOURCE, Snapshot.ingestion_status == "failed"
+                )
+                .values(retrieved_at=datetime.now(UTC) - timedelta(minutes=16))
+            )
+            await session.commit()
+            reports.securities.side_effect = None
+            recovered = await c.get(path + "/capital-markets")
+            assert recovered.json()["securities_availability"] == "available"
+            assert reports.securities.await_count == 3
+    finally:
+        app.dependency_overrides.clear()
+
+
+async def test_simultaneous_securities_requests_fetch_once(session, tmp_path, monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+
+    from capital_fixtures import issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.automatic_securities import refresh_securities
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.models.capital_markets import SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer_id = await session.scalar(select(SecuritiesIssuer.id))
+    await session.commit()
+    factory = async_sessionmaker(session.bind, expire_on_commit=False)
+
+    async def fetch(*args):
+        await asyncio.sleep(0.02)
+        return security_html()
+
+    reports = SimpleNamespace(securities=AsyncMock(side_effect=fetch))
+
+    async def request():
+        async with factory() as independent:
+            issuer = await independent.get(SecuritiesIssuer, issuer_id)
+            await refresh_securities(independent, issuer, reports)
+            await independent.commit()
+
+    await asyncio.gather(request(), request())
+    assert reports.securities.await_count == 1
+
+
+async def test_automatic_securities_empty_report_is_checked_and_cached(
+    session, record, tmp_path, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from capital_fixtures import issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.service import company_profile
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    reports = SimpleNamespace(securities=AsyncMock(return_value=security_html(rows=[])))
+    for _ in range(2):
+        profile = await company_profile(session, company, securities_retriever=reports)
+        assert profile.securities_availability == "available"
+        assert profile.instruments == []
+    reports.securities.assert_awaited_once()
+
+
+async def test_securities_refresh_succeeds_when_summary_fetch_fails(
+    session, record, tmp_path, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from capital_fixtures import issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.service import company_profile
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    summary = SimpleNamespace(
+        fetch=AsyncMock(side_effect=SourceError("rnve_summary_unavailable", "SYNTHETIC failure"))
+    )
+    securities = SimpleNamespace(securities=AsyncMock(return_value=security_html()))
+    profile = await company_profile(session, company, summary, securities)
+    assert profile.issuers[0].details_availability == "failed_to_retrieve"
+    assert profile.securities_availability == "available" and len(profile.instruments) == 2

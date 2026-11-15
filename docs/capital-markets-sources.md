@@ -11,8 +11,8 @@ The selected issuer mechanism is an **administrative import of the official SFC 
 The issuer portal is a JavaScript application. No documented public issuer API was established;
 its application-internal endpoints are not used as a supported API. A public export button is a
 reproducible human access mechanism, not evidence that an internal endpoint is an unrestricted API.
-Securities use the observed public issuer-specific HTML report, one explicitly selected issuer per
-command. Its report schema is validated; it is not advertised as an official API contract.
+Securities use the observed public issuer-specific HTML report, retrieved automatically for verified
+issuers on Capital Markets access or explicitly for one selected issuer via the CLI. Its report schema is validated; it is not advertised as an official API contract.
 BVC corroboration remains unavailable pending an authorized reproducible source.
 
 ## SFC issuer directory
@@ -152,7 +152,8 @@ of regulatory files. Retention/access policies remain deployment responsibilitie
 
 No full issuer export, source report binary, personal-contact fixture, or fabricated listing database
 is committed. Standard tests use synthetic workbooks/HTML and mocked page retrieval. Registration/listing evidence
-uses local snapshots; Capital Markets tab access automatically retrieves missing/stale summary details.
+uses local snapshots; Capital Markets tab access automatically retrieves missing/stale summary details
+and separate issuer securities reports. Filtering and pagination use the stored instruments.
 
 
 ## Public RNVE issuer-summary details

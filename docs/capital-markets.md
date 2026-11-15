@@ -46,10 +46,11 @@ Refresh securities for **one imported issuer** at a time, using its source-defin
 .venv/bin/python -m app.jobs.refresh_capital_markets --reconcile
 ```
 
-The Capital Markets tab automatically renders stale or missing summaries for verified issuers.
-Directory and securities refreshes remain explicit administrative operations; there is no public
-upload endpoint or all-issuer crawl. Profile reads may reconcile local matches under a transaction
-lock, released before summary network retrieval.
+The Capital Markets tab automatically retrieves missing or stale summaries and separate securities
+reports for verified issuers. Each source has an independent 24-hour success cache and 15-minute
+failure cooldown. Directory imports remain administrative; the CLI remains available for explicit
+report refreshes. There is no upload endpoint or all-issuer crawl. Match transaction locks are
+released before source retrieval. Securities pagination and filter requests read local records only.
 
 Docker import example (from the repository root):
 
@@ -70,10 +71,11 @@ Environment variables:
 |---|---|---|
 | `CAPITAL_MARKETS_STORAGE_DIR` | `var/capital-markets` relative to backend working directory | Private content-addressed report files. |
 | `CAPITAL_MARKETS_MAX_AGE_HOURS` | `24` | Freshness threshold and operator refresh recommendation, not a claim about source publishing frequency. |
-| `CAPITAL_MARKETS_TIMEOUT` | `30` | Public report HTTP timeout, maximum 60 seconds. |
+| `CAPITAL_MARKETS_TIMEOUT` | `30` | Total per-source retrieval deadline, including securities retries and connection-pool waits; maximum 60 seconds. |
 | `CAPITAL_MARKETS_RETRIES` | `2` | Bounded transient retries, maximum 4. |
 
-Run refresh explicitly or schedule the CLI using existing deployment scheduling after deciding an
+Automatic tab access refreshes issuer summaries and securities when their caches expire. You can
+also refresh explicitly or schedule the CLI using existing deployment scheduling after deciding an
 appropriate source-access policy. The application does not install a scheduler. Directory downloads
 remain an operator-mediated step until an authorized documented machine access method is established.
 Freshness uses report observation/generation time when present and retrieval time separately; an old
@@ -143,6 +145,7 @@ present-but-unnormalizable amounts/dates. No arbitrary ANN-to-ISIN/ticker conver
 flowchart LR
     Portal[SFC public directory] -->|operator official XLSX download| CLI[Administrative refresh CLI]
     Report[SFC public issuer report] -->|one selected type/code| HTTP[Bounded HTTPX client]
+    API -->|missing/stale securities cache| HTTP
     HTTP --> Parser[Validated report parsers]
     CLI --> Parser
     Parser --> Files[Private immutable SHA-256 artifacts]
@@ -186,3 +189,24 @@ administration fields. Workbook contacts are available after reimporting an exis
 administration is retrieved automatically on Capital Markets access as documented in
 [the source guide](capital-markets-sources.md#public-rnve-issuer-summary-details).
 Absent source values show red `Missing` pills. Unchecked and failed retrievals have separate states. Sources and verification are collapsed by default.
+
+
+## Automatic securities report retrieval
+
+`GET /api/v1/companies/{company_id}/capital-markets` now retrieves the separate SFC securities
+report for verified issuers alongside summary details. The two sources have independent caches,
+snapshots and failures. At most two verified issuer links are processed per request. Per-issuer
+worker/PostgreSQL locks suppress duplicate retrieval, and the SFC HTTP connection pool allows two
+active connections. SFC uses a dedicated client without Socrata token headers; upstream URLs are
+constructed only from verified regulatory type/code and redirects remain disabled.
+
+Valid empty reports are cached as checked observations. Timeout, rate-limit, schema and identity
+failures remain failures, never empty findings. Earlier instruments survive failed refreshes and
+are marked stale. Retry is suppressed for 15 minutes after failure, then attempted on the next tab
+access. Successful reports are cached for `CAPITAL_MARKETS_MAX_AGE_HOURS`, independently of their
+official generation timestamps. The frontend waits for profile retrieval before querying the
+local securities collection and refreshes that collection after each new profile response.
+
+Live validation on 2026-11-15 retrieved previously unimported reports for Ecopetrol (5 instruments),
+Bancolombia (18), and Grupo Aval (8). Grupo Aval was exercised by clicking the Capital Markets tab;
+Overview made no capital-markets request. These are dated observations, not hardcoded fixture data.

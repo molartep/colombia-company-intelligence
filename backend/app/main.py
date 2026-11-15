@@ -22,8 +22,9 @@ from app.core.logging import configure_logging
 from app.core.normalization import InvalidIdentifier, looks_like_nit, normalize_name, normalize_nit
 from app.db.session import engine, get_session
 
-# Registration/listing evidence uses snapshots; summary details refresh on tab access.
+# Issuer summaries and securities reports refresh into snapshots on Capital Markets access.
 from app.integrations.capital_markets import service as capital
+from app.integrations.capital_markets.reports import OfficialReports
 from app.integrations.capital_markets.summary_renderer import RnveSummaryRenderer
 from app.integrations.capital_markets.types import ListingStatus, MatchStatus, SecurityCategory
 from app.integrations.rues.adapter import RuesDataSource
@@ -65,10 +66,19 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             SocrataClient(client, settings.socrata_retries, settings.upstream_concurrency)
         )
         app.state.rnve_summary = RnveSummaryRenderer(settings.capital_markets_timeout)
-        try:
-            yield
-        finally:
-            await app.state.rnve_summary.close()
+        # Dedicated transport: Socrata app-token headers must never reach SFC.
+        async with httpx.AsyncClient(
+            timeout=settings.capital_markets_timeout,
+            limits=httpx.Limits(max_connections=2, max_keepalive_connections=2),
+            follow_redirects=False,
+        ) as reports_client:
+            app.state.rnve_securities = OfficialReports(
+                reports_client, settings.capital_markets_retries
+            )
+            try:
+                yield
+            finally:
+                await app.state.rnve_summary.close()
     await engine.dispose()
 
 
@@ -227,6 +237,7 @@ async def company_capital_markets(
         session,
         await get_company(session, company_id),
         getattr(request.app.state, "rnve_summary", None),
+        getattr(request.app.state, "rnve_securities", None),
     )
 
 

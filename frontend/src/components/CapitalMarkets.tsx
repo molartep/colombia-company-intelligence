@@ -28,7 +28,7 @@ const availability: Record<string, string> = {
   not_yet_checked:
     'Valores aún no consultados para este emisor. No se ha ejecutado una consulta de instrumentos.',
   failed_to_retrieve:
-    'Fuente temporalmente no disponible. La consulta falló; no significa ausencia de valores.',
+    'Fuente temporalmente no disponible. La consulta falló; no significa ausencia de valores. Se reintentará al abrir Capital Markets después de 15 minutos.',
   stale:
     'Se muestran instrumentos de una observación anterior. Su vigencia requiere actualización.',
   available:
@@ -93,10 +93,19 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
     staleTime: 5 * 60_000,
   })
   const securities = useQuery({
-    queryKey: ['securities', companyId, page, category, exchange, listingStatus],
+    queryKey: [
+      'securities',
+      companyId,
+      markets.dataUpdatedAt,
+      page,
+      category,
+      exchange,
+      listingStatus,
+    ],
     queryFn: ({ signal }) =>
       api.securities(companyId, page, category, exchange, listingStatus, signal),
-    enabled: markets.isSuccess && markets.data.rnve.match_status === 'verified',
+    enabled:
+      markets.isSuccess && !markets.isFetching && markets.data.rnve.match_status === 'verified',
     staleTime: 5 * 60_000,
   })
   if (markets.isPending) return <Loading />
