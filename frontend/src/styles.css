@@ -1324,3 +1324,195 @@ details dl {
 .securities-count {
   margin: 20px 0 12px;
 }
+
+.bvc-quote {
+  margin-top: 20px;
+}
+.bvc-quote + .bvc-quote {
+  padding-top: 20px;
+  border-top: 1px solid #e3e9e5;
+}
+.quote-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.quote-heading h4 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.5px;
+}
+.quote-ticker-label,
+.quote-label {
+  display: block;
+  color: #718079;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+}
+.quote-ticker-label {
+  margin-bottom: 6px;
+}
+.quote-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-left: 3px solid #243d31;
+  background: #f7f9f7;
+  padding: 18px 20px;
+  margin-top: 20px;
+}
+.bvc-price {
+  margin: 4px 0 0;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -1.5px;
+  font-variant-numeric: tabular-nums;
+}
+.quote-change strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 22px;
+}
+.quote-up {
+  color: #16803c;
+}
+.quote-down {
+  color: #b42318;
+}
+.quote-date {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 12px;
+  margin: 12px 0 0;
+}
+.quote-date > span {
+  color: #718079;
+}
+.quote-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+.quote-metrics > div {
+  display: block;
+  padding: 0;
+  border: 0;
+}
+.quote-metrics dt {
+  font-size: 11px;
+  margin-bottom: 7px;
+}
+.quote-metrics dd {
+  font-size: 14px;
+  font-weight: 500;
+}
+.quote-provenance {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #e3e9e5;
+  font-size: 11px;
+  color: #718079;
+  overflow-wrap: anywhere;
+}
+.quote-provenance p {
+  margin: 7px 0 0;
+}
+
+.market-alerts > summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.market-alerts .refresh-alert {
+  margin: 16px 0 0;
+}
+
+.bvc-registration {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bvc-search-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 2px 4px;
+  font-size: 13px;
+}
+.search-form .bvc-search-filter label {
+  margin: 0;
+  line-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.bvc-search-filter input {
+  margin: 0;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: #16803c;
+}
+.search-table .bvc-column {
+  width: 115px;
+}
+.bvc-check-cell {
+  text-align: center;
+}
+.bvc-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #16803c;
+  background: #eef9f0;
+  font-weight: 700;
+}
+
+.quote-attempts {
+  margin-top: 20px;
+  border-top: 1px solid #e3e9e5;
+  padding-top: 16px;
+  font-size: 12px;
+}
+.quote-attempts summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.quote-attempts ul {
+  padding: 0;
+  margin: 14px 0 0;
+  list-style: none;
+}
+.quote-attempts li {
+  padding: 12px 0;
+  border-bottom: 1px solid #edf0ed;
+}
+.quote-attempts li > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+.quote-attempts li p {
+  color: #718079;
+  font-size: 11px;
+  margin: 7px 0 0;
+}
+.quote-source-note {
+  color: #98610f;
+}

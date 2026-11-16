@@ -10,8 +10,8 @@ There is no production demo data. Tests use clearly synthetic companies.
 
 **Phase 2 is implemented:** official SFC issuer XLSX import, bounded public SFC securities-report
 refreshes, RNVE profiles with automatically retrieved summary details, conservative NIT matching, snapshots, and a Capital Markets tab.
-Issuer exports are downloaded through the public portal and imported administratively. BVC current
-listing corroboration remains unavailable; it is reported as unknown, never inferred from RNVE.
+Issuer exports are downloaded through the public portal and imported administratively. BVC stock-page retrieval is implemented for configured common-equity pages. Live BVC access
+currently returns HTTP 403 here, so listing and quote fields remain unverified on retrieval failure.
 See [capital-markets operations](docs/capital-markets.md) and [verified sources and limitations](docs/capital-markets-sources.md).
 
 The application does **not** determine ownership, financial condition, acquisitions, procurement,
@@ -328,7 +328,36 @@ Capital Markets refresh actions are source-specific: top alert buttons open and 
 collapsed **Data Source Information** section; only the buttons inside each source perform a
 refresh. They call `?refresh=true&refresh_source=sfc_rnve_issuer_details` or
 `?refresh=true&refresh_source=sfc_rnve_securities`. A selected refresh never calls the other
-connector. Import-only RNVE directory and unavailable BVC controls are disabled with explanations.
+connector. The import-only RNVE directory control is disabled with an explanation.
 Alerts identify the affected source, last successful retrieval, source observation date, latest
 attempt and recorded error. Summary/securities timestamps and errors are scoped to the current
 issuer; the source-catalog endpoint continues to show global connector health.
+
+
+BVC stock-summary support matches Código Superfinanciera exactly to registered common-equity ANN
+codes and displays last reported price/ticker with provenance. Initial page-routing coverage is the
+user-supplied Ecopetrol URL; `BVC_PAGE_URLS` adds other official page locators. `BVC_CACHE_MINUTES`
+defaults to 15. Primary BVC requests currently return HTTP 403 here; the dated La República fallback is described below;
+synthetic contract tests cover extraction and matching without seeding example prices into the app.
+See [BVC source and validation details](docs/capital-markets-sources.md#bvc-access-assessment).
+
+
+La República now supplies dated public-browser stock quotes when primary BVC access fails. The
+publisher, source quote time and exact NIT/ANN/legal-name evidence remain visible. Ecopetrol was
+verified end to end; additional page locators use `LA_REPUBLICA_PAGE_URLS`. Grupo Aval was reachable
+but had an empty main quote table and no eligible row identity, so it is not activated as a fallback.
+See [tested access paths and source feasibility](docs/quote-source-access.md).
+
+
+The search **Registrado BVC** check and checkbox use verified issuer links plus RNVE
+ordinary-share records with market BVC. Checked searches discover candidate issuers from the
+imported RNVE directory, retrieve their securities evidence using the cache, then restrict live
+RUES queries by eligible NIT **before pagination**. Newly searched companies need not have been
+cached or opened in Capital Markets. A blank check cell is not a negative listing finding.
+See [BVC search discovery and coverage](docs/capital-markets.md#bvc-registration-in-company-search).
+
+
+Capital Markets quote retrieval falls back from BVC to La República and then to an official
+SFC daily-price report, requiring exact identity evidence at every step. The card reports each
+provider's outcome when unresolved. SFC values are explicitly labeled daily weighted averages,
+with their source date; no last-trade price or ticker is invented. See [quote fallback verification](docs/quote-source-access.md#registered-ordinary-share-fallback-terpel-case).

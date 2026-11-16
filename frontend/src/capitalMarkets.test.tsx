@@ -125,6 +125,10 @@ async function openSecurities() {
   await userEvent.click(await screen.findByRole('heading', { name: /^Valores registrados/ }))
 }
 
+async function openAlerts() {
+  await userEvent.click(await screen.findByText(/^Alertas \(/))
+}
+
 test('registered debt and SFC BVC dates do not imply listed shares or invented ISINs', async () => {
   setup()
   expect(
@@ -136,7 +140,7 @@ test('registered debt and SFC BVC dates do not imply listed shares or invented I
   const bvc = screen
     .getByRole('heading', { name: 'Bolsa de Valores de Colombia' })
     .closest('article')!
-  expect(within(bvc).getByText('No verificado')).toBeVisible()
+  expect(within(bvc).getByText('Listado no verificado')).toBeVisible()
   expect(screen.getByText('ANN: CO1234567890')).toBeVisible()
   expect(screen.getByText('Emisión: May, 1987')).toBeVisible()
   for (const name of ['Estado', 'Importe', 'Calificación reportada'])
@@ -164,6 +168,7 @@ test('incomplete or missing evidence stays unknown and potential matches do not 
     issuers: [{ ...profile.issuers[0]!, match_status: 'potential' }],
   })
   await screen.findByText('Registro no determinado')
+  await openAlerts()
   expect(screen.getByText(/Los instrumentos del candidato no se atribuyen/)).toBeVisible()
   expect(requests).toHaveLength(1)
   expect(screen.queryByText('BO SYNTHETIC BOND')).not.toBeInTheDocument()
@@ -178,7 +183,7 @@ test('checked absence is qualified and does not claim never registered', async (
       'La empresa no fue encontrada en el directorio vigente RNVE. Esto no descarta registros históricos.',
   })
   await screen.findByText('Sin coincidencia en la fuente consultada')
-  expect(screen.getByText(/Esto no descarta registros históricos/)).toBeVisible()
+  expect(screen.queryByLabelText('Resumen de evidencia')).not.toBeInTheDocument()
   expect(screen.queryByText('BO SYNTHETIC BOND')).not.toBeInTheDocument()
 })
 
@@ -189,9 +194,10 @@ test('stale evidence is distinct from source failure and absence', async () => {
   )
   await openSecurities()
   await screen.findByText('BO SYNTHETIC BOND')
+  await openAlerts()
   expect(screen.getByText(/Los datos de esta fuente superan/)).toBeVisible()
   expect(screen.getByText('Observación anterior')).toBeVisible()
-  expect(screen.getByText(/Su vigencia requiere actualización/)).toBeVisible()
+  expect(screen.getByText('Observación anterior')).toBeVisible()
 })
 
 test('securities filters use API parameters and reset pagination', async () => {
@@ -357,6 +363,7 @@ test('failed refresh retains cached administration with an explicit stale notice
     ],
   })
   await screen.findByText('SYNTHETIC CACHED REPRESENTATIVE')
+  await openAlerts()
   expect(screen.getByText(/Se conservan los últimos datos recuperados/)).toBeVisible()
   const panel = screen.getByRole('heading', { name: 'Administración' }).closest('article')!
   expect(within(panel).getByText('7')).toBeVisible()
@@ -442,6 +449,7 @@ test('top alerts navigate to source controls; each control refreshes only its so
   )
   await openSecurities()
   await screen.findByText('SYNTHETIC OLD BOND')
+  await openAlerts()
   const alert = screen
     .getByText(/Los datos de esta fuente superan/)
     .closest<HTMLElement>('.refresh-alert')!
@@ -476,6 +484,8 @@ test('both source cards stay collapsed initially and errors name the affected so
   const title = await screen.findByRole('heading', { name: 'Data Source Information' })
   const card = title.closest('details')!
   expect(card).not.toHaveAttribute('open')
+  expect(screen.getByText(/^Alertas \(/).closest('details')).not.toHaveAttribute('open')
+  await openAlerts()
   const alert = screen
     .getByText(/La última actualización falló/)
     .closest<HTMLElement>('.refresh-alert')!
@@ -571,4 +581,238 @@ test('10-record pages show filtered totals, ranges and a stable overall heading 
   expect(screen.getByText('1 record found')).toBeVisible()
   expect(screen.getByRole('heading', { name: 'Valores registrados (12)' })).toBeVisible()
   expect(requests.at(-1)!.searchParams.get('page')).toBe('1')
+})
+
+test('BVC displays only returned exact-code price/ticker observations and provenance', async () => {
+  setup({
+    ...profile,
+    equity_listed: true,
+    exchange_listing: {
+      status: 'verified_listed',
+      availability: 'available',
+      explanation: 'SYNTHETIC exact-code BVC match.',
+      quotes: [
+        {
+          instrument_id: 'synthetic-common',
+          superfinanciera_code: 'COSYNTH00001',
+          ticker: 'SYNTHETIC',
+          last_price: '1234.50',
+          raw_price: '1,234.50',
+          currency: null,
+          isin: 'CO0000000001',
+          reported_state: 'Activo',
+          retrieved_at: '2026-11-15T12:00:00Z',
+          price_as_of: null,
+          source_url: 'https://www.bvc.com.co/renta-variable-mercado-local/synthetic',
+          stale: false,
+        },
+      ],
+    },
+  })
+  await screen.findByText('SYNTHETIC')
+  const panel = screen
+    .getByRole('heading', { name: 'Bolsa de Valores de Colombia' })
+    .closest('article')!
+  expect(within(panel).getByText('1.234,5')).toBeVisible()
+  expect(within(panel).getByText('COSYNTH00001')).toBeVisible()
+  expect(
+    within(panel).getByRole('link', { name: 'Fuente: Bolsa de Valores de Colombia ↗' }),
+  ).toHaveAttribute('href', 'https://www.bvc.com.co/renta-variable-mercado-local/synthetic')
+  expect(within(panel).getByText('No informada')).toBeVisible()
+})
+
+test('blocked BVC page leaves price and ticker explicitly unverified', async () => {
+  setup({
+    ...profile,
+    exchange_listing: {
+      status: 'unknown',
+      availability: 'failed_to_retrieve',
+      explanation: 'SYNTHETIC BVC HTTP 403; no negative finding.',
+      quotes: [],
+    },
+  })
+  await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
+  const panel = screen
+    .getByRole('heading', { name: 'Bolsa de Valores de Colombia' })
+    .closest('article')!
+  expect(within(panel).queryByText('2,560.00')).not.toBeInTheDocument()
+  expect(within(panel).getByText('Último precio').parentElement).toHaveTextContent('No verificado')
+})
+
+test('secondary quotes show publisher, dated price and exact-name evidence without the old summary', async () => {
+  setup({
+    ...profile,
+    exchange_listing: {
+      status: 'unknown',
+      availability: 'available',
+      explanation: 'SYNTHETIC secondary quote.',
+      match_status: 'matched',
+      quotes: [
+        {
+          instrument_id: 'synthetic-common',
+          source_id: 'la_republica_quotes',
+          source_name: 'La República',
+          superfinanciera_code: 'COSYNTH00001',
+          ticker: 'SYNTHETIC',
+          last_price: '1234',
+          raw_price: '$ 1.234',
+          currency: null,
+          isin: null,
+          reported_state: 'SÍ',
+          retrieved_at: '2026-11-15T12:00:00Z',
+          price_as_of: '2026-11-13T20:42:12Z',
+          source_url:
+            'https://www.larepublica.co/indicadores-economicos/movimiento-accionario/synthetic',
+          stale: false,
+          variation_percent: '1.19',
+          volume: '35000000',
+          match_type: 'exact_legal_name',
+          matched_value: 'SYNTHETIC LEGAL NAME',
+        },
+      ],
+    },
+  })
+  await screen.findByText('$ 1.234')
+  expect(screen.getByRole('link', { name: 'Fuente: La República ↗' })).toBeVisible()
+  expect(screen.getByText(/Razón social EXACTA/)).toHaveTextContent('SYNTHETIC LEGAL NAME')
+  expect(screen.queryByLabelText('Resumen de evidencia')).not.toBeInTheDocument()
+  expect(screen.getByText('↑ +1,19%')).toBeVisible()
+  expect(screen.getByText('$ 35.000.000')).toBeVisible()
+  expect(screen.queryByText('Estado reportado por la fuente')).not.toBeInTheDocument()
+  expect(screen.queryByText('Listado oficial verificado')).not.toBeInTheDocument()
+  expect(screen.queryByText('SYNTHETIC secondary quote.')).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Fuente: La República ↗' })).toBeVisible()
+})
+
+test('an unresolved quote has a red alert inside the BVC card', async () => {
+  setup()
+  await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
+  const card = screen
+    .getByRole('heading', { name: 'Bolsa de Valores de Colombia' })
+    .closest('article')!
+  expect(within(card).getByRole('alert')).toHaveClass('danger')
+  expect(within(card).getByRole('alert')).toHaveTextContent('NIT, ANN o razón social')
+})
+
+test('hides the listing pill when any registered common-equity BVC row exists', async () => {
+  // The matching row need not be on the current instruments page or satisfy UI filters.
+  setup({ ...profile, has_registered_bvc_common_equity: true, instruments: [] })
+  const card = (
+    await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
+  ).closest('article')!
+  expect(within(card).queryByText('Listado no verificado')).not.toBeInTheDocument()
+  expect(within(card).getByText('Registrado')).toHaveClass('value-pill--present')
+  expect(
+    within(card).getByRole('button', { name: 'Help: Registro BVC' }),
+  ).toHaveAccessibleDescription(/sin depender de la paginación ni de los filtros/)
+})
+
+test('shows the listing pill when there is no registered common-equity BVC row', async () => {
+  setup({ ...profile, has_registered_bvc_common_equity: false })
+  const card = (
+    await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
+  ).closest('article')!
+  expect(within(card).getByText('Listado no verificado')).toBeVisible()
+})
+
+test('multiple ordinary-share records raise a collapsed alert independent of visible instruments', async () => {
+  setup({
+    ...profile,
+    common_equity_record_count: 2,
+    has_registered_bvc_common_equity: true,
+    instruments: [],
+  })
+  await openAlerts()
+  expect(screen.getByText(/Se encontraron 2 registros de Acciones ordinarias/)).toBeVisible()
+  expect(screen.queryByText(/No se ha establecido una coincidencia exacta/)).not.toBeInTheDocument()
+  expect(screen.getByText('Registrado')).toBeVisible()
+})
+
+test('unresolved quotes show each provider outcome and the requested red alert', async () => {
+  setup({
+    ...profile,
+    has_registered_bvc_common_equity: true,
+    exchange_listing: {
+      ...profile.exchange_listing,
+      quotes: [],
+      attempts: [
+        {
+          source_id: 'bvc_listings',
+          source_name: 'BVC synthetic',
+          source_url: null,
+          status: 'not_configured',
+          detail: 'No hay ruta verificada.',
+          last_attempt_at: null,
+        },
+        {
+          source_id: 'la_republica_quotes',
+          source_name: 'La República synthetic',
+          source_url:
+            'https://www.larepublica.co/indicadores-economicos/movimiento-accionario/synthetic',
+          status: 'no_exact_match',
+          detail: 'quote_identity_missing',
+          last_attempt_at: '2026-11-15T12:00:00Z',
+        },
+        {
+          source_id: 'sfc_daily_quotes',
+          source_name: 'SFC synthetic',
+          source_url: null,
+          status: 'unavailable',
+          detail: 'sfc_quote_unavailable',
+          last_attempt_at: '2026-11-15T12:01:00Z',
+        },
+      ],
+    },
+  })
+  const card = (
+    await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
+  ).closest('article')!
+  expect(within(card).getByRole('alert')).toHaveTextContent(
+    'No se ha establecido una coincidencia exacta por NIT, ANN o razón social con una cotización. Consulte otras fuentes; esto no confirma ausencia de acciones.',
+  )
+  const attempts = within(card).getByText('Fuentes de cotización (3)').closest('details')!
+  expect(attempts).toHaveAttribute('open')
+  expect(within(attempts).getByText('Sin identidad verificable')).toBeVisible()
+  expect(within(attempts).getByText('Sin ruta verificada')).toBeVisible()
+  expect(within(attempts).getByText(/La página contiene un precio/)).toBeVisible()
+})
+
+test('SFC daily averages keep their date and metric label without fabricating a ticker', async () => {
+  setup({
+    ...profile,
+    has_registered_bvc_common_equity: true,
+    exchange_listing: {
+      ...profile.exchange_listing,
+      quotes: [
+        {
+          instrument_id: 'synthetic-ann',
+          source_id: 'sfc_daily_quotes',
+          source_name: 'SFC',
+          superfinanciera_code: 'COSYNTH00001',
+          ticker: null,
+          reported_legal_name: 'SYNTHETIC S.A.',
+          last_price: '1234.56',
+          raw_price: '1,234.56',
+          currency: 'COP',
+          isin: null,
+          reported_state: null,
+          retrieved_at: '2026-11-15T12:00:00Z',
+          price_as_of: null,
+          price_date: '2026-11-12',
+          price_kind: 'daily_weighted_average',
+          source_url: 'https://www.superfinanciera.gov.co/',
+          stale: false,
+          source_note: 'SYNTHETIC source classification differs.',
+        },
+      ],
+    },
+  })
+  const card = (
+    await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
+  ).closest('article')!
+  expect(within(card).getByText('Precio promedio ponderado diario')).toBeVisible()
+  expect(within(card).queryByText('Último precio')).not.toBeInTheDocument()
+  expect(within(card).queryByText('Nemotécnico (ticker)')).not.toBeInTheDocument()
+  expect(within(card).getByText('SYNTHETIC S.A.')).toBeVisible()
+  expect(within(card).getByText('SYNTHETIC source classification differs.')).toBeVisible()
 })

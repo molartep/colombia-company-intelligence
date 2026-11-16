@@ -10,11 +10,18 @@ from app.core.config import get_settings
 from app.core.normalization import looks_like_nit, normalize_name, normalize_nit
 from app.integrations.capital_markets.automatic_details import refresh_details
 from app.integrations.capital_markets.automatic_securities import refresh_securities
+from app.integrations.capital_markets.bvc import BvcRetriever
+from app.integrations.capital_markets.bvc_service import bvc_finding
+from app.integrations.capital_markets.equity_identity import common_equity_counts
 from app.integrations.capital_markets.ingestion import ensure_sources
 from app.integrations.capital_markets.issuer_details import DETAILS_SOURCE
 from app.integrations.capital_markets.matching import reconcile
 from app.integrations.capital_markets.parsers import optional
+from app.integrations.capital_markets.quote_attempts import quote_attempts
 from app.integrations.capital_markets.reports import SecuritiesRetriever
+from app.integrations.capital_markets.secondary_quote_service import secondary_quotes
+from app.integrations.capital_markets.secondary_quotes import LR_SOURCE, SecondaryRetriever
+from app.integrations.capital_markets.sfc_quotes import SFC_PROVIDER, SFC_QUOTES
 from app.integrations.capital_markets.summary_renderer import SummaryRetriever
 from app.integrations.capital_markets.types import (
     BVC_SOURCE,
@@ -37,7 +44,6 @@ from app.models.capital_markets import (
 from app.models.entities import Company, DataSource, SourceRecord
 from app.schemas.capital_markets import (
     CapitalMarketsProfile,
-    ExchangeFinding,
     InstrumentView,
     IssuerPage,
     IssuerView,
@@ -55,11 +61,18 @@ def snapshot_stale(snapshot: Snapshot | None, now: datetime | None = None) -> bo
     now = now or datetime.now(UTC)
     observed = snapshot.details.get("observed_at")
     stamp = datetime.fromisoformat(observed) if observed else snapshot.retrieved_at
+    if snapshot.source_id in {LR_SOURCE, SFC_QUOTES}:
+        stamp = snapshot.retrieved_at  # Quote date is displayed separately; this is cache age.
     if stamp.tzinfo is None:
         stamp = stamp.replace(tzinfo=UTC)
-    return (
-        now - min(stamp, snapshot.retrieved_at)
-    ).total_seconds() > get_settings().capital_markets_max_age_hours * 3600
+    ttl = (
+        15 * 60
+        if snapshot.source_id in {LR_SOURCE, SFC_QUOTES}
+        else get_settings().bvc_cache_minutes * 60
+        if snapshot.source_id == BVC_SOURCE
+        else get_settings().capital_markets_max_age_hours * 3600
+    )
+    return (now - min(stamp, snapshot.retrieved_at)).total_seconds() > ttl
 
 
 def snapshot_view(snapshot: Snapshot) -> SnapshotView:
@@ -83,10 +96,24 @@ async def source_views(
     result = []
     for source in await session.scalars(
         select(DataSource)
-        .where(DataSource.id.in_([ISSUER_SOURCE, SECURITIES_SOURCE, BVC_SOURCE, DETAILS_SOURCE]))
+        .where(
+            DataSource.id.in_(
+                [
+                    ISSUER_SOURCE,
+                    SECURITIES_SOURCE,
+                    BVC_SOURCE,
+                    DETAILS_SOURCE,
+                    LR_SOURCE,
+                    SFC_QUOTES,
+                ]
+            )
+        )
         .order_by(DataSource.id)
     ):
-        scoped = source.id in {DETAILS_SOURCE, SECURITIES_SOURCE} and issuer_ids is not None
+        scoped = (
+            source.id in {DETAILS_SOURCE, SECURITIES_SOURCE, BVC_SOURCE, LR_SOURCE, SFC_QUOTES}
+            and issuer_ids is not None
+        )
         conditions = [Snapshot.source_id == source.id]
         if scoped:
             conditions.append(
@@ -129,7 +156,13 @@ async def source_views(
                 else None,
                 last_attempt_at=latest.retrieved_at if latest else None,
                 last_success_at=success.retrieved_at if success else None,
-                refresh_interval_hours=get_settings().capital_markets_max_age_hours,
+                refresh_interval_hours=(
+                    0.25
+                    if source.id in {LR_SOURCE, SFC_QUOTES}
+                    else get_settings().bvc_cache_minutes / 60
+                    if source.id == BVC_SOURCE
+                    else get_settings().capital_markets_max_age_hours
+                ),
                 stale=snapshot_stale(success)
                 or bool(latest and latest.ingestion_status == "failed"),
                 latest_snapshot=snapshot_view(success) if success else None,
@@ -467,6 +500,9 @@ async def company_profile(
     securities_retriever: SecuritiesRetriever | None = None,
     force_refresh: bool = False,
     refresh_source: str | None = None,
+    bvc_retriever: BvcRetriever | None = None,
+    secondary_retriever: SecondaryRetriever | None = None,
+    sfc_quote_retriever: SecondaryRetriever | None = None,
 ) -> CapitalMarketsProfile:
     refresh_after = datetime.now(UTC) if force_refresh else None
     links = await company_links(session, company)
@@ -484,9 +520,69 @@ async def company_profile(
         # A failed import rolls back and expires ORM objects; reload before serialization.
         await session.refresh(company)
         links = await company_links(session, company)
-    sources = await source_views(
-        session, [i.id for i, m in links if m.match_status == MatchStatus.VERIFIED]
+    verified_ids = [i.id for i, m in links if m.match_status == MatchStatus.VERIFIED]
+    await session.commit()  # No global match lock during BVC retrieval.
+    exchange_finding = await bvc_finding(
+        session,
+        verified_ids,
+        bvc_retriever if refresh_source in (None, BVC_SOURCE) else None,
+        refresh_after,
     )
+    verified_quote_sources = {q.source_id for q in exchange_finding.quotes}
+    await session.refresh(company)
+    fallback = await secondary_quotes(
+        session,
+        company,
+        verified_ids,
+        secondary_retriever
+        if refresh_source in (None, LR_SOURCE)
+        and (
+            not exchange_finding.quotes
+            or all(q.stale for q in exchange_finding.quotes)
+            or refresh_source == LR_SOURCE
+        )
+        else None,
+        refresh_after,
+    )
+    verified_quote_sources.update(q.source_id for q in fallback)
+    if fallback and (not exchange_finding.quotes or all(q.stale for q in exchange_finding.quotes)):
+        exchange_finding.quotes = fallback
+        exchange_finding.availability = "stale" if any(q.stale for q in fallback) else "available"
+        exchange_finding.explanation = (
+            "Cotización de La República con identidad verificada por coincidencia exacta. "
+            "La fecha publicada y la fuente se muestran con el precio; "
+            "no es una cotización en tiempo real."
+        )
+    await session.refresh(company)
+    official_fallback = await secondary_quotes(
+        session,
+        company,
+        verified_ids,
+        sfc_quote_retriever
+        if refresh_source in (None, SFC_QUOTES)
+        and (
+            not exchange_finding.quotes
+            or all(q.stale for q in exchange_finding.quotes)
+            or refresh_source == SFC_QUOTES
+        )
+        else None,
+        refresh_after,
+        provider=SFC_PROVIDER,
+    )
+    verified_quote_sources.update(q.source_id for q in official_fallback)
+    if official_fallback and (
+        not exchange_finding.quotes or all(q.stale for q in exchange_finding.quotes)
+    ):
+        exchange_finding.quotes = official_fallback
+        exchange_finding.availability = (
+            "stale" if any(q.stale for q in official_fallback) else "available"
+        )
+        exchange_finding.explanation = "Promedio ponderado diario SFC con coincidencia ANN exacta."
+    exchange_finding.attempts = await quote_attempts(session, verified_ids, verified_quote_sources)
+    exchange_finding.match_status = "matched" if exchange_finding.quotes else "unresolved"
+    await session.refresh(company)
+    links = await company_links(session, company)
+    sources = await source_views(session, verified_ids)
     directory = await session.scalar(
         select(Snapshot)
         .where(Snapshot.source_id == ISSUER_SOURCE, Snapshot.ingestion_status == "success")
@@ -547,7 +643,10 @@ async def company_profile(
         [snapshot_stale(await session.get(Snapshot, i.last_snapshot_id)) for i, _ in verified]
     )
     stale = stale or instruments.availability == "stale"
+    common_count, bvc_common_count = await common_equity_counts(session, verified_ids)
     result = CapitalMarketsProfile(
+        has_registered_bvc_common_equity=bvc_common_count > 0,
+        common_equity_record_count=common_count,
         company_id=company.id,
         rnve=RnveFinding(
             status=status,
@@ -560,7 +659,8 @@ async def company_profile(
             if directory
             else None,
         ),
-        exchange_listing=ExchangeFinding(),
+        exchange_listing=exchange_finding,
+        equity_listed=True if exchange_finding.status == ListingStatus.LISTED else None,
         ownership=OwnershipFinding(),
         issuers=await issuer_views(session, [(i, m) for i, m in links]),
         instruments=instruments.items,
@@ -572,7 +672,12 @@ async def company_profile(
         if directory
         else None,
         stale=stale,
-        summary=summary(status, potential, debt, stale),
+        summary=summary(status, potential, debt, stale).replace(
+            "No se ha verificado un listado vigente de acciones en la BVC.",
+            "La página BVC consultada reporta acciones ordinarias activas con código verificado.",
+        )
+        if exchange_finding.status == ListingStatus.LISTED
+        else summary(status, potential, debt, stale),
         limitations=[
             "La forma jurídica proviene de RUES y no determina propiedad pública o privada.",
             (

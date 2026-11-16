@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AdvancedFilters } from '../components/AdvancedFilters'
+import { AdvancedFilters, FilterHelp } from '../components/AdvancedFilters'
 import { readFilters, filterParams, searchKey } from '../api/filters'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
@@ -51,6 +51,26 @@ export function Search() {
             }
           }}
         >
+          <div className="bvc-search-filter">
+            <label>
+              <input
+                type="checkbox"
+                checked={draftFilters.registered_bvc === 'true'}
+                disabled={results.isFetching}
+                onChange={(event) =>
+                  setDraftFilters({
+                    ...draftFilters,
+                    registered_bvc: event.target.checked ? 'true' : '',
+                  })
+                }
+              />
+              Registrado BVC
+            </label>
+            <FilterHelp
+              label="Registrado BVC"
+              text="Finds matching issuers in the RNVE directory, retrieves their securities evidence, then filters live RUES results before pagination. Requires Acciones ordinarias and market BVC. Current trading and liquidity are not verified."
+            />
+          </div>
           <AdvancedFilters
             values={draftFilters}
             onChange={setDraftFilters}
@@ -84,6 +104,11 @@ export function Search() {
           )}
           {results.data && (
             <>
+              {results.data.warning && !results.data.stale && (
+                <p className="notice" role="status">
+                  {results.data.warning}
+                </p>
+              )}
               {results.data.stale && (
                 <RefreshAlert
                   refresh={() => void results.refetch()}
@@ -97,8 +122,9 @@ export function Search() {
                   <span aria-hidden="true">⌕</span>
                   <h3>No matching registrations</h3>
                   <p>
-                    Try a shorter part of the legal name or check the NIT. This is a bounded search
-                    of one public dataset, not proof a company does not exist.
+                    {params.get('registered_bvc') === 'true'
+                      ? 'No verified BVC registrations match this search. RNVE registration evidence and a verified company identity are required.'
+                      : 'Try a shorter part of the legal name or check the NIT. This is a bounded search of one public dataset, not proof a company does not exist.'}
                   </p>
                 </div>
               ) : (
@@ -116,6 +142,7 @@ export function Search() {
                         <col className="status-column" />
                         <col className="date-column" />
                         <col className="date-column" />
+                        <col className="bvc-column" />
                         <col className="profile-column" />
                       </colgroup>
                       <thead>
@@ -125,6 +152,7 @@ export function Search() {
                           <th scope="col">Registration status</th>
                           <th scope="col">Registration date</th>
                           <th scope="col">Renewal date</th>
+                          <th scope="col">Registrado BVC</th>
                           <th>
                             <span className="sr-only">Open profile</span>
                           </th>
@@ -163,6 +191,18 @@ export function Search() {
                             </td>
                             <td className="date-cell">
                               <RegistrationDate value={company.renewal_date} blankIfMissing />
+                            </td>
+                            <td className="bvc-check-cell">
+                              {company.registered_bvc && (
+                                <span
+                                  className="bvc-check"
+                                  role="img"
+                                  aria-label="Registrado BVC"
+                                  title="Acciones ordinarias · BVC"
+                                >
+                                  ✓
+                                </span>
+                              )}
                             </td>
                             <td>
                               <Link

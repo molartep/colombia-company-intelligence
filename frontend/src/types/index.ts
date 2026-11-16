@@ -10,6 +10,7 @@ export interface Company {
   municipality: string | null
 }
 export interface SearchItem extends Company {
+  registered_bvc?: boolean
   registration_number: string | null
   chamber: string | null
   chamber_code: string | null
@@ -26,7 +27,8 @@ export interface SearchPage {
   has_more: boolean
   stale: boolean
   warning: string | null
-  ranking_scope: 'all matching source records' | 'current cached page'
+  ranking_scope:
+    'all matching source records' | 'current cached page' | 'all matching indexed BVC registrations'
 }
 export interface DataSource {
   id: string

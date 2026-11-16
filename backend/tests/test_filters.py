@@ -147,3 +147,23 @@ async def test_parameters_endpoint_is_offline_and_search_api_validates_filters()
                 assert search.call_args.args[4:6] == (2, 1)
     finally:
         app.dependency_overrides.clear()
+
+
+async def test_nit_allowlist_is_bounded_and_applied_before_source_pagination(record):
+    requests = []
+
+    def handler(request):
+        requests.append(request)
+        return httpx.Response(200, json=[record])
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        source = RuesDataSource(SocrataClient(http))
+        await source.search_by_name("SYNTHETIC", offset=20, nit_allowlist=["000123456"])
+        await source.search_by_nit("000123456", nit_allowlist=["000123456"])
+        assert await source.search_by_name("SYNTHETIC", nit_allowlist=[]) == []
+        for invalid in [["1' OR true"], ["１２３"], ["123"] * 501]:
+            with pytest.raises(ValueError):
+                await source.search_by_name("SYNTHETIC", nit_allowlist=invalid)
+    assert len(requests) == 2
+    assert requests[0].url.params["$offset"] == "20"
+    assert all("nit in ('000123456')" in r.url.params["$where"] for r in requests)

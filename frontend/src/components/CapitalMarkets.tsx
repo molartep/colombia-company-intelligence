@@ -9,10 +9,11 @@ import {
 } from '../types/capitalMarkets'
 import { Failure, Loading, RefreshAlert } from './Feedback'
 import { SourceEvidenceStatus } from './SourceEvidenceStatus'
-import { sourceNeedsAttention } from '../sourceStatus'
+import { sourceNeedsAttention, sourceErrorDescription } from '../sourceStatus'
 import { SourceInformationCard } from './SourceInformationCard'
 import { MarketSourceInformation } from './MarketSourceInformation'
 import { MissingValue } from './FieldValues'
+import { FilterHelp } from './AdvancedFilters'
 import { dateTime, registrationDate, issuanceMonth } from '../utils'
 
 const registrationLabels: Record<RegistrationStatus, string> = {
@@ -143,28 +144,79 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
     ? data.issuers.find((item) => item.match_status === 'verified')
     : undefined
   const instruments = securities.data?.items ?? []
+  const sourceAlerts = data.sources.filter(sourceNeedsAttention)
+  const alerts = sourceAlerts.map((source) => (
+    <RefreshAlert key={source.id} refresh={() => goToSources(source.id)}>
+      <SourceEvidenceStatus source={source} />
+    </RefreshAlert>
+  ))
+  if ((data.common_equity_record_count ?? 0) > 1)
+    alerts.push(
+      <div className="notice danger" role="alert" key="multiple-common-equity">
+        Se encontraron {data.common_equity_record_count} registros de Acciones ordinarias en Valores
+        registrados. La consulta de cotizaciones está bloqueada hasta resolver la ambigüedad,
+        independientemente del mercado, la paginación o los filtros.
+      </div>,
+    )
+  if (refresh.isError)
+    alerts.push(
+      <RefreshAlert key="refresh-error" refresh={refreshData}>
+        <strong>
+          {data.sources.find((source) => source.id === refresh.variables)?.name ??
+            refresh.variables}
+        </strong>
+        <p>{refresh.error.message} Los datos anteriores se conservan.</p>
+      </RefreshAlert>,
+    )
+  if (data.rnve.match_status === 'potential')
+    alerts.push(
+      <RefreshAlert key="identity" refresh={refreshData}>
+        Posible coincidencia de identidad pendiente de revisión. Los instrumentos del candidato no
+        se atribuyen a esta empresa.
+      </RefreshAlert>,
+    )
+  if (
+    issuer &&
+    ['stale', 'failed_to_retrieve'].includes(issuer.details_availability ?? '') &&
+    !sourceAlerts.some((s) => s.id === 'sfc_rnve_issuer_details')
+  )
+    alerts.push(
+      <RefreshAlert key="summary-details" refresh={refreshData}>
+        <strong>SFC · Datos del emisor RNVE</strong>
+        <p>
+          {issuer.details_availability === 'failed_to_retrieve'
+            ? 'No se pudo recuperar el resumen RNVE. No significa que los datos estén ausentes.'
+            : 'Se conservan los últimos datos recuperados del RNVE.'}
+        </p>
+        <p>
+          Última recuperación: {dateTime(issuer.administration_retrieved_at ?? null)} · Último
+          intento: {dateTime(issuer.details_last_attempt_at ?? null)}
+        </p>
+      </RefreshAlert>,
+    )
+  if (
+    verified &&
+    securities.data &&
+    ['stale', 'failed_to_retrieve', 'not_yet_checked'].includes(securities.data.availability) &&
+    !sourceAlerts.some((s) => s.id === 'sfc_rnve_securities')
+  )
+    alerts.push(
+      <RefreshAlert key="securities-status" refresh={refreshData}>
+        <strong>SFC · Valores registrados</strong>
+        <p>{availability[securities.data.availability]}</p>
+      </RefreshAlert>,
+    )
   return (
     <section className="capital-markets" aria-label="Capital Markets">
       <h2>Capital Markets</h2>
       {markets.isFetching && <Loading />}
       {refresh.isPending && <Loading />}
-      {refresh.isError && (
-        <RefreshAlert refresh={refreshData}>
-          <strong>
-            {data.sources.find((source) => source.id === refresh.variables)?.name ??
-              refresh.variables}
-          </strong>
-          <p>{refresh.error.message} Los datos anteriores se conservan.</p>
-        </RefreshAlert>
+      {alerts.length > 0 && (
+        <details className="panel market-alerts">
+          <summary>Alertas ({alerts.length})</summary>
+          {alerts}
+        </details>
       )}
-      <div className="notice" aria-label="Resumen de evidencia">
-        <p>{data.summary}</p>
-      </div>
-      {data.sources.filter(sourceNeedsAttention).map((source) => (
-        <RefreshAlert key={source.id} refresh={() => goToSources(source.id)}>
-          <SourceEvidenceStatus source={source} />
-        </RefreshAlert>
-      ))}
       <div className="profile-grid">
         <article className="panel">
           <h3>Registro Nacional de Valores y Emisores</h3>
@@ -173,12 +225,6 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
           >
             {registrationLabels[data.rnve.status]}
           </span>
-          {data.rnve.match_status === 'potential' && (
-            <p className="notice warning">
-              Posible coincidencia de identidad pendiente de revisión. Los instrumentos del
-              candidato no se atribuyen a esta empresa.
-            </p>
-          )}
           {data.issuers.map((issuer) => (
             <div className="market-issuer" key={issuer.id}>
               <h4>{issuer.issuer_name}</h4>
@@ -226,34 +272,183 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
         </article>
         <article className="panel">
           <h3>Bolsa de Valores de Colombia</h3>
-          <span className="badge value-pill--muted">
-            {listingLabels[data.exchange_listing.status]}
-          </span>
-          <p className="market-explanation">{data.exchange_listing.explanation}</p>
-          <dl>
-            <div>
-              <dt>Acciones listadas</dt>
-              <dd>
-                {data.equity_listed === null
-                  ? 'No verificado'
-                  : data.equity_listed
-                    ? 'Verificado'
-                    : 'Sin coincidencia en la fuente consultada'}
-              </dd>
+          {data.has_registered_bvc_common_equity ? (
+            <div className="bvc-registration">
+              <span className="badge value-pill--present">Registrado</span>
+              <FilterHelp
+                label="Registro BVC"
+                text="Existe al menos un registro en Valores registrados con categoría Acciones ordinarias y mercado BVC. Se revisan todos los registros, sin depender de la paginación ni de los filtros. No indica negociación actual ni liquidez."
+              />
             </div>
-            <div>
-              <dt>Fuente BVC</dt>
-              <dd>
-                {data.exchange_listing.availability === 'requires_authorized_source'
-                  ? 'Requiere una fuente autorizada'
-                  : data.exchange_listing.availability}
-              </dd>
+          ) : (
+            <span
+              className={`badge ${data.exchange_listing.status === 'verified_listed' ? 'value-pill--present' : 'value-pill--muted'}`}
+            >
+              {listingLabels[data.exchange_listing.status]}
+            </span>
+          )}
+          {!data.exchange_listing.quotes?.length && (data.common_equity_record_count ?? 0) <= 1 && (
+            <div className="notice danger" role="alert">
+              No se ha establecido una coincidencia exacta por NIT, ANN o razón social con una
+              cotización. Consulte otras fuentes; esto no confirma ausencia de acciones.
             </div>
-          </dl>
-          <p className="small muted">
-            Una inscripción RNVE o una fecha BVC reportada por SFC no verifica cotización actual ni
-            liquidez.
-          </p>
+          )}
+          {(data.exchange_listing.quotes?.length ?? 0) > 0 ? (
+            data.exchange_listing.quotes!.map((quote) => (
+              <div className="bvc-quote" key={`${quote.source_id ?? 'bvc'}-${quote.instrument_id}`}>
+                <div className="quote-heading">
+                  <h4>
+                    <span className="quote-ticker-label">
+                      {quote.ticker ? 'Nemotécnico (ticker)' : 'Emisor'}
+                    </span>
+                    {quote.ticker ?? quote.reported_legal_name ?? <MissingValue />}
+                  </h4>
+                  {quote.stale && (
+                    <span className="badge value-pill--review">Actualización pendiente</span>
+                  )}
+                </div>
+                <div className="quote-highlight">
+                  <div>
+                    <span className="quote-label">
+                      {quote.price_kind === 'daily_weighted_average'
+                        ? 'Precio promedio ponderado diario'
+                        : 'Último precio'}
+                    </span>
+                    <p className="bvc-price">
+                      {quote.last_price !== null ? (
+                        `${quote.currency ? `${quote.currency} ` : quote.raw_price?.includes('$') ? '$ ' : ''}${new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 }).format(Number(quote.last_price))}`
+                      ) : (
+                        <MissingValue />
+                      )}
+                    </p>
+                  </div>
+                  {quote.variation_percent != null && (
+                    <div
+                      className={`quote-change ${Number(quote.variation_percent) > 0 ? 'quote-up' : Number(quote.variation_percent) < 0 ? 'quote-down' : ''}`}
+                    >
+                      <span className="quote-label">Variación</span>
+                      <strong>
+                        {Number(quote.variation_percent) > 0
+                          ? '↑ +'
+                          : Number(quote.variation_percent) < 0
+                            ? '↓ '
+                            : ''}
+                        {new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 }).format(
+                          Number(quote.variation_percent),
+                        )}
+                        %
+                      </strong>
+                    </div>
+                  )}
+                </div>
+                <p className="quote-date">
+                  <span>Fecha del precio</span>
+                  {quote.price_date
+                    ? registrationDate(quote.price_date.replaceAll('-', ''))?.display
+                    : quote.price_as_of
+                      ? dateTime(quote.price_as_of)
+                      : 'No informada'}
+                </p>
+                <dl className="quote-metrics">
+                  {quote.volume != null && (
+                    <div>
+                      <dt>Volumen</dt>
+                      <dd>
+                        ${' '}
+                        {new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 }).format(
+                          Number(quote.volume),
+                        )}
+                      </dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt>
+                      {quote.source_id === 'la_republica_quotes'
+                        ? 'ANN del registro RNVE'
+                        : 'Código Superfinanciera'}
+                    </dt>
+                    <dd>{quote.superfinanciera_code}</dd>
+                  </div>
+                  {quote.isin && (
+                    <div>
+                      <dt>ISIN</dt>
+                      <dd>{quote.isin}</dd>
+                    </div>
+                  )}
+                </dl>
+                <div className="quote-provenance">
+                  <a className="text-link" href={quote.source_url} target="_blank" rel="noreferrer">
+                    Fuente: {quote.source_name ?? 'Bolsa de Valores de Colombia'} ↗
+                  </a>
+                  <p>
+                    Coincidencia:{' '}
+                    {quote.match_type === 'exact_nit'
+                      ? 'NIT exacto'
+                      : quote.match_type === 'exact_legal_name'
+                        ? 'Razón social EXACTA'
+                        : 'ANN exacto'}{' '}
+                    · {quote.matched_value ?? quote.superfinanciera_code}
+                  </p>
+                  <p>Recuperado: {dateTime(quote.retrieved_at)}</p>
+                  {quote.source_note && <p className="quote-source-note">{quote.source_note}</p>}
+                </div>
+              </div>
+            ))
+          ) : (
+            <dl>
+              <div>
+                <dt>Último precio</dt>
+                <dd>
+                  <span className="badge value-pill--muted">No verificado</span>
+                </dd>
+              </div>
+              <div>
+                <dt>Nemotécnico (ticker)</dt>
+                <dd>
+                  <span className="badge value-pill--muted">No verificado</span>
+                </dd>
+              </div>
+            </dl>
+          )}
+          {(data.exchange_listing.attempts?.length ?? 0) > 0 && (
+            <details className="quote-attempts" open={!data.exchange_listing.quotes?.length}>
+              <summary>Fuentes de cotización ({data.exchange_listing.attempts!.length})</summary>
+              <ul>
+                {data.exchange_listing.attempts!.map((attempt) => (
+                  <li key={attempt.source_id}>
+                    <div>
+                      {attempt.source_url ? (
+                        <a href={attempt.source_url} target="_blank" rel="noreferrer">
+                          {attempt.source_name} ↗
+                        </a>
+                      ) : (
+                        <span>{attempt.source_name}</span>
+                      )}
+                      <span
+                        className={`badge ${attempt.status === 'matched' ? 'value-pill--present' : attempt.status === 'not_configured' || attempt.status === 'not_checked' ? 'value-pill--muted' : 'value-pill--review'}`}
+                      >
+                        {(
+                          {
+                            matched: 'Coincidencia exacta',
+                            no_exact_match: 'Sin identidad verificable',
+                            unavailable: 'No disponible',
+                            not_configured: 'Sin ruta verificada',
+                            not_checked: 'No consultada',
+                          } as Record<string, string>
+                        )[attempt.status] ?? attempt.status}
+                      </span>
+                    </div>
+                    {attempt.detail && (
+                      <p>{sourceErrorDescription(attempt.detail) ?? attempt.detail}</p>
+                    )}
+                    {attempt.last_attempt_at && (
+                      <p>Último intento: {dateTime(attempt.last_attempt_at)}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
         </article>
       </div>
       <div className="profile-grid">
@@ -310,20 +505,6 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
         </article>
         <article className="panel market-contact">
           <h3>Administración</h3>
-          {issuer?.details_availability === 'failed_to_retrieve' && (
-            <RefreshAlert refresh={refreshData}>
-              No se pudo recuperar el resumen RNVE. No significa que los datos estén ausentes. Se
-              reintentará al abrir esta pestaña después de 15 minutos.
-            </RefreshAlert>
-          )}
-          {issuer?.details_availability === 'stale' && (
-            <RefreshAlert refresh={refreshData}>
-              Se conservan los últimos datos recuperados del RNVE.{' '}
-              {issuer.details_last_attempt_failed
-                ? 'La actualización falló; se reintentará después de 15 minutos.'
-                : 'La observación requiere actualización.'}
-            </RefreshAlert>
-          )}
           <dl>
             <div>
               <dt>Nro. Miembros Junta Directiva</dt>
@@ -437,13 +618,6 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
             )}
             {securities.data && (
               <>
-                {['stale', 'failed_to_retrieve', 'not_yet_checked'].includes(
-                  securities.data.availability,
-                ) ? (
-                  <RefreshAlert refresh={refreshData}>
-                    {availability[securities.data.availability] ?? securities.data.availability}
-                  </RefreshAlert>
-                ) : null}
                 <p className="securities-count small muted" role="status">
                   {securities.data.total}{' '}
                   {securities.data.total === 1 ? 'record found' : 'records found'}

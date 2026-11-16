@@ -13,7 +13,7 @@ its application-internal endpoints are not used as a supported API. A public exp
 reproducible human access mechanism, not evidence that an internal endpoint is an unrestricted API.
 Securities use the observed public issuer-specific HTML report, retrieved automatically for verified
 issuers on Capital Markets access or explicitly for one selected issuer via the CLI. Its report schema is validated; it is not advertised as an official API contract.
-BVC corroboration remains unavailable pending an authorized reproducible source.
+Public BVC stock-page retrieval is implemented; live access remains blocked as described below.
 
 ## SFC issuer directory
 
@@ -135,11 +135,24 @@ prefixes remain `other_or_unknown`. Convertible bonds are not reclassified as cu
 - Both returned **HTTP 403** in this environment during discovery. No publicly documented,
   unrestricted, reproducible listings feed was confirmed.
 - No CAPTCHA, access restriction, private endpoint, or contractual control was bypassed.
-- `BvcUnavailable` implements the connector boundary with `requires_authorized_source`.
-  Listing remains `unknown` and `equity_listed` remains null. SFC-reported BVC registration dates
-  remain usable independently. This is an access limitation, not a negative listing finding.
-- A future authorized feed must preserve instrument/issuer identifiers, observation time, current
-  status semantics, and provenance before it can set `verified_listed`/`verified_delisted`.
+- A public-page adapter now reads stock-summary fields and matches **Código Superfinanciera**
+  exactly to an ANN code on a verified issuer's `common_equity` instrument. It never derives an ISIN
+  from ANN, guesses a ticker, matches on company names, or assigns a quote to debt/preferred equity.
+- The provided Ecopetrol URL was tested again on 2026-11-15 with HTTP retrieval and ordinary isolated
+  Chromium navigation. Both returned HTTP 403 from CloudFront. Thus its live HTML schema and current
+  price/ticker have **not** been verified here. No access control is bypassed. The supplied 2,560.00
+  example is not seeded into production data.
+- Parser contract tests use explicitly synthetic HTML in table-header and label/value layouts,
+  reflecting the field labels supplied in the request. A successful HTML response lacking rendered
+  identifiers may be loaded in ordinary isolated Chromium. HTTP 403 is never retried through that
+  fallback. A changed/ambiguous schema or mismatched code is a failure, not a no-match finding.
+- Initial routing coverage contains only `COC04PAAO008` → the user-supplied Ecopetrol public summary
+  URL. This locator is **not** a verified quote or listing assertion. Additional official page URLs
+  require `BVC_PAGE_URLS` (JSON ANN-to-URL mapping). There is no unbounded directory crawl or guessed
+  slug discovery. Every response still requires exact code validation before any values are shown.
+- Only a freshly retrieved matched page explicitly reporting `Activo` sets the observed BVC listing
+  to verified and `equity_listed=true`. Other/expired/failed states remain unknown, never delisted
+  merely because a quote is unavailable. The original SFC instrument fields remain unchanged.
 
 ## Provenance, storage, and limitations
 
@@ -218,3 +231,32 @@ For local development, install Chromium after installing backend dependencies:
 `python -m playwright install --no-shell chromium`. Linux hosts may also need
 `python -m playwright install --with-deps --no-shell chromium`.
 The backend Docker image installs Chromium and its system dependencies during build.
+
+
+## BVC quote provenance and refresh
+
+Successful observations store selected public fields, exact ANN, original price text, parsed Decimal
+price, source URL, a SHA-256 artifact, separate snapshot and retrieval time. ISIN is copied only when
+actually reported. Currency is populated only when the source price explicitly includes `COP`;
+no price timestamp is invented when the page does not publish one. The UI displays retrieval time
+separately and labels unavailable quote timestamps. Cached quotes expire after `BVC_CACHE_MINUTES`
+(default 15); failures use a 15-minute cooldown and preserve prior observations with a stale flag.
+`refresh=true&refresh_source=bvc_listings` targets only BVC, with bounded page counts and locks.
+
+Live validation procedure: open the verified Ecopetrol profile, expand Data Source Information and
+refresh **BVC · Acciones ordinarias**. Verify that the returned quote's Código Superfinanciera equals
+`COC04PAAO008` and compare ticker/price to the source link. If HTTP 403 persists, the app must show
+that failure and leave price/ticker unverified. Validate the parser against a legitimate successful
+page before treating the new HTML contract as live-verified. Review BVC data-use terms before
+production redistribution or any automated publishing of quotes; MIT covers software, not market data.
+
+
+For the later working La República fallback and the Grupo Aval feasibility assessment, see
+[quote-source access tests](quote-source-access.md). Its successful secondary quotes do not change
+the primary BVC access result or convert source-reported quote times into real-time prices.
+
+
+SFC daily-price fallback: `sfc_daily_quotes` uses the public [daily report index](https://www.superfinanciera.gov.co/info/superfinancierav8/media/MercadoAccionario/Precios/Diarios/ppal_promedios.htm)
+and ANN-addressed reports. It supplies dated weighted-average observations, not last trades.
+See [source evaluation and exact-match fallback](quote-source-access.md#registered-ordinary-share-fallback-terpel-case)
+for verified fields, unavailable ticker data, source-classification conflicts and failure behavior.

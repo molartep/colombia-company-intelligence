@@ -78,6 +78,7 @@ function setup(
                   {
                     id: 'synthetic',
                     legal_name: 'SYNTHETIC TEST SAS',
+                    registered_bvc: true,
                     nit: null,
                     registration_status: 'ACTIVA',
                   },
@@ -304,7 +305,7 @@ test('returning from a profile restores the filtered page without another compan
   expect(urls[0]!.searchParams.get('chamber')).toBe('04')
 })
 
-test('parameters uses accessible table tabs and places Open filters below separate freshness lines', async () => {
+test('parameters uses accessible table tabs and places freshness after the parameter tables', async () => {
   setup('/parameters')
   const tabs = await screen.findAllByRole('tab')
   expect(tabs).toHaveLength(4)
@@ -318,7 +319,7 @@ test('parameters uses accessible table tabs and places Open filters below separa
   expect(verified.tagName).toBe('P')
   expect(updated.tagName).toBe('P')
   const open = screen.getByRole('heading', { name: 'Open filters' })
-  expect(updated.compareDocumentPosition(open) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(open.compareDocumentPosition(updated) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   expect(open.compareDocumentPosition(tabs[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   expect(screen.getAllByRole('table')).toHaveLength(1)
   await userEvent.click(tabs[2]!)
@@ -367,4 +368,41 @@ test('select all allows excluding a legal organization and clearing the explicit
   await userEvent.click(all)
   for (const checkbox of within(options).getAllByRole('checkbox'))
     expect(checkbox).not.toBeChecked()
+})
+
+test('BVC checkbox applies on submit, resets pagination, and survives navigation', async () => {
+  const requests = setup('/?q=TEST&page=2')
+  await screen.findByText('SYNTHETIC TEST SAS')
+  expect(screen.getByRole('columnheader', { name: 'Registrado BVC' })).toBeVisible()
+  expect(screen.getByRole('img', { name: 'Registrado BVC' })).toBeVisible()
+  const checkbox = screen.getByRole('checkbox', { name: 'Registrado BVC' })
+  const before = requests.length
+  await userEvent.click(checkbox)
+  expect(requests).toHaveLength(before)
+  expect(screen.getByText('Advanced filters').closest('details')).not.toHaveAttribute('open')
+  await userEvent.click(screen.getAllByRole('button', { name: /^Search/ })[0]!)
+  await waitFor(() => expect(requests.at(-1)!.searchParams.get('registered_bvc')).toBe('true'))
+  expect(requests.at(-1)!.searchParams.get('page')).toBe('1')
+  await userEvent.click(screen.getByRole('button', { name: /Next/ }))
+  await waitFor(() => expect(requests.at(-1)!.searchParams.get('page')).toBe('2'))
+  expect(requests.at(-1)!.searchParams.get('registered_bvc')).toBe('true')
+  await userEvent.click(screen.getByText('Advanced filters'))
+  await screen.findByText('Registration category')
+  await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
+  expect(checkbox).not.toBeChecked()
+  await userEvent.click(screen.getAllByRole('button', { name: /^Search/ })[0]!)
+  await waitFor(() => expect(requests.at(-1)!.searchParams.has('registered_bvc')).toBe(false))
+})
+
+test('BVC filter restores from URL and Parameters explains positive-only coverage', async () => {
+  setup('/?q=TEST&registered_bvc=true')
+  await screen.findByText('SYNTHETIC TEST SAS')
+  expect(screen.getByRole('checkbox', { name: 'Registrado BVC' })).toBeChecked()
+  expect(screen.getByRole('button', { name: 'Help: Registrado BVC' })).toHaveAccessibleDescription(
+    /filters live RUES results before pagination/,
+  )
+  await userEvent.click(screen.getByRole('link', { name: 'Parameters' }))
+  await screen.findByRole('heading', { name: 'Open filters' })
+  expect(screen.getByText(/boolean checkbox/)).toHaveTextContent('Acciones ordinarias')
+  expect(screen.getByText(/A blank cell means registration has not been established/)).toBeVisible()
 })

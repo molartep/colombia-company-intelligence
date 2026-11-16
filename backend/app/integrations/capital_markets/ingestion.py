@@ -14,7 +14,9 @@ from app.core.normalization import normalize_name
 from app.integrations.capital_markets.issuer_details import DETAILS_SOURCE
 from app.integrations.capital_markets.matching import reconcile
 from app.integrations.capital_markets.parsers import parse_issuers, parse_securities
-from app.integrations.capital_markets.reports import BvcUnavailable, store_artifact
+from app.integrations.capital_markets.reports import store_artifact
+from app.integrations.capital_markets.secondary_quotes import LR_SOURCE
+from app.integrations.capital_markets.sfc_quotes import INDEX_URL, SFC_QUOTES
 from app.integrations.capital_markets.types import (
     BVC_SOURCE,
     DIRECTORY_URL,
@@ -59,10 +61,25 @@ async def ensure_sources(session: AsyncSession) -> None:
             "Issuer contact and administration fields from public RNVE summary pages.",
         ),
         (
+            LR_SOURCE,
+            "La República · Cotizaciones de acciones",
+            "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/ecopetrol",
+            (
+                "Secondary public stock quotes with exact NIT, ANN or legal-name evidence; "
+                "timestamps are reported separately."
+            ),
+        ),
+        (
+            SFC_QUOTES,
+            "SFC · Promedio diario de cotización",
+            INDEX_URL,
+            "Official daily weighted-average prices matched by exact ANN; not last-trade prices.",
+        ),
+        (
             BVC_SOURCE,
-            "Bolsa de Valores de Colombia · Listing corroboration",
+            "BVC · Acciones ordinarias",
             "https://www.bvc.com.co/",
-            BvcUnavailable.explanation,
+            "Public BVC stock summaries matched by Código Superfinanciera to RNVE common equity.",
         ),
     ]:
         await session.execute(
@@ -71,17 +88,19 @@ async def ensure_sources(session: AsyncSession) -> None:
                 id=key,
                 name=name,
                 description=description,
-                provider="Bolsa de Valores de Colombia"
+                provider="La República"
+                if key == LR_SOURCE
+                else "Bolsa de Valores de Colombia"
                 if key == BVC_SOURCE
                 else "Superintendencia Financiera de Colombia",
                 dataset_url=url,
                 api_url=None,
                 enabled=True,
-                availability="requires_authorized_source"
-                if key == BVC_SOURCE
-                else "not_yet_checked",
+                availability="not_yet_checked",
             )
-            .on_conflict_do_nothing()
+            .on_conflict_do_update(
+                index_elements=["id"], set_={"name": name, "description": description}
+            )
         )
 
 

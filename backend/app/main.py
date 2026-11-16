@@ -24,7 +24,10 @@ from app.db.session import engine, get_session
 
 # Issuer summaries and securities reports refresh into snapshots on Capital Markets access.
 from app.integrations.capital_markets import service as capital
+from app.integrations.capital_markets.bvc import BvcPublicPages
 from app.integrations.capital_markets.reports import OfficialReports
+from app.integrations.capital_markets.secondary_quotes import LaRepublicaPublicPages
+from app.integrations.capital_markets.sfc_quotes import SfcQuotePages
 from app.integrations.capital_markets.summary_renderer import RnveSummaryRenderer
 from app.integrations.capital_markets.types import ListingStatus, MatchStatus, SecurityCategory
 from app.integrations.rues.adapter import RuesDataSource
@@ -73,6 +76,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             limits=httpx.Limits(max_connections=2, max_keepalive_connections=2),
             follow_redirects=False,
         ) as reports_client:
+            app.state.bvc_pages = BvcPublicPages(reports_client)
+            app.state.sfc_quote_pages = SfcQuotePages(reports_client)
+            app.state.secondary_quotes = LaRepublicaPublicPages()
             app.state.rnve_securities = OfficialReports(
                 reports_client, settings.capital_markets_retries
             )
@@ -179,6 +185,7 @@ async def ready(session: DB) -> dict[str, str]:
 
 @app.get("/api/v1/companies", response_model=SearchPage)
 async def companies(
+    request: Request,
     session: DB,
     source: Annotated[RuesDataSource, Depends(adapter)],
     params: Annotated[CompanySearchRequest, Query()],
@@ -197,6 +204,7 @@ async def companies(
         params.page,
         params.page_size,
         SearchFilters.model_validate(params.model_dump(exclude={"q", "page", "page_size"})),
+        securities_retriever=getattr(request.app.state, "rnve_securities", None),
     )
 
 
@@ -244,7 +252,14 @@ async def company_capital_markets(
     session: DB,
     request: Request,
     refresh: bool = False,
-    refresh_source: Literal["sfc_rnve_issuer_details", "sfc_rnve_securities"] | None = None,
+    refresh_source: Literal[
+        "sfc_rnve_issuer_details",
+        "sfc_rnve_securities",
+        "bvc_listings",
+        "la_republica_quotes",
+        "sfc_daily_quotes",
+    ]
+    | None = None,
 ) -> CapitalMarketsProfile:
     if refresh_source and not refresh:
         raise HTTPException(422, "A source-specific refresh requires refresh=true.")
@@ -255,6 +270,9 @@ async def company_capital_markets(
         getattr(request.app.state, "rnve_securities", None),
         force_refresh=refresh,
         refresh_source=refresh_source,
+        bvc_retriever=getattr(request.app.state, "bvc_pages", None),
+        secondary_retriever=getattr(request.app.state, "secondary_quotes", None),
+        sfc_quote_retriever=getattr(request.app.state, "sfc_quote_pages", None),
     )
 
 

@@ -2,12 +2,17 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import func, literal_column, or_, select
+from sqlalchemy import case, func, literal_column, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import SourceError
 from app.core.normalization import Nit, compact_name, normalize_name
+from app.integrations.capital_markets.equity_identity import registered_bvc_company_ids
+from app.integrations.capital_markets.matching import reconcile
+from app.integrations.capital_markets.reports import SecuritiesRetriever
+from app.integrations.capital_markets.search_registration import registration_nits
+from app.integrations.capital_markets.types import SECURITIES_SOURCE, SecurityCategory
 from app.integrations.rues.adapter import (
     API_URL,
     DATASET_URL,
@@ -19,6 +24,7 @@ from app.integrations.rues.adapter import (
     payload_hash,
     source_datetime,
 )
+from app.models.capital_markets import IssuerCompanyMatch, SecuritiesIssuer, SecurityInstrument
 from app.models.entities import Company, CompanyAlias, DataSource, SourceRecord
 from app.schemas.api import AttributeState, Profile, RecordView, SearchItem, SearchPage, SourceView
 from app.schemas.filters import SearchFilters
@@ -123,13 +129,21 @@ async def search_companies(
     page: int,
     page_size: int,
     filters: SearchFilters | None = None,
+    securities_retriever: SecuritiesRetriever | None = None,
 ) -> SearchPage:
     filters = filters or SearchFilters()
     cached_filters = cached_conditions(filters) if filters.active else []
-    filter_kwargs = {"filters": filters} if filters.active else {}
+    filter_kwargs: dict[str, Any] = {"filters": filters} if filters.active else {}
     source = await ensure_source(session)
     if not source.enabled:
         raise SourceError("source_disabled", "The official source is currently disabled.")
+    if filters.registered_bvc:
+        if securities_retriever is None:
+            return await indexed_bvc_search(session, query, nit, page, page_size, filters)
+        allowed_nits = await registration_nits(session, query, nit, securities_retriever)
+        filter_kwargs["nit_allowlist"] = allowed_nits
+        cached_filters.append(Company.nit.in_(allowed_nits))
+        await session.refresh(source)
     offset = (page - 1) * page_size
     stale, warning = False, None
     try:
@@ -237,6 +251,128 @@ async def search_companies(
             f"{exc.code}: official source failed; showing previously retrieved records.",
         )
     await session.commit()
+    result = await serialize_search(
+        session, companies, query, nit, page, page_size, has_more, stale, warning
+    )
+    if filters.registered_bvc:
+        if any(not item.registered_bvc for item in result.items):
+            raise SourceError(
+                "bvc_identity_ambiguous",
+                "A RUES registration could not be uniquely linked to the RNVE issuer. "
+                "Review the company identity before filtering by BVC registration.",
+                409,
+            )
+        coverage = (
+            "Registrado BVC uses retrieved RNVE evidence and live RUES registrations; "
+            "current trading and liquidity are not verified."
+        )
+        result.warning = f"{result.warning} {coverage}" if result.warning else coverage
+    return result
+
+
+async def indexed_bvc_search(
+    session: AsyncSession,
+    query: str,
+    nit: Nit | None,
+    page: int,
+    page_size: int,
+    filters: SearchFilters,
+) -> SearchPage:
+    # Reconcile only local candidates with registration evidence. Never retrieve a quote or
+    # fan out to RNVE per result, and never filter just the current upstream page.
+    issuer_nits = (
+        select(SecuritiesIssuer.nit)
+        .join(SecurityInstrument, SecurityInstrument.issuer_id == SecuritiesIssuer.id)
+        .where(
+            SecurityInstrument.source_id == SECURITIES_SOURCE,
+            SecurityInstrument.security_category == SecurityCategory.COMMON,
+            func.upper(func.trim(SecurityInstrument.exchange)) == "BVC",
+        )
+    )
+    candidate_ids = list(
+        await session.scalars(
+            select(Company.id).where(
+                or_(Company.nit.in_(issuer_nits), Company.id.in_(registered_bvc_company_ids()))
+            )
+        )
+    )
+    await reconcile(session, company_ids=candidate_ids)
+    normalized = normalize_name(query)
+    compact = compact_name(query)
+    compact_column = func.replace(
+        Company.normalized_name, literal_column("' '"), literal_column("''")
+    )
+    aliases = select(CompanyAlias.company_id).where(
+        func.replace(
+            CompanyAlias.normalized_name, literal_column("' '"), literal_column("''")
+        ).contains(compact, autoescape=True)
+    )
+    condition = (
+        Company.nit == nit.number
+        if nit
+        else or_(compact_column.contains(compact, autoescape=True), Company.id.in_(aliases))
+    )
+    rank = case(
+        (Company.legal_name == query, 0),
+        (Company.normalized_name == normalized, 1),
+        (compact_column == compact, 2),
+        (Company.normalized_name.startswith(normalized, autoescape=True), 3),
+        else_=4,
+    )
+    companies = list(
+        await session.scalars(
+            select(Company)
+            .where(
+                Company.id.in_(registered_bvc_company_ids()), condition, *cached_conditions(filters)
+            )
+            .order_by(rank, Company.normalized_name, Company.id)
+            .offset((page - 1) * page_size)
+            .limit(page_size + 1)
+        )
+    )
+    return await serialize_search(
+        session,
+        companies[:page_size],
+        query,
+        nit,
+        page,
+        page_size,
+        len(companies) > page_size,
+        warning=(
+            "Registrado BVC searches only retrieved RNVE evidence linked to cached company "
+            "registrations. Unchecked companies are excluded; registration does not verify "
+            "current trading or liquidity."
+        ),
+        indexed_bvc=True,
+    )
+
+
+async def serialize_search(
+    session: AsyncSession,
+    companies: list[Company],
+    query: str,
+    nit: Nit | None,
+    page: int,
+    page_size: int,
+    has_more: bool,
+    stale: bool = False,
+    warning: str | None = None,
+    indexed_bvc: bool = False,
+) -> SearchPage:
+    if companies:
+        await reconcile(session, company_ids=[company.id for company in companies])
+    registered_ids = (
+        set(
+            await session.scalars(
+                registered_bvc_company_ids().where(
+                    IssuerCompanyMatch.company_id.in_([company.id for company in companies])
+                )
+            )
+        )
+        if companies
+        else set()
+    )
+    await session.commit()
     ranked_records = (
         select(
             SourceRecord.id,
@@ -280,6 +416,7 @@ async def search_companies(
                         for field in SearchItem.model_fields
                         if hasattr(company, field)
                     },
+                    "registered_bvc": company.id in registered_ids,
                     "registration_number": registration.get("matricula"),
                     "chamber": registration.get("camara_comercio"),
                     "chamber_code": registration.get("codigo_camara"),
@@ -293,7 +430,7 @@ async def search_companies(
         )
     # Live pages are already globally ordered by RUES. Re-sorting here would undo
     # word-boundary relevance and recreate the old per-page ranking bug.
-    if stale:
+    if stale and not indexed_bvc:
         items.sort(key=lambda c: (RANK[c.match_type], normalize_name(c.legal_name), str(c.id)))
     return SearchPage(
         items=items,
@@ -302,7 +439,11 @@ async def search_companies(
         has_more=has_more,
         stale=stale,
         warning=warning,
-        ranking_scope="current cached page" if stale else "all matching source records",
+        ranking_scope="all matching indexed BVC registrations"
+        if indexed_bvc
+        else "current cached page"
+        if stale
+        else "all matching source records",
     )
 
 

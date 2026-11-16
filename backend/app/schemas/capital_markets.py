@@ -39,7 +39,7 @@ class MarketSourceView(BaseModel):
     last_error: str | None
     last_attempt_at: datetime | None
     last_success_at: datetime | None
-    refresh_interval_hours: int
+    refresh_interval_hours: float
     stale: bool
     latest_snapshot: SnapshotView | None
 
@@ -147,7 +147,46 @@ class RnveFinding(BaseModel):
     checked_snapshot_id: UUID | None = None
 
 
+class BvcQuoteView(BaseModel):
+    source_id: str = "bvc_listings"
+    source_name: str = "Bolsa de Valores de Colombia"
+    match_type: str = "exact_ann"
+    matched_value: str | None = None
+    reported_legal_name: str | None = None
+    reported_nit: str | None = None
+    reported_ann: str | None = None
+    variation_percent: Decimal | None = None
+    volume: Decimal | None = None
+    instrument_id: UUID
+    superfinanciera_code: str
+    ticker: str | None
+    price_kind: str = "last_trade"
+    price_date: date | None = None
+    source_note: str | None = None
+    last_price: Decimal | None = None
+    raw_price: str | None = None
+    currency: str | None = None
+    isin: str | None = None
+    reported_state: str | None = None
+    retrieved_at: datetime
+    price_as_of: datetime | None = None
+    source_url: str
+    stale: bool = False
+
+
+class QuoteAttemptView(BaseModel):
+    source_id: str
+    source_name: str
+    source_url: str | None = None
+    status: str
+    last_attempt_at: datetime | None = None
+    detail: str | None = None
+
+
 class ExchangeFinding(BaseModel):
+    attempts: list[QuoteAttemptView] = Field(default_factory=list)
+    quotes: list[BvcQuoteView] = Field(default_factory=list)
+    match_status: str = "unresolved"
     status: ListingStatus = ListingStatus.UNKNOWN
     exchange: str = "BVC"
     verified_as_of: datetime | None = None
@@ -165,6 +204,8 @@ class OwnershipFinding(BaseModel):
 
 
 class CapitalMarketsProfile(BaseModel):
+    has_registered_bvc_common_equity: bool = False
+    common_equity_record_count: int = 0
     company_id: UUID
     rnve: RnveFinding
     exchange_listing: ExchangeFinding

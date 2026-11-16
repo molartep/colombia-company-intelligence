@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from uuid import UUID
 
 from sqlalchemy import func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +29,9 @@ async def eligible(session: AsyncSession, company: Company, issuer: SecuritiesIs
     return companies == issuers == 1
 
 
-async def reconcile(session: AsyncSession, company: Company | None = None) -> None:
+async def reconcile(
+    session: AsyncSession, company: Company | None = None, *, company_ids: list[UUID] | None = None
+) -> None:
     """Verify only a unique eligible exact NIT. Names/aliases remain potential.
 
     Demote obsolete machine links before assigning new ones. A weaker name
@@ -36,7 +39,10 @@ async def reconcile(session: AsyncSession, company: Company | None = None) -> No
     Reviewed/rejected decisions are preserved; no partial NIT or brand matching.
     """
     await session.execute(text("SELECT pg_advisory_xact_lock(770209)"))
-    companies = [company] if company else list(await session.scalars(select(Company)))
+    selection = select(Company)
+    if company_ids is not None:
+        selection = selection.where(Company.id.in_(company_ids))
+    companies = [company] if company else list(await session.scalars(selection))
     for candidate in companies:
         aliases = list(
             await session.scalars(

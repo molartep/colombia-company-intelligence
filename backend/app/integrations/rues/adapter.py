@@ -54,10 +54,16 @@ class CompanyDataSource(Protocol):
         offset: int = 0,
         verification_digit: str | None = None,
         filters: SearchFilters | None = None,
+        nit_allowlist: list[str] | None = None,
     ) -> list[dict[str, Any]]: ...
 
     async def search_by_name(
-        self, name: str, limit: int = 20, offset: int = 0, filters: SearchFilters | None = None
+        self,
+        name: str,
+        limit: int = 20,
+        offset: int = 0,
+        filters: SearchFilters | None = None,
+        nit_allowlist: list[str] | None = None,
     ) -> list[dict[str, Any]]: ...
 
 
@@ -124,8 +130,27 @@ class RuesDataSource:
         return data
 
     async def search(
-        self, where: str, limit: int, offset: int, order: str, filters: SearchFilters | None = None
+        self,
+        where: str,
+        limit: int,
+        offset: int,
+        order: str,
+        filters: SearchFilters | None = None,
+        nit_allowlist: list[str] | None = None,
     ) -> list[dict[str, Any]]:
+        if nit_allowlist is not None:
+            if len(nit_allowlist) > 500 or any(
+                not value.isascii() or not value.isdigit() or len(value) > 30
+                for value in nit_allowlist
+            ):
+                raise ValueError("Invalid bounded NIT allowlist")
+            if not nit_allowlist:
+                return []
+            where = (
+                f"({where}) AND nit in ("
+                + ", ".join(literal(value) for value in sorted(set(nit_allowlist)))
+                + ")"
+            )
         if filters and filters.active:
             where = " AND ".join(f"({part})" for part in [where, *filter_clauses(filters)])
         rows = await self.client.records(
@@ -151,13 +176,24 @@ class RuesDataSource:
         offset: int = 0,
         verification_digit: str | None = None,
         filters: SearchFilters | None = None,
+        nit_allowlist: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         return await self.search(
-            "nit = " + literal(nit), limit, offset, nit_order(verification_digit), filters
+            "nit = " + literal(nit),
+            limit,
+            offset,
+            nit_order(verification_digit),
+            filters,
+            nit_allowlist,
         )
 
     async def search_by_name(
-        self, name: str, limit: int = 20, offset: int = 0, filters: SearchFilters | None = None
+        self,
+        name: str,
+        limit: int = 20,
+        offset: int = 0,
+        filters: SearchFilters | None = None,
+        nit_allowlist: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         # Wildcards are controlled: user '%' and '_' never broaden a query.
         name = name.replace("%", " ").replace("_", " ").strip()
@@ -170,4 +206,5 @@ class RuesDataSource:
             offset,
             name_order(name),
             filters,
+            nit_allowlist,
         )

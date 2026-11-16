@@ -662,6 +662,7 @@ async def test_capital_ingestion_idempotence_debt_only_and_api(
     profile = await company_profile(session, company)
     assert profile.rnve.status == "registered_active"
     assert profile.equity_listed is None and profile.exchange_listing.status == "unknown"
+    assert not profile.has_registered_bvc_common_equity
     assert profile.ownership.type == "unknown"
     assert "deuda" in profile.summary
     assert all(i.ticker is None and i.isin is None for i in profile.instruments)
@@ -706,7 +707,7 @@ async def test_capital_ingestion_idempotence_debt_only_and_api(
             )
             assert len(issuers.json()["items"]) == 1
             sources = await client.get("/api/v1/capital-markets/sources")
-            assert len(sources.json()) == 4
+            assert len(sources.json()) == 6
             assert all(
                 s["latest_snapshot"]["content_hash"] for s in sources.json() if s["latest_snapshot"]
             )
@@ -1584,7 +1585,7 @@ async def test_source_specific_refresh_does_not_call_other_connector(
             ).status_code == 200
             assert details.fetch.await_count == reports.securities.await_count == 1
             assert (
-                await c.get(url + "?refresh=true&refresh_source=bvc_listings")
+                await c.get(url + "?refresh=true&refresh_source=unsupported_source")
             ).status_code == 422
     finally:
         app.dependency_overrides.clear()
@@ -1645,3 +1646,765 @@ async def test_source_alert_metadata_is_scoped_to_the_current_issuer(
         and second.last_error == "capital_source_timeout"
     )
     assert second.last_success_at is None
+
+
+async def test_bvc_common_equity_exact_code_cache_failure_and_source_refresh(
+    session, record, tmp_path, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from capital_fixtures import SYNTHETIC_BVC_CODE, bvc_html, issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.reports import securities_url
+    from app.integrations.capital_markets.service import company_profile
+    from app.models.capital_markets import SecuritiesIssuer, SecurityInstrument
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    monkeypatch.setattr(
+        get_settings(),
+        "bvc_page_urls",
+        {SYNTHETIC_BVC_CODE: "https://www.bvc.com.co/renta-variable-mercado-local/synthetic"},
+    )
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    await ingest_securities(
+        session,
+        issuer,
+        security_html(
+            rows=[
+                [
+                    "AO SYNTHETIC COMMON",
+                    SYNTHETIC_BVC_CODE,
+                    "202601",
+                    "AUT",
+                    "BVC",
+                    "N/A",
+                    "01/01/2026",
+                    "01/01/2026",
+                    "1000",
+                    "COP",
+                    "N/A",
+                ]
+            ]
+        ),
+        securities_url("001", "001"),
+    )
+    bvc = SimpleNamespace(fetch=AsyncMock(return_value=bvc_html()))
+    profile = await company_profile(session, company, bvc_retriever=bvc)
+    assert profile.exchange_listing.status == "verified_listed" and profile.equity_listed is True
+    assert profile.has_registered_bvc_common_equity
+    quote = profile.exchange_listing.quotes[0]
+    assert quote.superfinanciera_code == SYNTHETIC_BVC_CODE and quote.ticker == "SYNTHETIC"
+    assert str(quote.last_price) == "1234.50" and quote.price_as_of is None
+    instrument = await session.scalar(select(SecurityInstrument))
+    assert instrument.ticker is None and instrument.isin is None  # SFC provenance stays separate.
+    monkeypatch.setattr(app.state, "bvc_pages", bvc, raising=False)
+
+    async def override():
+        yield session
+
+    app.dependency_overrides[get_session] = override
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.get(f"/api/v1/companies/{company.id}/capital-markets")
+            assert response.status_code == 200, response.text
+            api_quote = response.json()["exchange_listing"]["quotes"][0]
+            assert api_quote["last_price"] == "1234.50"
+            assert api_quote["ticker"] == "SYNTHETIC" and api_quote["price_as_of"] is None
+    finally:
+        app.dependency_overrides.clear()
+    await company_profile(session, company, bvc_retriever=bvc)
+    assert bvc.fetch.await_count == 1
+    bvc.fetch.side_effect = SourceError("bvc_http_403", "SYNTHETIC blocked page")
+    failed = await company_profile(
+        session, company, force_refresh=True, refresh_source="bvc_listings", bvc_retriever=bvc
+    )
+    assert failed.exchange_listing.availability == "stale"
+    assert failed.has_registered_bvc_common_equity
+    assert failed.exchange_listing.quotes[0].stale and failed.equity_listed is None
+    assert next(s for s in failed.sources if s.id == "bvc_listings").last_error == "bvc_http_403"
+    bvc.fetch.side_effect = None
+    bvc.fetch.return_value = bvc_html(code="COSYNTH00002")
+    mismatch = await company_profile(
+        session, company, force_refresh=True, refresh_source="bvc_listings", bvc_retriever=bvc
+    )
+    assert mismatch.exchange_listing.quotes[0].superfinanciera_code == SYNTHETIC_BVC_CODE
+    assert mismatch.exchange_listing.quotes[0].stale
+
+
+async def test_bvc_does_not_query_for_debt_or_unresolved_issuer(
+    session, record, tmp_path, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from capital_fixtures import SYNTHETIC_BVC_CODE, issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.reports import securities_url
+    from app.integrations.capital_markets.service import company_profile
+    from app.models.capital_markets import SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    monkeypatch.setattr(
+        get_settings(),
+        "bvc_page_urls",
+        {SYNTHETIC_BVC_CODE: "https://www.bvc.com.co/renta-variable-mercado-local/synthetic"},
+    )
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    rows = [
+        [
+            "BO SYNTHETIC DEBT",
+            SYNTHETIC_BVC_CODE,
+            "202601",
+            "AUT",
+            "BVC",
+            "N/A",
+            "01/01/2026",
+            "01/01/2026",
+            "1000",
+            "COP",
+            "N/A",
+        ]
+    ]
+    await ingest_securities(session, issuer, security_html(rows=rows), securities_url("001", "001"))
+    bvc = SimpleNamespace(fetch=AsyncMock())
+    profile = await company_profile(session, company, bvc_retriever=bvc)
+    bvc.fetch.assert_not_awaited()
+    assert profile.exchange_listing.quotes == [] and profile.equity_listed is None
+    rows[0][0] = "AO SYNTHETIC COMMON"
+    await ingest_securities(session, issuer, security_html(rows=rows), securities_url("001", "001"))
+    await persist(session, dict(record, upstream_id="SYNTHETIC-SHARED-NIT-ROW"))
+    await session.commit()
+    unresolved = await company_profile(session, company, bvc_retriever=bvc)
+    assert unresolved.rnve.match_status == "potential"
+    bvc.fetch.assert_not_awaited()
+
+
+async def test_secondary_quote_fallback_cache_match_and_refresh_isolation(
+    session, record, tmp_path, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from capital_fixtures import SYNTHETIC_BVC_CODE, issuer_xlsx, security_html
+    from test_secondary_quotes import lr_fixture
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.reports import securities_url
+    from app.integrations.capital_markets.service import company_profile
+    from app.models.capital_markets import SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    monkeypatch.setattr(
+        get_settings(),
+        "bvc_page_urls",
+        {SYNTHETIC_BVC_CODE: "https://www.bvc.com.co/renta-variable-mercado-local/synthetic"},
+    )
+    monkeypatch.setattr(
+        get_settings(),
+        "la_republica_page_urls",
+        {
+            SYNTHETIC_BVC_CODE: "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/synthetic"
+        },
+    )
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    company_id = company.id
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    await ingest_securities(
+        session,
+        issuer,
+        security_html(
+            rows=[
+                [
+                    "AO SYNTHETIC COMMON",
+                    SYNTHETIC_BVC_CODE,
+                    "202601",
+                    "AUT",
+                    "BVC",
+                    "N/A",
+                    "01/01/2026",
+                    "01/01/2026",
+                    "1000",
+                    "COP",
+                    "N/A",
+                ]
+            ]
+        ),
+        securities_url("001", "001"),
+    )
+    bvc = SimpleNamespace(
+        fetch=AsyncMock(side_effect=SourceError("bvc_http_403", "SYNTHETIC blocked"))
+    )
+    lr = SimpleNamespace(fetch=AsyncMock(return_value=lr_fixture()))
+    result = await company_profile(session, company, bvc_retriever=bvc, secondary_retriever=lr)
+    quote = result.exchange_listing.quotes[0]
+    assert quote.source_id == "la_republica_quotes" and quote.match_type == "exact_legal_name"
+    assert quote.matched_value == record["razon_social"] and quote.last_price == 1234
+    assert quote.price_as_of and result.equity_listed is None
+    assert next(s for s in result.sources if s.id == "bvc_listings").last_error == "bvc_http_403"
+    assert (
+        next(s for s in result.sources if s.id == "la_republica_quotes").availability == "available"
+    )
+    await company_profile(session, company, bvc_retriever=bvc, secondary_retriever=lr)
+    assert bvc.fetch.await_count == lr.fetch.await_count == 1
+    monkeypatch.setattr(app.state, "bvc_pages", bvc, raising=False)
+    monkeypatch.setattr(app.state, "secondary_quotes", lr, raising=False)
+
+    async def override():
+        yield session
+
+    app.dependency_overrides[get_session] = override
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as c:
+            r = await c.get(
+                f"/api/v1/companies/{company_id}/capital-markets?refresh=true&refresh_source=la_republica_quotes"
+            )
+            assert r.status_code == 200, r.text
+            assert lr.fetch.await_count == 2 and bvc.fetch.await_count == 1
+            assert r.json()["exchange_listing"]["quotes"][0]["source_name"] == "La República"
+    finally:
+        app.dependency_overrides.clear()
+    lr.fetch.return_value = lr_fixture(name="SYNTHETIC OTHER COMPANY")
+    company.legal_name = "SYNTHETIC RENAMED COMPANY"
+    await session.commit()
+    failed = await company_profile(
+        session,
+        company,
+        force_refresh=True,
+        refresh_source="la_republica_quotes",
+        secondary_retriever=lr,
+    )
+    assert (
+        failed.exchange_listing.quotes == []
+        and failed.exchange_listing.match_status == "unresolved"
+    )
+    assert (
+        next(s for s in failed.sources if s.id == "la_republica_quotes").last_error
+        == "quote_no_exact_match"
+    )
+
+
+@pytest.mark.parametrize("multiple", [False, True])
+async def test_quote_former_name_and_multiple_common_record_guard(
+    session, record, tmp_path, monkeypatch, multiple
+):
+    from types import SimpleNamespace
+
+    from capital_fixtures import SYNTHETIC_BVC_CODE, issuer_xlsx, security_html
+    from test_secondary_quotes import lr_fixture
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.reports import securities_url
+    from app.integrations.capital_markets.service import company_profile
+    from app.models.capital_markets import SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    monkeypatch.setattr(
+        get_settings(),
+        "bvc_page_urls",
+        {SYNTHETIC_BVC_CODE: "https://www.bvc.com.co/renta-variable-mercado-local/synthetic"},
+    )
+    monkeypatch.setattr(
+        get_settings(),
+        "la_republica_page_urls",
+        {
+            SYNTHETIC_BVC_CODE: "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/synthetic"
+        },
+    )
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    row = [
+        "AO SINTÉTICA ACTUAL S.A. - ANTES SINTÉTICA ANTERIOR S.A. E.S.P.",
+        SYNTHETIC_BVC_CODE,
+        "202601",
+        "AUT",
+        "BVC",
+        "N/A",
+        "01/01/2026",
+        "01/01/2026",
+        "1000",
+        "COP",
+        "N/A",
+    ]
+    rows = [row]
+    if multiple:
+        # Same ANN, distinct issuance, non-BVC market: still blocks lookup.
+        rows.append([row[0], row[1], "202602", "AUT", "OTRO", *row[5:]])
+    await ingest_securities(session, issuer, security_html(rows=rows), securities_url("001", "001"))
+    bvc = SimpleNamespace(fetch=AsyncMock(side_effect=SourceError("bvc_http_403", "SYNTHETIC")))
+    lr = SimpleNamespace(
+        fetch=AsyncMock(return_value=lr_fixture(name="SINTÉTICA ANTERIOR S.A. E.S.P."))
+    )
+    profile = await company_profile(session, company, bvc_retriever=bvc, secondary_retriever=lr)
+    assert profile.has_registered_bvc_common_equity
+    assert profile.common_equity_record_count == (2 if multiple else 1)
+    if multiple:
+        assert profile.exchange_listing.quotes == []
+        bvc.fetch.assert_not_awaited()
+        lr.fetch.assert_not_awaited()
+        await company_profile(
+            session,
+            company,
+            force_refresh=True,
+            refresh_source="la_republica_quotes",
+            bvc_retriever=bvc,
+            secondary_retriever=lr,
+        )
+        lr.fetch.assert_not_awaited()
+    else:
+        assert profile.exchange_listing.quotes[0].matched_value == "SINTÉTICA ANTERIOR S.A. E.S.P."
+        assert profile.exchange_listing.quotes[0].match_type == "exact_legal_name"
+        await company_profile(session, company, bvc_retriever=bvc, secondary_retriever=lr)
+        assert lr.fetch.await_count == 1  # Cached quote revalidated with the same former name.
+
+        rows.append([row[0], row[1], "202602", "AUT", "OTRO", *row[5:]])
+        await session.refresh(issuer)
+        await ingest_securities(
+            session, issuer, security_html(rows=rows), securities_url("001", "001")
+        )
+        blocked = await company_profile(
+            session, company, force_refresh=True, bvc_retriever=bvc, secondary_retriever=lr
+        )
+        assert blocked.exchange_listing.quotes == []  # Do not display a previously cached quote.
+        assert blocked.common_equity_record_count == 2
+        assert lr.fetch.await_count == 1 and bvc.fetch.await_count == 1
+
+
+async def test_registered_bvc_search_filters_before_pagination_without_network(
+    session, record, tmp_path, monkeypatch
+):
+    from capital_fixtures import issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.core.normalization import normalize_nit
+    from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.reports import securities_url
+    from app.models.capital_markets import SecuritiesIssuer
+    from app.schemas.filters import SearchFilters
+    from app.services.companies import search_companies
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ensure_source(session)
+    rows, directory = [], []
+    for i in range(5):
+        nit = f"00012345{i}"
+        name = f"SYNTHETIC {i} S.A.S."
+        rows.append(
+            dict(
+                record,
+                upstream_id=f"row-synthetic-{i}",
+                nit=nit,
+                digito_verificacion=verification_digit(nit),
+                razon_social=name,
+                codigo_estado_matricula="03" if i == 3 else "01",
+            )
+        )
+        await persist(session, rows[-1])
+        directory.append((name, nit + verification_digit(nit), "001", f"{i:03}"))
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx(directory), nit_mode="concatenated-dv")
+    for i in range(4):
+        issuer = await session.scalar(
+            select(SecuritiesIssuer).where(SecuritiesIssuer.nit == rows[i]["nit"])
+        )
+        # Debt on BVC and ordinary shares on another market do not qualify.
+        row = [
+            f"{'BO' if i == 0 else 'AO'} SYNTHETIC {i}",
+            f"SYNTHETIC-{i}" if i != 3 else "N/A",
+            "202601",
+            "AUT",
+            "RNVE" if i == 1 else "BVC",
+            "N/A",
+            "01/01/2026",
+            "01/01/2026",
+            "1000",
+            "COP",
+            "N/A",
+        ]
+        securities = [row]
+        if i == 2:
+            securities.append([row[0], row[1], "202602", *row[3:]])
+        await ingest_securities(
+            session,
+            issuer,
+            security_html(issuer=directory[i][0], rows=securities),
+            securities_url("001", f"{i:03}"),
+        )
+    source = AsyncMock()
+    # No upstream query, no per-result RNVE or quote retrieval, including later pages.
+    first = await search_companies(
+        session, source, "SYNTHETIC", None, 1, 1, SearchFilters(registered_bvc=True)
+    )
+    second = await search_companies(
+        session, source, "SYNTHETIC", None, 2, 1, SearchFilters(registered_bvc=True)
+    )
+    assert first.items[0].nit == rows[2]["nit"] and first.has_more
+    assert second.items[0].nit == rows[3]["nit"] and not second.has_more
+    assert first.items[0].registered_bvc and second.items[0].registered_bvc
+    assert first.ranking_scope == "all matching indexed BVC registrations" and first.warning
+    combined = await search_companies(
+        session, source, "SYNTHETIC", None, 1, 20, SearchFilters(registered_bvc=True, status=["01"])
+    )
+    assert [i.nit for i in combined.items] == [rows[2]["nit"]]
+    exact = await search_companies(
+        session,
+        source,
+        rows[3]["nit"],
+        normalize_nit(rows[3]["nit"]),
+        1,
+        20,
+        SearchFilters(registered_bvc=True),
+    )
+    assert len(exact.items) == 1 and exact.items[0].registered_bvc
+    empty = await search_companies(
+        session, source, "UNKNOWN", None, 1, 20, SearchFilters(registered_bvc=True)
+    )
+    assert not empty.items and not empty.has_more
+    source.metadata.assert_not_awaited()
+    source.search_by_name.assert_not_awaited()
+    source.search_by_nit.assert_not_awaited()
+
+    async def override_session():
+        yield session
+
+    app.dependency_overrides[get_session] = override_session
+    app.dependency_overrides[adapter] = lambda: source
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.get(
+                "/api/v1/companies?q=SYNTHETIC&registered_bvc=true&page_size=1&page=2"
+            )
+            assert response.status_code == 200, response.text
+            assert response.json()["items"][0]["nit"] == rows[3]["nit"]
+            assert response.json()["items"][0]["registered_bvc"] is True
+            assert not response.json()["has_more"]
+            assert (
+                await client.get("/api/v1/companies?q=SYNTHETIC&registered_bvc=invalid")
+            ).status_code == 422
+    finally:
+        app.dependency_overrides.clear()
+    # The unrestricted live search receives the same positive annotations.
+    source.metadata.return_value = {}
+    source.search_by_name.return_value = rows
+    all_results = await search_companies(session, source, "SYNTHETIC", None, 1, 20)
+    assert [i.registered_bvc for i in all_results.items] == [False, False, True, True, False]
+    # Duplicate registrations with a shared NIT cannot inherit an unambiguous issuer link.
+    await persist(
+        session, dict(rows[2], upstream_id="row-synthetic-duplicate", matricula="DUPLICATE")
+    )
+    await session.commit()
+    ambiguous = await search_companies(
+        session, source, "SYNTHETIC", None, 1, 20, SearchFilters(registered_bvc=True)
+    )
+    assert [i.nit for i in ambiguous.items] == [rows[3]["nit"]]
+
+
+async def test_bvc_search_discovers_uncached_issuer_beyond_first_rues_page(
+    session, record, metadata, tmp_path, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from capital_fixtures import issuer_xlsx, security_html
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.integrations.capital_markets.parsers import verification_digit
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    target = dict(
+        record,
+        razon_social="ORGANIZACION SINTETICA S.A.",
+        digito_verificacion=verification_digit(record["nit"]),
+        codigo_estado_matricula="01",
+    )
+    await ingest_issuers(
+        session,
+        issuer_xlsx(
+            [
+                (
+                    target["razon_social"],
+                    record["nit"] + verification_digit(record["nit"]),
+                    "001",
+                    "001",
+                )
+            ]
+        ),
+        nit_mode="concatenated-dv",
+    )
+    assert await session.scalar(select(func.count()).select_from(Company)) == 0
+    unrelated = [
+        dict(
+            target,
+            upstream_id=f"unrelated-{i}",
+            nit=f"7000000{i:02}",
+            razon_social=f"SINTETICA {i:02} SAS",
+        )
+        for i in range(40)
+    ]
+    requests = []
+
+    def handler(request):
+        if "/api/views/" in request.url.path:
+            return httpx.Response(200, json=metadata)
+        requests.append(request)
+        # The target is never on the unfiltered first page; an upstream allowlist must find it.
+        rows = (
+            [target]
+            if "nit in ('000123456')" in request.url.params["$where"]
+            else unrelated + [target]
+        )
+        offset, limit = int(request.url.params["$offset"]), int(request.url.params["$limit"])
+        return httpx.Response(200, json=rows[offset : offset + limit])
+
+    row = [
+        "AO ORGANIZACION SINTETICA S.A.",
+        "SYNTHETIC-ANN",
+        "202601",
+        "AUT",
+        "BVC",
+        "N/A",
+        "01/01/2026",
+        "01/01/2026",
+        "1000",
+        "COP",
+        "N/A",
+    ]
+    report = SimpleNamespace(
+        securities=AsyncMock(return_value=security_html(issuer=target["razon_social"], rows=[row]))
+    )
+    monkeypatch.setattr(app.state, "rnve_securities", report, raising=False)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        source = RuesDataSource(SocrataClient(http))
+
+        async def override_session():
+            yield session
+
+        app.dependency_overrides[get_session] = override_session
+        app.dependency_overrides[adapter] = lambda: source
+        try:
+            async with httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                result = await client.get(
+                    "/api/v1/companies?q=sintetica&registered_bvc=true&status=01"
+                )
+                assert result.status_code == 200, result.text
+                data = result.json()
+                assert [item["legal_name"] for item in data["items"]] == [target["razon_social"]]
+                assert data["items"][0]["registered_bvc"] and not data["has_more"]
+                assert data["ranking_scope"] == "all matching source records"
+                assert "codigo_estado_matricula in ('01')" in requests[0].url.params["$where"]
+                assert requests[0].url.params["$limit"] == "21"
+                assert requests[0].url.params["$offset"] == "0"
+                next_page = await client.get(
+                    "/api/v1/companies?q=sintetica&registered_bvc=true&page=2"
+                )
+                assert next_page.status_code == 200 and not next_page.json()["items"]
+                assert requests[-1].url.params["$offset"] == "20"
+                assert report.securities.await_count == 1  # RNVE report is cached across pages.
+        finally:
+            app.dependency_overrides.clear()
+
+
+async def test_bvc_discovery_source_failure_is_not_an_empty_search(
+    session, record, tmp_path, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from capital_fixtures import issuer_xlsx
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers
+    from app.schemas.filters import SearchFilters
+    from app.services.companies import search_companies
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    source = AsyncMock()
+    reports = SimpleNamespace(
+        securities=AsyncMock(
+            side_effect=SourceError("capital_source_unavailable", "Synthetic failure")
+        )
+    )
+    with pytest.raises(SourceError, match="RNVE securities evidence could not be verified"):
+        await search_companies(
+            session,
+            source,
+            "SYNTHETIC",
+            None,
+            1,
+            20,
+            SearchFilters(registered_bvc=True),
+            securities_retriever=reports,
+        )
+    source.search_by_name.assert_not_awaited()
+    # Failed-report cooldown is respected; no retry storm and still no false zero results.
+    with pytest.raises(SourceError):
+        await search_companies(
+            session,
+            source,
+            "SYNTHETIC",
+            None,
+            1,
+            20,
+            SearchFilters(registered_bvc=True),
+            securities_retriever=reports,
+        )
+    assert reports.securities.await_count == 1
+
+
+@pytest.mark.parametrize("outcome", ["lr_match", "sfc_match", "no_match", "multiple"])
+async def test_quote_fallback_order_exact_identity_cache_and_attempt_summary(
+    session, record, tmp_path, monkeypatch, outcome
+):
+    from types import SimpleNamespace
+
+    from capital_fixtures import issuer_xlsx, security_html
+    from test_secondary_quotes import lr_fixture
+    from test_sfc_quotes import CODE, sfc_fixture
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
+    from app.integrations.capital_markets.parsers import verification_digit
+    from app.integrations.capital_markets.reports import securities_url
+    from app.integrations.capital_markets.service import company_profile
+    from app.models.capital_markets import SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    monkeypatch.setattr(
+        get_settings(),
+        "bvc_page_urls",
+        {CODE: "https://www.bvc.com.co/renta-variable-mercado-local/synthetic"},
+    )
+    monkeypatch.setattr(
+        get_settings(),
+        "la_republica_page_urls",
+        {CODE: "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/synthetic"},
+    )
+    await ensure_source(session)
+    company = await persist(
+        session, dict(record, digito_verificacion=verification_digit(record["nit"]))
+    )
+    await session.commit()
+    await ingest_issuers(session, issuer_xlsx(), nit_mode="concatenated-dv")
+    issuer = await session.scalar(select(SecuritiesIssuer))
+    row = [
+        "AO SYNTHETIC S.A.",
+        CODE,
+        "202601",
+        "AUT",
+        "BVC",
+        "N/A",
+        "01/01/2026",
+        "01/01/2026",
+        "1000",
+        "COP",
+        "N/A",
+    ]
+    rows = [row] if outcome != "multiple" else [row, [*row[:2], "202602", *row[3:]]]
+    await ingest_securities(session, issuer, security_html(rows=rows), securities_url("001", "001"))
+    bvc = SimpleNamespace(fetch=AsyncMock(side_effect=SourceError("bvc_http_403", "SYNTHETIC")))
+    lr = SimpleNamespace(
+        fetch=AsyncMock(
+            return_value=lr_fixture()
+            if outcome == "lr_match"
+            else b"<p>Descripci\xc3\xb3n</p><p>Accion SYNTHETIC</p><p>$ 1.234</p>"
+        )
+    )
+    sfc = SimpleNamespace(
+        fetch=AsyncMock(
+            return_value=sfc_fixture(code="COOTHER00001" if outcome == "no_match" else CODE)
+        )
+    )
+    result = await company_profile(
+        session, company, bvc_retriever=bvc, secondary_retriever=lr, sfc_quote_retriever=sfc
+    )
+    assert result.has_registered_bvc_common_equity
+    if outcome == "multiple":
+        bvc.fetch.assert_not_awaited()
+        lr.fetch.assert_not_awaited()
+        sfc.fetch.assert_not_awaited()
+        assert not result.exchange_listing.quotes
+        return
+    attempts = {a.source_id: a for a in result.exchange_listing.attempts}
+    assert attempts["bvc_listings"].status == "unavailable"
+    if outcome == "lr_match":
+        assert result.exchange_listing.quotes[0].source_id == "la_republica_quotes"
+        assert attempts["sfc_daily_quotes"].status == "not_checked"
+        sfc.fetch.assert_not_awaited()
+    elif outcome == "sfc_match":
+        quote = result.exchange_listing.quotes[0]
+        assert quote.source_id == "sfc_daily_quotes" and quote.match_type == "exact_ann"
+        assert (
+            quote.price_kind == "daily_weighted_average"
+            and quote.price_date.isoformat() == "2026-11-12"
+        )
+        assert quote.ticker is None and str(quote.last_price) == "1234.56"
+        assert result.equity_listed is None  # A daily average does not verify a current listing.
+        assert attempts["la_republica_quotes"].detail == "quote_identity_missing"
+        assert attempts["sfc_daily_quotes"].status == "matched"
+    else:
+        assert not result.exchange_listing.quotes
+        assert attempts["sfc_daily_quotes"].status == "no_exact_match"
+        assert attempts["sfc_daily_quotes"].detail == "quote_no_exact_match"
+    await company_profile(
+        session, company, bvc_retriever=bvc, secondary_retriever=lr, sfc_quote_retriever=sfc
+    )
+    assert bvc.fetch.await_count == lr.fetch.await_count == 1
+    assert sfc.fetch.await_count == (0 if outcome == "lr_match" else 1)
+    if outcome == "sfc_match":
+        sfc.fetch.side_effect = SourceError("sfc_quote_unavailable", "SYNTHETIC source outage")
+        refreshed = await company_profile(
+            session,
+            company,
+            force_refresh=True,
+            refresh_source="sfc_daily_quotes",
+            bvc_retriever=bvc,
+            secondary_retriever=lr,
+            sfc_quote_retriever=sfc,
+        )
+        assert sfc.fetch.await_count == 2 and bvc.fetch.await_count == lr.fetch.await_count == 1
+        assert refreshed.exchange_listing.quotes[0].stale
+        assert str(refreshed.exchange_listing.quotes[0].last_price) == "1234.56"
+        assert (
+            next(
+                a for a in refreshed.exchange_listing.attempts if a.source_id == "sfc_daily_quotes"
+            ).status
+            == "unavailable"
+        )

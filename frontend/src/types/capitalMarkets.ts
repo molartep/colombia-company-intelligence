@@ -97,9 +97,50 @@ export interface MarketSource {
   } | null
 }
 export interface MarketsProfile {
+  has_registered_bvc_common_equity?: boolean
+  common_equity_record_count?: number
   company_id: string
   rnve: { status: RegistrationStatus; match_status: string }
-  exchange_listing: { status: ListingStatus; explanation: string; availability: string }
+  exchange_listing: {
+    status: ListingStatus
+    explanation: string
+    availability: string
+    match_status?: 'matched' | 'unresolved' | 'no_match' | 'ambiguous'
+    attempts?: {
+      source_id: string
+      source_name: string
+      source_url: string | null
+      status: string
+      last_attempt_at: string | null
+      detail: string | null
+    }[]
+    quotes?: {
+      source_id?: string
+      source_name?: string
+      match_type?: string
+      matched_value?: string | null
+      reported_legal_name?: string | null
+      reported_ann?: string | null
+      reported_nit?: string | null
+      variation_percent?: string | null
+      volume?: string | null
+      instrument_id: string
+      superfinanciera_code: string
+      ticker: string | null
+      price_kind?: string
+      price_date?: string | null
+      source_note?: string | null
+      last_price: string | null
+      raw_price: string | null
+      currency: string | null
+      isin: string | null
+      reported_state: string | null
+      retrieved_at: string
+      price_as_of: string | null
+      source_url: string
+      stale: boolean
+    }[]
+  }
   equity_listed: boolean | null
   ownership: { type: string; verification_status: string }
   issuers: MarketIssuer[]

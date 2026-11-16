@@ -156,7 +156,9 @@ flowchart LR
     API -->|verified issuer, missing/stale cache| Render[Isolated Chromium summary renderer]
     Render -->|public RNVE page| Parser
     API --> UI[Company Capital Markets section]
-    BVC[BVC authorized feed not verified] -.-> Unknown[BVC unknown / ownership not assessed]
+    BVC[Configured public BVC stock page] -->|exact SFC-code match| Quote[Price / ticker observation]
+    Quote --> API
+    BVC -.->|blocked or unmatched| Unknown[BVC unknown / ownership not assessed]
     Unknown --> API
 ```
 
@@ -242,3 +244,54 @@ and never trigger source retrieval. The table displays ranges such as `1 - 10 de
 range of `0 - 0` when there are no rows. Issuance values matching valid `YYYYMM` are rendered as
 month/year (for example, `198705` → `May, 1987`); other identifiers remain unchanged and the
 original source values remain available in each record's provenance details.
+
+
+## BVC stock-page observations
+
+BVC retrieval uses a separate 15-minute price cache and manual per-source refresh. The current
+public-page locator covers Ecopetrol; configure additional known official stock pages with
+`BVC_PAGE_URLS` rather than guessing slugs. Only exact Código Superfinanciera/ANN matches on verified
+common-equity instruments qualify. The BVC card shows last reported price and ticker with source,
+retrieval time and stale status. Live access currently returns HTTP 403; prices are not fabricated.
+See [source verification and validation procedure](capital-markets-sources.md#bvc-access-assessment).
+
+
+La República is a secondary public-browser quote fallback with independent provenance and refresh
+via `refresh_source=la_republica_quotes`. Exact matching tries NIT, ANN, then literal legal name
+(after Unicode/case/whitespace normalization only). Company-only matches require one eligible
+ordinary-equity code. Secondary quotes never upgrade official BVC listing status. Capital Markets
+alerts are grouped/collapsed, the summary banner is removed, and no quote match shows a red card
+alert. See [access tests and feasibility](quote-source-access.md).
+
+
+### BVC registration in company search
+
+`GET /api/v1/companies?q=terpel&registered_bvc=true` discovers matching issuers from the
+imported official RNVE directory by normalized partial name or exact NIT. It retrieves each
+candidate's separate securities report using the existing cache, failure cooldown and locks.
+An issuer needs at least one `sfc_rnve_securities` record with category `common_equity` and
+trimmed, case-insensitive market `BVC`. Multiple ordinary-share records still establish the
+registration indicator; they block only the separate quote lookup.
+
+The service builds a controlled eligible-NIT allowlist and adds it to the **server-side RUES
+query before ordering, offset and limit**. The company need not be cached, on the first
+unfiltered page, or previously opened in Capital Markets. Each returned registration is
+persisted and must acquire a verified issuer link; ambiguous identity yields an explicit
+error rather than an incorrect check or silently shortened page. Other search filters combine
+with the allowlist, and normal live ranking/page size remain unchanged. No quote is retrieved.
+The default (`false` or omitted) leaves RUES unrestricted and annotates returned records using
+available RNVE evidence, without fetching a securities report for every RUES result.
+
+Discovery is limited to ten matching RNVE issuers per request and a total configured capital
+markets timeout. Broader queries require a more specific name or NIT. The allowlist is bounded
+to 500 NITs; it is generated internally and accepts only ASCII digits, never client SoQL.
+Source failures, missing directory coverage, timeouts and in-progress report retrieval do not
+become false zero-result findings. Successful reports, including empty ones, are cached across
+pages. Newly discovered matching issuers extend the registration index automatically.
+
+Coverage still depends on the imported RNVE directory, its names and identifiers, and successfully
+retrieved securities reports. This is not a claim of complete live market coverage, current
+trading, price or liquidity. Blank check cells mean the positive registration condition has not
+been established. In offline deployments without a report retriever, the explicit indexed-search
+fallback remains available: it searches cached registrations before pagination and reports
+`ranking_scope: "all matching indexed BVC registrations"` with a coverage notice.

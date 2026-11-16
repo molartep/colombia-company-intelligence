@@ -1,5 +1,6 @@
 export const fixedFilterKeys = ['status', 'chamber', 'organization', 'category'] as const
 export const scalarFilterKeys = [
+  'registered_bvc',
   'ciiu',
   'ciiu_match',
   'ciiu_scope',
@@ -14,6 +15,7 @@ export type FixedFilterKey = (typeof fixedFilterKeys)[number]
 export type ScalarFilterKey = (typeof scalarFilterKeys)[number]
 export type FilterValues = Record<FixedFilterKey, string[]> & Record<ScalarFilterKey, string>
 export const emptyFilters: FilterValues = {
+  registered_bvc: '',
   status: [],
   chamber: [],
   organization: [],

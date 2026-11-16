@@ -20,26 +20,24 @@ export function Parameters() {
       )}
       {parameters.data && (
         <>
-          <div className="notice">
-            <p>{parameters.data.note}</p>
-            <p>Verified: {new Date(parameters.data.verified_at).toLocaleString()}</p>
-            <p>
-              Dataset updated:{' '}
-              {parameters.data.dataset_updated_at
-                ? new Date(parameters.data.dataset_updated_at).toLocaleString()
-                : 'Not available'}
-            </p>
-            <a
-              className="text-link"
-              href={parameters.data.source_url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              RUES / Confecámaras source ↗
-            </a>
-          </div>
           <section className="panel">
             <h2>Open filters</h2>
+            <p>
+              <strong>Registrado BVC:</strong> boolean checkbox; selected means only registrations
+              with verified issuer links and at least one retrieved RNVE record with category{' '}
+              <strong>Acciones ordinarias</strong> and market <strong>BVC</strong>. It finds
+              candidate issuers in the RNVE directory, retrieves their securities records using the
+              existing cache, and restricts live RUES requests by eligible NIT before pagination.
+              Existing table filters and pages do not limit discovery. Unchecked means no BVC
+              restriction.
+            </p>
+            <p>
+              The search table shows a green check for established registration evidence. A blank
+              cell means registration has not been established, not that the company is
+              unregistered. New companies do not need to have been searched or opened before.
+              Coverage depends on the imported RNVE directory and successfully retrieved securities
+              evidence; no current trading, price, liquidity or complete market coverage is implied.
+            </p>
             <p>
               <strong>CIIU:</strong> exact four-digit code or one-to-four-digit prefix; primary
               activity or any of the four reported activities. No authoritative description lookup
@@ -134,6 +132,24 @@ export function Parameters() {
               </div>
             </section>
           ))}
+          <div className="notice">
+            <p>{parameters.data.note}</p>
+            <p>Verified: {new Date(parameters.data.verified_at).toLocaleString()}</p>
+            <p>
+              Dataset updated:{' '}
+              {parameters.data.dataset_updated_at
+                ? new Date(parameters.data.dataset_updated_at).toLocaleString()
+                : 'Not available'}
+            </p>
+            <a
+              className="text-link"
+              href={parameters.data.source_url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              RUES / Confecámaras source ↗
+            </a>
+          </div>
         </>
       )}
     </section>

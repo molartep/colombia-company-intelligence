@@ -26,7 +26,13 @@ export function MarketSourceInformation({
       </p>
       <div className="source-providers">
         {data.sources.map((source) => {
-          const refreshable = ['sfc_rnve_securities', 'sfc_rnve_issuer_details'].includes(source.id)
+          const refreshable = [
+            'sfc_rnve_securities',
+            'sfc_rnve_issuer_details',
+            'bvc_listings',
+            'la_republica_quotes',
+            'sfc_daily_quotes',
+          ].includes(source.id)
           const problem = sourceNeedsAttention(source)
           const status =
             source.availability === 'failed_to_retrieve'
@@ -62,7 +68,13 @@ export function MarketSourceInformation({
                 <button
                   type="button"
                   className="refresh-button source-refresh"
-                  disabled={refreshing}
+                  disabled={
+                    refreshing ||
+                    ((data.common_equity_record_count ?? 0) > 1 &&
+                      ['bvc_listings', 'la_republica_quotes', 'sfc_daily_quotes'].includes(
+                        source.id,
+                      ))
+                  }
                   aria-busy={refreshing && activeSource === source.id}
                   onClick={() => refresh(source.id)}
                   aria-label={`Refresh ${source.name}`}
@@ -79,12 +91,6 @@ export function MarketSourceInformation({
                 >
                   Refresh data
                 </button>
-              )}
-              {source.id === 'bvc_listings' && (
-                <p className="small muted source-scope-note">
-                  Esta fuente requiere un acceso autorizado; no se puede actualizar desde este
-                  perfil.
-                </p>
               )}
               {source.last_error && (
                 <p className="source-error small" role="status">

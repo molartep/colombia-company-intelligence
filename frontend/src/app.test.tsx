@@ -109,6 +109,7 @@ test('renders official result and profile link', async () => {
     'Registration status',
     'Registration date',
     'Renewal date',
+    'Registrado BVC',
     'Open profile',
   ])
   const legalEntityCell = screen.getByText('SYNTHETIC ANDINA SAS').closest('td')!

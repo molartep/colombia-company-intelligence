@@ -122,3 +122,24 @@ def issuer_details_html(**overrides):
         + "".join(f"<tr><td>{escape(k)}</td><td>{escape(v)}</td></tr>" for k, v in fields.items())
         + "</table><footer>super@example.test</footer>"
     ).encode()
+
+
+SYNTHETIC_BVC_CODE = "COSYNTH00001"
+
+
+def bvc_html(code=SYNTHETIC_BVC_CODE, ticker="SYNTHETIC", price="1,234.50", paired=False):
+    from app.integrations.capital_markets.bvc import LABELS
+
+    values = [ticker, code, "CO0000000001", "ESVUFR", "Continuo", "T+2", "Activo"]
+    if paired:
+        fields = "".join(
+            f"<dt>{escape(k)}</dt><dd>{escape(v)}</dd>" for k, v in zip(LABELS, values, strict=True)
+        )
+    else:
+        fields = "".join(f"<th>{escape(v)}</th>" for v in LABELS) + "".join(
+            f"<td>{escape(v)}</td>" for v in values
+        )
+    return (
+        f"<h2>Último precio</h2><span>{escape(price)}</span>"
+        f"<h2>Información de la acción</h2><table>{fields}</table>"
+    ).encode()

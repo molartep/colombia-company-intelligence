@@ -46,6 +46,7 @@ class CompanyView(BaseModel):
 
 
 class SearchItem(CompanyView):
+    registered_bvc: bool = False
     registration_number: str | None = None
     chamber: str | None = None
     chamber_code: str | None = None
@@ -63,9 +64,11 @@ class SearchPage(BaseModel):
     has_more: bool
     stale: bool = False
     warning: str | None = None
-    ranking_scope: Literal["all matching source records", "current cached page"] = (
-        "all matching source records"
-    )
+    ranking_scope: Literal[
+        "all matching source records",
+        "current cached page",
+        "all matching indexed BVC registrations",
+    ] = "all matching source records"
 
 
 class RecordView(BaseModel):

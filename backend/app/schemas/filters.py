@@ -9,6 +9,7 @@ from app.integrations.rues.parameters import allowed_codes
 
 class SearchFilters(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    registered_bvc: bool = False
     status: list[str] = Field(default_factory=list, max_length=70)
     chamber: list[str] = Field(default_factory=list, max_length=70)
     organization: list[str] = Field(default_factory=list, max_length=70)
