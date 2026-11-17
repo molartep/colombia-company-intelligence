@@ -51,7 +51,9 @@ Do not change the mounted filesystem's ownership recursively once Postgres has i
 The deployment script initializes backend evidence-directory ownership; the Postgres entrypoint
 initializes its own subdirectory. If custom mount paths are used, update systemd `RequiresMountsFor`.
 Check that Docker's fixed proxy subnet `172.29.84.0/24` does not overlap your VCN/VPN/host routes;
-if changing it, update Caddy's static IP and Uvicorn's trusted proxy IP together.
+if changing it, update Caddy's static IP and Uvicorn's trusted proxy IP together. Keep the dynamic
+`ip_range` inside the subnet and separate from Caddy's static IP: backend and one-off containers
+start before Caddy and would otherwise be able to claim its address.
 
 ## Environment and initial deployment
 
