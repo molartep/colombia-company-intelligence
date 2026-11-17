@@ -14,12 +14,14 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import RequestResponseEndpoint
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import Response
 
 from app.core.config import get_settings
 from app.core.errors import DatabaseUnavailable, SourceError
 from app.core.logging import configure_logging
 from app.core.normalization import InvalidIdentifier, looks_like_nit, normalize_name, normalize_nit
+from app.core.rate_limits import RequestLimiter
 from app.db.session import engine, get_session
 
 # Issuer summaries and securities reports refresh into snapshots on Capital Markets access.
@@ -93,8 +95,13 @@ app = FastAPI(
     title="Colombia Company Intelligence",
     version="0.1.0",
     lifespan=lifespan,
+    docs_url="/docs" if get_settings().public_api_docs else None,
+    redoc_url="/redoc" if get_settings().public_api_docs else None,
+    openapi_url="/openapi.json" if get_settings().public_api_docs else None,
     responses={422: {"model": ErrorResponse}, 503: {"model": ErrorResponse}},
 )
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=get_settings().allowed_hosts)
+limiter = RequestLimiter(get_settings())
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_settings().cors_origins,
@@ -119,7 +126,14 @@ async def constrain_request(request: Request, call_next: RequestResponseEndpoint
         or request.headers.get("content-length", "0") != "0"
     ):
         return error(413, "request_too_large", "Request bodies are not accepted.")
-    response = await call_next(request)
+    retry_after = limiter.check(request)
+    if retry_after:
+        response: Response = error(
+            429, "rate_limited", "Too many requests. Please try again later."
+        )
+        response.headers["Retry-After"] = str(retry_after)
+    else:
+        response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Cache-Control"] = "no-store"
     return response

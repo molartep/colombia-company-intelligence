@@ -34,6 +34,10 @@ jobs:
       - run: ruff check . && ruff format --check . && mypy app
       - run: pytest -q
       - run: pip wheel --no-deps . -w /tmp/wheels
+      - name: Check production operations scripts
+        run: |
+          python -m py_compile ../scripts/production.py ../scripts/production_smoke.py
+          ruff check ../scripts/production.py ../scripts/production_smoke.py
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -82,3 +86,19 @@ jobs:
       - name: Clean up test containers
         if: always()
         run: docker compose down -v
+  production:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Resolve local smoke-test hostname
+        run: echo '127.0.0.1 cci.test' | sudo tee -a /etc/hosts
+      - name: Verify production stack and backup restoration
+        run: python scripts/production_smoke.py

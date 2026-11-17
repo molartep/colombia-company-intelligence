@@ -1,0 +1,104 @@
+# Standalone: never combine with docker-compose.yml (the local development stack).
+name: cci-production
+x-operations:
+  backup_dir: ${CCI_BACKUP_DIR:?Set CCI_BACKUP_DIR}
+  data_dir: ${CCI_DATA_DIR:?Set CCI_DATA_DIR}
+
+x-backend: &backend
+  image: cci-backend:${RELEASE_TAG:?Set RELEASE_TAG}
+  build: ./backend
+  env_file: ${CCI_ENV_FILE:?Set the absolute production env-file path}
+  environment:
+    ENVIRONMENT: production
+    PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME:?Set PUBLIC_HOSTNAME}
+    DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:?Set POSTGRES_DB}
+    ALLOWED_HOSTS: '["${PUBLIC_HOSTNAME}","localhost","127.0.0.1","backend"]'
+    CORS_ORIGINS: '[]'
+    PUBLIC_API_DOCS: 'false'
+    RATE_LIMITS_ENABLED: 'true'
+    CAPITAL_MARKETS_STORAGE_DIR: /app/var/capital-markets
+  volumes:
+    - ${CCI_DATA_DIR:?Set CCI_DATA_DIR}/capital-markets:/app/var/capital-markets
+  networks: [proxy, database]
+  logging: &logging
+    driver: local
+    options:
+      max-size: 10m
+      max-file: '3'
+
+services:
+  web:
+    image: cci-web:${RELEASE_TAG:?Set RELEASE_TAG}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.production
+    environment:
+      PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
+    ports: ['80:80', '443:443']
+    volumes:
+      - ${CCI_DATA_DIR}/caddy/data:/data
+      - ${CCI_DATA_DIR}/caddy/config:/config
+    networks:
+      proxy:
+        ipv4_address: 172.29.84.2
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:2019/config/']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging: *logging
+
+  backend:
+    <<: *backend
+    command: ['uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '8000', '--workers', '1', '--no-access-log', '--proxy-headers', '--forwarded-allow-ips', '172.29.84.2', '--limit-concurrency', '64', '--timeout-graceful-shutdown', '45']
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    shm_size: 256mb
+    stop_grace_period: 60s
+    healthcheck:
+      test: ['CMD', 'python', '-c', 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/ready", timeout=3)']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  migrate:
+    <<: *backend
+    command: ['alembic', 'upgrade', 'head']
+    profiles: [tools]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: 'no'
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ${CCI_DATA_DIR}/postgres:/var/lib/postgresql/data
+    networks: [database]
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+
+networks:
+  proxy:
+    ipam:
+      config:
+        - subnet: 172.29.84.0/24
+  database:
+    internal: true

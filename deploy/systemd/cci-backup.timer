@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily CCI backup (03:15 Colombia time)
+
+[Timer]
+OnCalendar=*-*-* 03:15:00 America/Bogota
+RandomizedDelaySec=300
+Persistent=true
+Unit=cci-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,20 @@
+[Unit]
+Description=Colombia Company Intelligence production stack
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+RequiresMountsFor=/srv/cci
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=cci
+WorkingDirectory=/opt/cci
+Environment=CCI_ENV_FILE=/etc/cci/production.env
+ExecStart=/usr/bin/docker compose --env-file /etc/cci/production.env -f /opt/cci/compose.production.yml up -d --wait --wait-timeout 180 backend web
+ExecStop=/usr/bin/docker compose --env-file /etc/cci/production.env -f /opt/cci/compose.production.yml stop
+TimeoutStartSec=240
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

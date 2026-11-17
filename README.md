@@ -46,6 +46,10 @@ See [architecture](docs/architecture.md) and [verified source schema](docs/sourc
 
 ## Start with Docker
 
+For public Oracle VM hosting, use the separate [production deployment guide](docs/oracle-deployment.md)
+and `compose.production.yml`. It includes HTTPS/static hosting, private Postgres/API networking,
+request limits, deployment scripts and verified backups. The Compose setup below is for development.
+
 Prerequisite: Docker Engine/Desktop with Compose v2, plus Git. From the repository root:
 
 ```sh

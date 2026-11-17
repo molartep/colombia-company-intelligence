@@ -1,0 +1,16 @@
+[Unit]
+Description=Back up and verify CCI database and private evidence
+Requires=docker.service
+After=docker.service network-online.target
+RequiresMountsFor=/srv/cci /srv/cci-backups
+
+[Service]
+Type=oneshot
+User=cci
+WorkingDirectory=/opt/cci
+# Create backup.env with CCI_BACKUP_TARGET=backup@your-host:/private/backups/cci/
+# SSH keys and a verified known_hosts entry must already exist for user cci.
+EnvironmentFile=/etc/cci/backup.env
+ExecStart=/usr/bin/python3 /opt/cci/scripts/production.py backup --offsite ${CCI_BACKUP_TARGET} --keep-days 14
+TimeoutStartSec=3600
+UMask=0077
