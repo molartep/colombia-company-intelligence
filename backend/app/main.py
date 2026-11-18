@@ -17,6 +17,8 @@ from starlette.middleware.base import RequestResponseEndpoint
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import Response
 
+from app.api.operations import IMPORT_PATH, authorize_import
+from app.api.operations import router as operations_router
 from app.core.config import get_settings
 from app.core.errors import DatabaseUnavailable, SourceError
 from app.core.logging import configure_logging
@@ -27,6 +29,7 @@ from app.db.session import engine, get_session
 # Issuer summaries and securities reports refresh into snapshots on Capital Markets access.
 from app.integrations.capital_markets import service as capital
 from app.integrations.capital_markets.bvc import BvcPublicPages
+from app.integrations.capital_markets.parsers import MAX_BYTES
 from app.integrations.capital_markets.reports import OfficialReports
 from app.integrations.capital_markets.secondary_quotes import LaRepublicaPublicPages
 from app.integrations.capital_markets.sfc_quotes import SfcQuotePages
@@ -109,6 +112,7 @@ app.add_middleware(
     allow_headers=["Accept", "Content-Type"],
 )
 DB = Annotated[AsyncSession, Depends(get_session)]
+app.include_router(operations_router)
 
 
 def adapter(request: Request) -> RuesDataSource:
@@ -119,9 +123,18 @@ def adapter(request: Request) -> RuesDataSource:
 async def constrain_request(request: Request, call_next: RequestResponseEndpoint) -> Response:
     if len(request.scope.get("query_string", b"")) > 8192:
         return error(414, "request_too_large", "Query string is too long.")
-    if request.method not in ("GET", "HEAD", "OPTIONS"):
+    importing = request.method == "POST" and request.url.path == IMPORT_PATH
+    if importing:
+        try:
+            authorize_import(request)
+        except SourceError as exc:
+            return error(exc.status, exc.code, exc.message)
+        length = request.headers.get("content-length", "0")
+        if not length.isdigit() or int(length) > MAX_BYTES:
+            return error(413, "import_too_large", "The XLSX limit is 10 MiB.")
+    if request.method not in ("GET", "HEAD", "OPTIONS") and not importing:
         return error(405, "method_not_allowed", "This API accepts read requests only.")
-    if (
+    if not importing and (
         request.headers.get("transfer-encoding")
         or request.headers.get("content-length", "0") != "0"
     ):

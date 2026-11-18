@@ -13,6 +13,7 @@ import { sourceNeedsAttention, sourceErrorDescription } from '../sourceStatus'
 import { SourceInformationCard } from './SourceInformationCard'
 import { MarketSourceInformation } from './MarketSourceInformation'
 import { MissingValue } from './FieldValues'
+import { DirectoryImport } from './DirectoryImport'
 import { FilterHelp } from './AdvancedFilters'
 import { dateTime, registrationDate, issuanceMonth } from '../utils'
 
@@ -150,6 +151,15 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
       <SourceEvidenceStatus source={source} />
     </RefreshAlert>
   ))
+  if (data.sources.some((source) => source.id === 'sfc_rnve' && !source.latest_snapshot))
+    alerts.unshift(
+      <div className="notice warning" role="alert" key="directory-missing">
+        <strong>
+          Import the RNVE issuer directory to enable Capital Markets identity matching.
+        </strong>
+        <DirectoryImport />
+      </div>,
+    )
   if ((data.common_equity_record_count ?? 0) > 1)
     alerts.push(
       <div className="notice danger" role="alert" key="multiple-common-equity">

@@ -20,6 +20,7 @@ export function SiteHeader() {
           Search
         </NavLink>
         <NavLink to="/parameters">Parameters</NavLink>
+        <NavLink to="/advanced">Advanced</NavLink>
       </nav>
       <nav className="social-links" aria-label="Social media">
         <a

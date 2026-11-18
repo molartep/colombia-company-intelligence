@@ -57,6 +57,8 @@ class RequestLimiter:
         retry = self._take(("api", client), 120, 60, now)
         if retry:
             return retry
+        if path == "/api/v1/admin/imports/rnve":
+            return self._take(("import", client), 3, 60, now)
         if path in ("/api/v1/companies", "/api/v1/capital-markets/issuers"):
             retry = self._take(
                 ("search", client), self.settings.search_requests_per_minute, 60, now

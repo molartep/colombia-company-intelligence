@@ -5,6 +5,7 @@ import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 import { Search } from './pages/Search'
 import { CompanyProfile } from './pages/CompanyProfile'
 import { Parameters } from './pages/Parameters'
+import { Advanced } from './pages/Advanced'
 import { SiteHeader } from './components/SiteHeader'
 import './styles.css'
 
@@ -22,6 +23,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <main id="main">
           <Routes>
             <Route path="/parameters" element={<Parameters />} />
+            <Route path="/advanced" element={<Advanced />} />
             <Route path="/" element={<Search />} />
             <Route path="/companies/:id" element={<CompanyProfile />} />
             <Route

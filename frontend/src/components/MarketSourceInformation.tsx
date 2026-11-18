@@ -3,6 +3,7 @@ import { dateTime } from '../utils'
 import { sourceNeedsAttention, sourceErrorDescription } from '../sourceStatus'
 import { RefreshAlert } from './Feedback'
 import { SourceInformationCard } from './SourceInformationCard'
+import { DirectoryImport } from './DirectoryImport'
 
 export function MarketSourceInformation({
   data,
@@ -82,7 +83,7 @@ export function MarketSourceInformation({
                   {refreshing && activeSource === source.id ? 'Refreshing…' : 'Refresh data'}
                 </button>
               )}
-              {!refreshable && (
+              {!refreshable && source.id !== 'sfc_rnve' && (
                 <button
                   type="button"
                   className="refresh-button source-refresh"
@@ -110,12 +111,7 @@ export function MarketSourceInformation({
                     : 'Se completó la consulta de esta fuente.'}
                 </p>
               )}
-              {source.id === 'sfc_rnve' && (
-                <p className="small muted source-scope-note">
-                  El directorio requiere importar una nueva exportación oficial; no admite
-                  actualización desde este perfil.
-                </p>
-              )}
+              {source.id === 'sfc_rnve' && <DirectoryImport />}
               <section
                 className="source-freshness source-freshness--four"
                 aria-label={`Fechas de ${source.name}`}

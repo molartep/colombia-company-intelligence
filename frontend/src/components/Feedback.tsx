@@ -1,10 +1,18 @@
 import { useEffect, useRef } from 'react'
+import { ApiError } from '../api/client'
+import { DirectoryImport } from './DirectoryImport'
 
 export function Failure({ error, retry }: { error: Error; retry?: () => void }) {
+  const needsImport = error instanceof ApiError && error.code === 'bvc_directory_unavailable'
   return (
     <div className="notice danger" role="alert">
-      <strong>We couldn’t retrieve this information.</strong>
+      <strong>
+        {needsImport
+          ? 'The RNVE issuer directory needs importing.'
+          : 'We couldn’t retrieve this information.'}
+      </strong>
       <p>{error.message}</p>
+      {needsImport && <DirectoryImport onImported={retry} />}
       {retry && (
         <button className="text-link" onClick={retry}>
           Try again

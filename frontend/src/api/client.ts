@@ -1,8 +1,24 @@
 import type { MarketsProfile, SecuritiesPage } from '../types/capitalMarkets'
 import type { ParameterCatalog, Profile, RecordView, SearchPage } from '../types'
+import type { ImportResult, PlatformStatus } from '../types/platform'
 
-export async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(path, { signal })
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public status: number,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+export async function request<T>(
+  path: string,
+  signal?: AbortSignal,
+  init?: RequestInit,
+): Promise<T> {
+  const response = await fetch(path, { ...init, signal })
   if (!response.ok) {
     const payload: unknown = await response.json().catch(() => null)
     const message =
@@ -15,11 +31,39 @@ export async function request<T>(path: string, signal?: AbortSignal): Promise<T>
       typeof payload.error.message === 'string'
         ? payload.error.message
         : `Request failed (${response.status}). Please try again.`
-    throw new Error(message)
+    const code =
+      payload &&
+      typeof payload === 'object' &&
+      'error' in payload &&
+      payload.error &&
+      typeof payload.error === 'object' &&
+      'code' in payload.error &&
+      typeof payload.error.code === 'string'
+        ? payload.error.code
+        : 'request_failed'
+    throw new ApiError(message, code, response.status)
   }
   return response.json() as Promise<T>
 }
 export const api = {
+  platform: (signal?: AbortSignal) => request<PlatformStatus>('/api/v1/platform', signal),
+  importDirectory: (file?: File, token?: string) =>
+    request<ImportResult>(
+      `/api/v1/admin/imports/rnve?method=${file ? 'upload' : 'download'}`,
+      undefined,
+      {
+        method: 'POST',
+        headers: {
+          ...(token ? { 'X-CCI-Admin-Token': token } : {}),
+          ...(file
+            ? {
+                'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              }
+            : {}),
+        },
+        body: file,
+      },
+    ),
   capitalMarkets: (id: string, signal?: AbortSignal, refresh = false, source?: string) =>
     request<MarketsProfile>(
       `/api/v1/companies/${encodeURIComponent(id)}/capital-markets${refresh ? `?refresh=true${source ? `&refresh_source=${encodeURIComponent(source)}` : ''}` : ''}`,

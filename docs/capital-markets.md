@@ -6,6 +6,34 @@ verification are independent. This is not an investment-analysis or ownership-cl
 
 ## Migrate and import
 
+The browser now provides **Import RNVE directory** in the missing-directory search alert,
+Capital Markets source information and the **Advanced** tab. The action opens a fresh server-side
+Chromium context and uses the documented public **DESCARGAR EMISORES → REPORTE EXCEL** controls,
+then runs the same validated importer and identity reconciliation as the CLI. If that public
+download fails, expand the action's options and upload the official issuer-only XLSX (10 MiB max).
+There is no arbitrary URL/path input or application-internal source API dependency.
+
+The UI reports download, validation, success and failure; failed imports preserve previous evidence.
+It refreshes source/profile caches and retries a blocked search after success. UI imports explicitly
+use `concatenated-dv` for the verified export convention and **incomplete** coverage. Completeness
+attestation and historical/cancelled imports remain explicit CLI operations described below.
+
+`POST /api/v1/admin/imports/rnve?method=download` downloads the current export. With `method=upload`,
+the body is raw XLSX bytes, streamed up to 10 MiB. Same-origin loopback development is allowed.
+On a deployed server, configure a strong `ADMIN_IMPORT_TOKEN` (at least 32 characters) and enter it
+in the administrator field; requests use `X-CCI-Admin-Token`. The key is never bundled into the
+frontend, placed in a URL or saved to browser storage. Production without a key cannot import.
+All other API endpoints remain read-only. Downloads are serialized within the single API process
+and have a one-minute retry cooldown; existing Postgres import locks serialize database updates.
+Production additionally limits import requests to three per client per minute.
+
+The only mandatory imported dataset is this directory. RUES records are fetched on demand;
+filter parameters are bundled. Issuer details, securities and quote sources retrieve evidence
+on demand once identity and connector-specific conditions are met. Missing page locators,
+ambiguous identity, source outages and unsupported features are not fixed by inventing an import.
+The Advanced page documents these dependencies and reads actual server counts and source attempts
+from `GET /api/v1/platform`; that endpoint does not probe publishers or expose private payloads.
+
 Apply the additive migration before starting the new backend:
 
 ```sh
@@ -49,7 +77,7 @@ Refresh securities for **one imported issuer** at a time, using its source-defin
 The Capital Markets tab automatically retrieves missing or stale summaries and separate securities
 reports for verified issuers. Each source has an independent 24-hour success cache and 15-minute
 failure cooldown. Directory imports remain administrative; the CLI remains available for explicit
-report refreshes. There is no upload endpoint or all-issuer crawl. Match transaction locks are
+report refreshes. Only the guarded directory-import endpoint accepts uploads; there is no all-issuer crawl. Match transaction locks are
 released before source retrieval. Securities pagination and filter requests read local records only.
 
 Docker import example (from the repository root):

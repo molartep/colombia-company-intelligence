@@ -21,6 +21,64 @@ from app.services.companies import ensure_source, persist
 pytestmark = pytest.mark.postgres
 
 
+async def test_directory_cta_import_and_platform_status(session, monkeypatch, tmp_path):
+    from capital_fixtures import issuer_xlsx
+
+    from app.api import operations
+    from app.core.config import get_settings
+    from app.models.capital_markets import SecuritiesIssuer
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    download = AsyncMock(return_value=issuer_xlsx())
+    monkeypatch.setattr(operations, "download_directory", download)
+    monkeypatch.setattr(operations, "_last_download", 0.0)
+
+    async def local_session():
+        yield session
+
+    app.dependency_overrides[get_session] = local_session
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://localhost"
+        ) as client:
+            status = (await client.get("/api/v1/platform")).json()
+            assert status["directory_missing"] is True
+            assert status["parameter_options"] > 0
+            imported = await client.post(
+                operations.IMPORT_PATH, headers={"Origin": "http://localhost"}
+            )
+            assert imported.status_code == 200
+            assert imported.json()["record_count"] == 1
+            assert imported.json()["complete_current"] is False
+            download.assert_awaited_once()
+            status = (await client.get("/api/v1/platform")).json()
+            assert status["directory_missing"] is False
+            assert status["counts"]["issuers"] == 1
+            assert "database_url" not in status and "admin_import_token" not in status
+            cooldown = await client.post(
+                operations.IMPORT_PATH, headers={"Origin": "http://localhost"}
+            )
+            assert cooldown.status_code == 429
+            invalid = await client.post(
+                operations.IMPORT_PATH + "?method=upload",
+                content=b"invalid XLSX",
+                headers={"Origin": "http://localhost"},
+            )
+            assert invalid.status_code == 422
+            assert await session.scalar(select(func.count()).select_from(SecuritiesIssuer)) == 1
+            uploaded = await client.post(
+                operations.IMPORT_PATH + "?method=upload",
+                content=issuer_xlsx(),
+                headers={"Origin": "http://localhost"},
+            )
+            assert uploaded.status_code == 200
+            assert uploaded.json()["record_count"] == 1
+            assert await session.scalar(select(func.count()).select_from(SecuritiesIssuer)) == 1
+            download.assert_awaited_once()  # Upload fallback does not contact SFC.
+    finally:
+        app.dependency_overrides.clear()
+
+
 @pytest.fixture(scope="module")
 def migrated():
     url = os.environ.get("TEST_DATABASE_URL")

@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     public_hostname: str = ""
     allowed_hosts: list[str] = ["*"]
     public_api_docs: bool = True
+    admin_import_token: str | None = Field(default=None, min_length=32)
     rate_limits_enabled: bool = False
     search_requests_per_minute: int = Field(default=30, ge=1, le=1000)
     refresh_requests_per_minute: int = Field(default=6, ge=1, le=100)

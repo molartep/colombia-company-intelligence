@@ -66,6 +66,9 @@ Edit `/etc/cci/production.env` as the deployment user:
   Keep this env-file tag current so reboots start the intended release.
 - Confirm absolute `CCI_DATA_DIR` and `CCI_BACKUP_DIR`; keep backups outside the data directory.
 - Optionally configure the server-only Socrata token. No secret belongs in a `VITE_` variable.
+- To enable RNVE import CTAs, set a separate strong `ADMIN_IMPORT_TOKEN` and enter it in the UI's
+  administrator field. Without it, production directory imports stay disabled. The Advanced tab
+  displays live local counts/source history and documents all initial-data dependencies.
 
 Do not shell-source this file. Run from `/opt/cci`, as `cci`:
 

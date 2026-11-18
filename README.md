@@ -332,7 +332,8 @@ Capital Markets refresh actions are source-specific: top alert buttons open and 
 collapsed **Data Source Information** section; only the buttons inside each source perform a
 refresh. They call `?refresh=true&refresh_source=sfc_rnve_issuer_details` or
 `?refresh=true&refresh_source=sfc_rnve_securities`. A selected refresh never calls the other
-connector. The import-only RNVE directory control is disabled with an explanation.
+connector. RNVE directory controls execute the guarded public-export import, with an official XLSX
+upload fallback; see [import controls and Advanced diagnostics](docs/capital-markets.md#migrate-and-import).
 Alerts identify the affected source, last successful retrieval, source observation date, latest
 attempt and recorded error. Summary/securities timestamps and errors are scoped to the current
 issuer; the source-catalog endpoint continues to show global connector health.
