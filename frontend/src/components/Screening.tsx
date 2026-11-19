@@ -1,10 +1,11 @@
 import { uiMessage, errorMessage } from '../i18n/messages'
 import { formatDate, formatDecimal, formatCurrency, formatNumber } from '../i18n/format'
-import { t, useLanguage } from '../i18n'
-import { useState } from 'react'
+import { locale, t, useLanguage } from '../i18n'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { FitMetricValue } from './FitMetricValue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api/client'
-import type { ActivityGroup, Contract, SecopScreening } from '../types/secop'
+import type { ActivityGroup, Contract, ContractPage, SecopScreening } from '../types/secop'
 import { Failure, Loading } from './Feedback'
 
 const states = (): Record<SecopScreening['outcome'], string> => ({
@@ -24,32 +25,51 @@ const states = (): Record<SecopScreening['outcome'], string> => ({
   ),
 })
 const shown = (value: string | null | undefined) => value || t('governmentContracts.noInformado')
-const sourceValue = shown
+// Explicit SECOP display exceptions. Raw filter values and evidence are preserved.
+const sourceValue = (value: string | null | undefined) => shown(value).toLocaleUpperCase('es-CO')
+const alphabetical = (groups: ActivityGroup[]) => {
+  const collator = new Intl.Collator(locale(), { sensitivity: 'base' })
+  return [...groups].sort((a, b) => collator.compare(sourceValue(a.label), sourceValue(b.label)))
+}
+const singleCurrency = (totals: Record<string, string>) =>
+  Object.keys(totals).length === 1 ? Object.keys(totals)[0] : undefined
+const currencyLabel = (label: string, currency?: string) =>
+  currency ? `${label} (${currency})` : label
 const timestamp = (value: string | null) =>
   value ? formatDate(value, true) : t('governmentContracts.sinConsulta')
 const decimal = formatDecimal
-function values(totals: Record<string, string>) {
+function values(totals: Record<string, string>, currency?: string) {
   const entries = Object.entries(totals)
   return entries.length
-    ? entries.map(([currency, amount]) => formatCurrency(amount, currency)).join(' · ')
+    ? entries
+        .map(([code, amount]) =>
+          code === currency ? decimal(amount) : formatCurrency(amount, code),
+        )
+        .join(' · ')
     : t('governmentContracts.noDisponibleSinValoresValidos')
 }
 function QuerySummary({ summary }: { summary: NonNullable<SecopScreening['summary']> }) {
   useLanguage()
+  const currency = singleCurrency(summary.total_values)
 
   return (
     <aside className="secop-summary" aria-label={t('governmentContracts.resumenDeLaConsultaSecop')}>
       <h3>{t('governmentContracts.resumenDeLaConsulta')}</h3>
       <div className="secop-kpis">
-        {[
-          [t('governmentContracts.totalContratos'), formatNumber(summary.total_contracts)],
-          [t('governmentContracts.valorContractualTotal'), values(summary.total_values)],
-          [t('governmentContracts.entidadesContratantes'), formatNumber(summary.distinct_buyers)],
-          [t('governmentContracts.firmaMasReciente'), formatDate(summary.latest_signature_date)],
-        ].map(([name, value]) => (
+        {(
+          [
+            [t('governmentContracts.totalContratos'), formatNumber(summary.total_contracts)],
+            [
+              currencyLabel(t('governmentContracts.valorContractualTotal'), currency),
+              values(summary.total_values, currency),
+            ],
+            [t('governmentContracts.entidadesContratantes'), formatNumber(summary.distinct_buyers)],
+            [t('governmentContracts.firmaMasReciente'), formatDate(summary.latest_signature_date)],
+          ] as const
+        ).map(([name, value]) => (
           <article className="panel" key={name}>
             <h4>{name}</h4>
-            <strong>{value}</strong>
+            <FitMetricValue value={value} />
           </article>
         ))}
       </div>
@@ -70,11 +90,13 @@ function Activity({
   groups,
   monetary = false,
   sourceLabels = false,
+  currency,
 }: {
   title: string
   groups: ActivityGroup[]
   monetary?: boolean
   sourceLabels?: boolean
+  currency?: string
 }) {
   useLanguage()
 
@@ -82,46 +104,52 @@ function Activity({
     const [whole = '0', fraction = ''] = value.split('.')
     return BigInt(whole) * 1000000n + BigInt(fraction.padEnd(6, '0').slice(0, 6))
   }
-  const amounts = groups.map((g) => units(g.values.COP ?? '0'))
+  const amounts = groups.map((g) => units((currency ? g.values[currency] : undefined) ?? '0'))
   const maxAmount = amounts.reduce((max, value) => (value > max ? value : max), 1n)
-  const heights = monetary
-    ? amounts.map((value) => Number((value * 10000n) / maxAmount))
-    : groups.map((g) => g.count)
-  const max = monetary ? 10000 : Math.max(1, ...heights)
+  const heights =
+    monetary && currency
+      ? amounts.map((value) => Number((value * 10000n) / maxAmount))
+      : groups.map((g) => g.count)
+  const max = monetary && currency ? 10000 : Math.max(1, ...heights)
   return (
     <article className="panel">
       <h3>{title}</h3>
+      {!monetary && groups.some((g) => Object.keys(g.values).length > 0) && (
+        <p className="small muted">
+          {currencyLabel(t('governmentContracts.valorContractualTotal'), currency)}
+        </p>
+      )}
       {groups.length ? (
         <ul className="secop-bars">
           {groups.map((g, index) => (
             <li key={g.label}>
               <div>
                 <span>{sourceLabels ? sourceValue(g.label) : uiMessage(g.label)}</span>
-                <strong>
-                  {monetary
-                    ? g.values.COP === undefined
-                      ? t('governmentContracts.sinValorValido')
-                      : `${decimal(g.values.COP)} COP`
-                    : formatNumber(g.count)}
+                <strong className={monetary ? 'currency-value' : undefined}>
+                  {monetary ? values(g.values, currency) : formatNumber(g.count)}
                 </strong>
               </div>
-              <meter
-                min={0}
-                max={max}
-                value={heights[index] ?? 0}
-                aria-label={
-                  monetary
-                    ? `${sourceLabels ? sourceValue(g.label) : uiMessage(g.label)}: ${g.values.COP ?? t('governmentContracts.sinValorValido2')} COP`
-                    : t('governmentContracts.valueValueContratos', {
-                        value0: sourceLabels ? sourceValue(g.label) : uiMessage(g.label),
-                        count: g.count,
-                      })
-                }
-              />
+              {(!monetary || currency) && (
+                <meter
+                  min={0}
+                  max={max}
+                  value={heights[index] ?? 0}
+                  aria-label={
+                    monetary
+                      ? `${sourceLabels ? sourceValue(g.label) : uiMessage(g.label)}: ${values(g.values, currency)}`
+                      : t('governmentContracts.valueValueContratos', {
+                          value0: sourceLabels ? sourceValue(g.label) : uiMessage(g.label),
+                          count: g.count,
+                        })
+                  }
+                />
+              )}
               {monetary ? (
                 <small>{t('common.contractCount', { count: g.count })}</small>
               ) : (
-                Object.keys(g.values).length > 0 && <small>{values(g.values)}</small>
+                Object.keys(g.values).length > 0 && (
+                  <small className="currency-value">{values(g.values, currency)}</small>
+                )
               )}
             </li>
           ))}
@@ -204,7 +232,13 @@ function ContractDetail({
             }).map(([key, value]) => (
               <div key={key}>
                 <dt>{key}</dt>
-                <dd>{shown(value)}</dd>
+                <dd
+                  className={
+                    key === t('governmentContracts.valorReportado') ? 'currency-value' : undefined
+                  }
+                >
+                  {shown(value)}
+                </dd>
               </div>
             ))}
           </dl>
@@ -240,11 +274,30 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
       params.set(key === 'status' ? 'raw_status' : key, value)
     }
   })
-  const query = useQuery({
+  const query = useQuery<ContractPage>({
     queryKey: ['secop-contracts', companyId, params.toString()],
+    // Preserve layout while changing filters/pages, only within the same company/run.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[1] === companyId && previous?.run_id === screening.run_id
+        ? previous
+        : undefined,
     queryFn: ({ signal }) => api.secopContracts(companyId, params, signal),
   })
+  const tableViewport = useRef<HTMLDivElement>(null)
+  const tableHeight = useRef(0)
+  useLayoutEffect(() => {
+    const viewport = tableViewport.current
+    if (!viewport) return
+    tableHeight.current = Math.max(tableHeight.current, viewport.getBoundingClientRect().height)
+    viewport.style.setProperty('--contracts-table-height', `${tableHeight.current}px`)
+  }, [query.data])
   const summary = screening.summary!
+  const candidateCurrency = singleCurrency(summary.total_values)
+  const currency =
+    candidateCurrency &&
+    query.data?.items.every((c) => c.value === null || c.currency === candidateCurrency)
+      ? candidateCurrency
+      : undefined
   const change = (key: keyof typeof filters, value: string) => {
     setFilters((current) => ({ ...current, [key]: value }))
     setPage(1)
@@ -263,18 +316,19 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
           {t('governmentContracts.entidadNombreExacto')}{' '}
           <input
             value={filters.entity}
+            className="secop-source-field"
             maxLength={1000}
             list="secop-buyers"
             onChange={(e) => {
               const value = e.target.value
               const original = summary.top_buyers.find(
-                (g) => g.label.toLocaleUpperCase() === value.toLocaleUpperCase(),
+                (g) => g.label.toLocaleUpperCase('es-CO') === value.toLocaleUpperCase('es-CO'),
               )?.label
               change('entity', original ?? value)
             }}
           />
           <datalist id="secop-buyers">
-            {summary.top_buyers.map((g) => (
+            {alphabetical(summary.top_buyers).map((g) => (
               <option key={g.label} value={sourceValue(g.label)} />
             ))}
           </datalist>
@@ -284,7 +338,7 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
             [
               'status',
               t('governmentContracts.estado'),
-              summary.statuses.map((g) => ({
+              alphabetical(summary.statuses).map((g) => ({
                 value: g.label,
                 label: sourceValue(g.label),
               })),
@@ -299,7 +353,10 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
             [
               'modality',
               t('governmentContracts.modalidad'),
-              summary.modalities.map((g) => ({ value: g.label, label: sourceValue(g.label) })),
+              alphabetical(summary.modalities).map((g) => ({
+                value: g.label,
+                label: sourceValue(g.label),
+              })),
             ],
           ] as const
         ).map(([key, label, options]) => (
@@ -349,6 +406,9 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
           </div>
         </div>
       </div>
+      <p className="small muted contracts-query-status" role="status" aria-live="polite">
+        {query.isPlaceholderData ? t('governmentContracts.updatingPreviousResults') : ''}
+      </p>
       {query.isPending ? (
         <Loading />
       ) : query.isError ? (
@@ -356,8 +416,14 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
       ) : (
         <>
           <p className="small muted">{t('common.contractsFound', { count: query.data.total })}</p>
+          <p className="table-scroll-hint" id="contracts-scroll-hint">
+            {t('common.scrollTable')}
+          </p>
           <div
-            className="table-wrap secop-table-wrap"
+            className={`table-wrap secop-table-wrap${query.data.items.length ? '' : ' is-empty'}`}
+            ref={tableViewport}
+            aria-busy={query.isFetching}
+            aria-describedby="contracts-scroll-hint"
             tabIndex={0}
             role="region"
             aria-label={t('governmentContracts.tablaDeContratosVerificados')}
@@ -369,13 +435,13 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
                     t('governmentContracts.contratoReferencia'),
                     t('governmentContracts.entidad'),
                     t('governmentContracts.descripcion'),
-                    t('governmentContracts.valor'),
+                    currencyLabel(t('governmentContracts.valor'), currency),
                     t('governmentContracts.firma'),
                     t('governmentContracts.estado'),
                     t('governmentContracts.modalidad'),
                     t('governmentContracts.fuente'),
-                  ].map((h) => (
-                    <th key={h} scope="col">
+                  ].map((h, index) => (
+                    <th key={h} scope="col" className={index === 3 ? 'numeric-cell' : undefined}>
                       {h}
                     </th>
                   ))}
@@ -392,12 +458,14 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
                     </td>
                     <td>{sourceValue(c.buyer)}</td>
                     <td>{shown(c.description)}</td>
-                    <td>
+                    <td className="numeric-cell">
                       {c.value === null
                         ? t('governmentContracts.noInformado')
-                        : `${decimal(c.value)} ${c.currency ?? t('governmentContracts.monedaNoInformada')}`}
+                        : c.currency === currency
+                          ? decimal(c.value)
+                          : `${decimal(c.value)} ${c.currency ?? t('governmentContracts.monedaNoInformada')}`}
                     </td>
-                    <td>{formatDate(c.signature_date)}</td>
+                    <td className="date-cell">{formatDate(c.signature_date)}</td>
                     <td>{sourceValue(c.raw_status)}</td>
                     <td>{sourceValue(c.modality)}</td>
                     <td>
@@ -407,25 +475,36 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
                 ))}
               </tbody>
             </table>
+            {!query.data.items.length && (
+              <p className="secop-table-empty">
+                {t('governmentContracts.noHayContratosQueCoincidanConEstosFiltros')}
+              </p>
+            )}
           </div>
-          {!query.data.items.length && (
-            <p>{t('governmentContracts.noHayContratosQueCoincidanConEstosFiltros')}</p>
-          )}
           <nav className="pagination" aria-label={t('governmentContracts.paginasDeContratos')}>
-            <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <button
+              disabled={query.isPlaceholderData || page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
               {' '}
               {t('governmentContracts.anterior')}
             </button>
             <span aria-live="polite">
-              {formatNumber(query.data.items.length ? (page - 1) * query.data.page_size + 1 : 0)} -{' '}
+              {formatNumber(
+                query.data.items.length ? (query.data.page - 1) * query.data.page_size + 1 : 0,
+              )}{' '}
+              -{' '}
               {formatNumber(
                 query.data.items.length
-                  ? (page - 1) * query.data.page_size + query.data.items.length
+                  ? (query.data.page - 1) * query.data.page_size + query.data.items.length
                   : 0,
               )}{' '}
               {t('governmentContracts.de')} {formatNumber(query.data.total)}
             </span>
-            <button disabled={!query.data.has_more} onClick={() => setPage((p) => p + 1)}>
+            <button
+              disabled={query.isPlaceholderData || !query.data.has_more}
+              onClick={() => setPage((p) => p + 1)}
+            >
               {' '}
               {t('governmentContracts.siguiente')}
             </button>
@@ -464,6 +543,7 @@ export function Screening({ companyId }: { companyId: string }) {
   if (query.isError) return <Failure error={query.error} retry={() => void query.refetch()} />
   const data = query.data
   const summary = data.summary
+  const currency = summary ? singleCurrency(summary.total_values) : undefined
   return (
     <div className="secop-module">
       <article className={`panel${summary ? ' secop-header-with-summary' : ''}`}>
@@ -557,17 +637,20 @@ export function Screening({ companyId }: { companyId: string }) {
           <div className="profile-grid">
             <Activity
               title={t('governmentContracts.contratosPorEstado')}
-              groups={summary.statuses}
+              groups={alphabetical(summary.statuses)}
+              currency={currency}
               sourceLabels
             />
             <Activity
-              title={t('governmentContracts.valorContractualAnualCop')}
+              title={currencyLabel(t('governmentContracts.annualContractValue'), currency)}
               groups={summary.annual}
+              currency={currency}
               monetary
             />
             <Activity
-              title={t('governmentContracts.cincoEntidadesPorValorContractualCop')}
+              title={currencyLabel(t('governmentContracts.topFiveBuyersByValue'), currency)}
               groups={summary.top_buyers}
+              currency={currency}
               sourceLabels
               monetary
             />

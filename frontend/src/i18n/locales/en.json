@@ -155,7 +155,8 @@
     "de": "of",
     "siguiente": "Next →",
     "rnveBolsaNoInformada": "RNVE; exchange not reported",
-    "obtenido2": "Retrieved:"
+    "obtenido2": "Retrieved:",
+    "securitiesTable": "Registered securities table"
   },
   "provenance": {
     "dataSourceInformation": "Data Source Information",
@@ -223,7 +224,8 @@
     "contractCount_one": "{{count}} contract",
     "contractCount_other": "{{count}} contracts",
     "contractsIncluded_one": "{{count}} contract included in totals",
-    "contractsIncluded_other": "{{count}} contracts included in totals"
+    "contractsIncluded_other": "{{count}} contracts included in totals",
+    "scrollTable": "Scroll horizontally to view all columns."
   },
   "feedback": {
     "theRnveIssuerDirectoryNeedsImporting": "The RNVE issuer directory needs importing.",
@@ -233,7 +235,8 @@
     "retrievingResults": "Retrieving results",
     "searchingOfficialCompanyRecordsPleaseWait": "Searching official company records. Please wait…",
     "refreshing": "Refreshing…",
-    "refreshData": "Refresh data"
+    "refreshData": "Refresh data",
+    "continueBrowsing": "Continue browsing"
   },
   "fields": {
     "missing": "Missing",
@@ -399,7 +402,7 @@
     "contratosPorEstado": "Contracts by status",
     "valorContractualAnualCop": "Annual contract value (COP)",
     "cincoEntidadesPorValorContractualCop": "Top five entities by contract value (COP)",
-    "valoresExpresadosEnPesosColombianosCopPorConfiguracionDeLa": "Amounts are expressed in Colombian pesos (COP) by application convention. They are reported contract values, not payments or revenue.",
+    "valoresExpresadosEnPesosColombianosCopPorConfiguracionDeLa": "Reported contract values do not represent payments or revenue.",
     "metodologiaYAlcance": "Methodology and scope",
     "coincidenciaExactaDelNitDelProveedorNuncaPorSimilitudDe": "Exact supplier NIT matching, never by similar names or the buyer's NIT.",
     "matchMethods": {
@@ -409,7 +412,10 @@
       "verified": "Verified"
     },
     "valueValueContratos_one": "{{value0}}: {{count}} contract",
-    "valueValueContratos_other": "{{value0}}: {{count}} contracts"
+    "valueValueContratos_other": "{{value0}}: {{count}} contracts",
+    "annualContractValue": "Annual contract value",
+    "topFiveBuyersByValue": "Top five entities by contract value",
+    "updatingPreviousResults": "Updating… Previous results shown."
   },
   "search": {
     "search": "Search",

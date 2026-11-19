@@ -1,0 +1,688 @@
+{
+  "id": "00000000-0000-0000-0000-000000000001",
+  "company": {
+    "id": "00000000-0000-0000-0000-000000000001",
+    "nit": "000123456",
+    "verification_digit": "7",
+    "legal_name": "COMPAÑÍA SINTÉTICA DE INFRAESTRUCTURA Y SERVICIOS ANDINOS S.A.S.",
+    "legal_form": "Sociedad por Acciones Simplificada",
+    "registration_status": "ACTIVA",
+    "primary_ciiu": "0011",
+    "department": null,
+    "municipality": null,
+    "registration": {
+      "registration_number": "00123",
+      "chamber": "CÁMARA SINTÉTICA DE COMERCIO",
+      "registration_date": "20200115",
+      "renewal_date": "20260218",
+      "last_renewed_year": "2026"
+    },
+    "attributes": {
+      "legal_name": {
+        "state": "present",
+        "source_field": "legal_name",
+        "record_id": "synthetic-evidence",
+        "note": null
+      },
+      "nit": {
+        "state": "present",
+        "source_field": "nit",
+        "record_id": "synthetic-evidence",
+        "note": null
+      },
+      "registration_status": {
+        "state": "present",
+        "source_field": "registration_status",
+        "record_id": "synthetic-evidence",
+        "note": null
+      },
+      "securities_listing": {
+        "state": "not_yet_checked",
+        "source_field": "securities_listing",
+        "record_id": "synthetic-evidence",
+        "note": null
+      },
+      "financials": {
+        "state": "not_yet_checked",
+        "source_field": "financials",
+        "record_id": "synthetic-evidence",
+        "note": null
+      },
+      "screening": {
+        "state": "not_yet_checked",
+        "source_field": "screening",
+        "record_id": "synthetic-evidence",
+        "note": null
+      }
+    },
+    "sources": [
+      {
+        "id": "rues",
+        "name": "RUES / Confecámaras",
+        "description": "Official Colombian business registration records, including natural persons and ESALs.",
+        "provider": "Confecámaras",
+        "dataset_url": "https://www.datos.gov.co/d/c82u-588k",
+        "last_checked_at": "2026-11-18T15:00:00Z",
+        "last_updated_at": "2026-11-18T15:00:00Z",
+        "enabled": true,
+        "availability": "available"
+      }
+    ],
+    "retrieved_at": "2026-11-18T15:00:00Z",
+    "source_updated_at": "2026-11-18T15:00:00Z",
+    "dataset_updated_at": "2026-11-18T15:00:00Z",
+    "resolution_note": "",
+    "conflicting_registration_count": 0,
+    "created_at": "2026-01-01T00:00:00Z",
+    "updated_at": "2026-01-01T00:00:00Z"
+  },
+  "contract": {
+    "contract_id": "CO1.SOURCE",
+    "source_identifier": "source-row",
+    "process_id": "SOURCE-PROCESS",
+    "reference": null,
+    "original_supplier_identifier": "0001234567",
+    "normalized_supplier_identifier": "000123456",
+    "supplier_document_type": "NIT",
+    "match_method": "exact_supplier_nit",
+    "match_status": "verified",
+    "buyer": "ENTIDAD PÚBLICA SINTÉTICA",
+    "buyer_nit": "123456789",
+    "description": "Prestación de servicios de mantenimiento de infraestructura. Registro sintético para revisión de interfaz.",
+    "value": "8137440199.125000",
+    "currency": "COP",
+    "raw_status": "En ejecución",
+    "status": "other",
+    "contract_type": "Prestación de servicios",
+    "modality": "Contratación directa",
+    "signature_date": "2025-01-01",
+    "start_date": null,
+    "end_date": null,
+    "department": "Bogotá D.C.",
+    "city": "Bogotá",
+    "source_url": "https://www.datos.gov.co/d/jbjy-vk9h",
+    "source_link_label": "Conjunto de datos oficial",
+    "retrieved_at": "2026-01-01T00:00:00Z",
+    "source_updated_at": null,
+    "evidence_id": "source-evidence"
+  },
+  "secop": {
+    "company_id": "00000000-0000-0000-0000-000000000001",
+    "company_name": "COMPAÑÍA SINTÉTICA DE INFRAESTRUCTURA Y SERVICIOS ANDINOS S.A.S.",
+    "nit": "000123456",
+    "source_id": "secop",
+    "source_url": "https://www.datos.gov.co/d/jbjy-vk9h",
+    "publisher": "Colombia Compra Eficiente",
+    "outcome": "completed_with_matches",
+    "run_id": "00000000-0000-0000-0000-000000000001",
+    "run_status": "completed",
+    "last_attempted_at": "2026-11-18T15:00:00Z",
+    "last_successful_at": "2026-11-18T15:00:00Z",
+    "source_updated_at": "2026-11-18T15:00:00Z",
+    "cache_age_seconds": 10,
+    "cache_ttl_seconds": 86400,
+    "error_code": null,
+    "warnings": [
+      "Cobertura limitada al conjunto SECOP II de contratos electrónicos; no es un historial completo del Estado."
+    ],
+    "summary": {
+      "total_contracts": 7,
+      "total_values": {
+        "COP": "8137440199.125000"
+      },
+      "monetary_contracts": 7,
+      "missing_or_invalid_values": 0,
+      "unknown_currency_contracts": 0,
+      "zero_value_contracts": 0,
+      "distinct_buyers": 3,
+      "latest_signature_date": "2025-01-01",
+      "annual": [
+        {
+          "label": "2023",
+          "count": 2,
+          "values": {
+            "COP": "1100000000.125000"
+          }
+        },
+        {
+          "label": "2024",
+          "count": 2,
+          "values": {
+            "COP": "2300000000.000000"
+          }
+        },
+        {
+          "label": "2025",
+          "count": 3,
+          "values": {
+            "COP": "4737440199.000000"
+          }
+        }
+      ],
+      "statuses": [
+        {
+          "label": "En ejecución",
+          "count": 5,
+          "values": {
+            "COP": "7737440199.125000"
+          }
+        },
+        {
+          "label": "Aprobado",
+          "count": 1,
+          "values": {
+            "COP": "200000000.000000"
+          }
+        },
+        {
+          "label": "enviado Proveedor",
+          "count": 1,
+          "values": {
+            "COP": "200000000.000000"
+          }
+        }
+      ],
+      "modalities": [
+        {
+          "label": "Contratación directa",
+          "count": 7,
+          "values": {
+            "COP": "8137440199.125000"
+          }
+        }
+      ],
+      "top_buyers": [
+        {
+          "label": "ENTIDAD PÚBLICA SINTÉTICA",
+          "count": 7,
+          "values": {
+            "COP": "8137440199.125000"
+          }
+        }
+      ],
+      "departments": [
+        {
+          "label": "Bogotá D.C.",
+          "count": 1,
+          "values": {
+            "COP": "999999999999999999.123456"
+          }
+        }
+      ],
+      "executive_summary": "Not rendered raw server prose"
+    }
+  },
+  "instrument": {
+    "id": "security",
+    "security_name": "AO EMISOR SINTÉTICO S.A.S.",
+    "security_type_raw": "Acciones ordinarias",
+    "security_category": "common_equity",
+    "ticker": "SOURCE",
+    "isin": null,
+    "ann_code": "CO123456",
+    "issuance_number": "202501",
+    "exchange": "BVC",
+    "rnve_registration_date": "2025-01-01",
+    "bvc_registration_date": null,
+    "listing_status": "unknown",
+    "authorized_amount": "4200000000.125000",
+    "currency": "COP",
+    "credit_rating": "AAA (col)",
+    "source_url": "https://www.superfinanciera.gov.co/source",
+    "last_verified_at": "2026-01-01T00:00:00Z",
+    "stale": false,
+    "source_values": {
+      "Tipo de valor": "Acciones ordinarias",
+      "Texto original": "Search"
+    },
+    "snapshot_id": "00000000-0000-0000-0000-000000000001"
+  },
+  "markets": {
+    "company_id": "00000000-0000-0000-0000-000000000001",
+    "rnve": {
+      "status": "registered_active",
+      "match_status": "verified"
+    },
+    "exchange_listing": {
+      "status": "unknown",
+      "explanation": "",
+      "availability": "available",
+      "match_status": "matched",
+      "quotes": [
+        {
+          "instrument_id": "security",
+          "superfinanciera_code": "CO123456",
+          "ticker": "SINTETICO",
+          "last_price": "1234.50",
+          "raw_price": "1.234,50",
+          "currency": "COP",
+          "isin": null,
+          "reported_state": "Activo",
+          "retrieved_at": "2026-11-18T15:00:00Z",
+          "price_as_of": "2026-11-18T15:00:00Z",
+          "source_url": "https://www.bvc.com.co/",
+          "source_name": "BVC",
+          "variation_percent": "1.25",
+          "volume": "3500000",
+          "match_type": "exact_ann",
+          "matched_value": "CO123456"
+        }
+      ]
+    },
+    "equity_listed": null,
+    "ownership": {
+      "type": "unknown",
+      "verification_status": "not_assessed"
+    },
+    "issuers": [
+      {
+        "id": "synthetic-issuer",
+        "nit": "000123456",
+        "source_nit": "000123456-7",
+        "verification_digit": "7",
+        "issuer_name": "COMPAÑÍA SINTÉTICA DE INFRAESTRUCTURA Y SERVICIOS ANDINOS S.A.S.",
+        "regulator_entity_code": "001",
+        "regulator_entity_type": "001",
+        "regulator_entity_type_description": "SOCIEDAD COMERCIAL",
+        "registration_status": "registered_active",
+        "last_verified_at": "2026-11-18T15:00:00Z",
+        "source_url": "https://www.superfinanciera.gov.co/SIMEV2/rnve/emisoresinscritosvigentes",
+        "match_status": "verified",
+        "snapshot_id": "synthetic-snapshot",
+        "details_availability": "available",
+        "contacts": {
+          "institutional_email": "inversionistas@example.invalid",
+          "address": "DIRECCIÓN SINTÉTICA DE PRUEBA",
+          "city": "BOGOTÁ D.C.",
+          "phone": null,
+          "website": "https://example.invalid",
+          "social_networks": []
+        },
+        "administration": {
+          "board_members_count": 5,
+          "legal_representative": null,
+          "rnve_information_representative": null
+        },
+        "contacts_retrieved_at": "2026-11-18T15:00:00Z",
+        "administration_retrieved_at": "2026-11-18T15:00:00Z"
+      }
+    ],
+    "instruments": [
+      {
+        "id": "security",
+        "security_name": "AO EMISOR SINTÉTICO S.A.S.",
+        "security_type_raw": "Acciones ordinarias",
+        "security_category": "common_equity",
+        "ticker": "SOURCE",
+        "isin": null,
+        "ann_code": "CO123456",
+        "issuance_number": "202501",
+        "exchange": "BVC",
+        "rnve_registration_date": "2025-01-01",
+        "bvc_registration_date": null,
+        "listing_status": "unknown",
+        "authorized_amount": "4200000000.125000",
+        "currency": "COP",
+        "credit_rating": "AAA (col)",
+        "source_url": "https://www.superfinanciera.gov.co/source",
+        "last_verified_at": "2026-01-01T00:00:00Z",
+        "stale": false,
+        "source_values": {
+          "Tipo de valor": "Acciones ordinarias",
+          "Texto original": "Search"
+        },
+        "snapshot_id": "00000000-0000-0000-0000-000000000001"
+      }
+    ],
+    "sources": [
+      {
+        "id": "sfc_rnve_securities",
+        "name": "SFC · Valores inscritos",
+        "institution": "SFC",
+        "source_url": "https://www.superfinanciera.gov.co/",
+        "availability": "available",
+        "last_ingestion_status": "success",
+        "last_error": null,
+        "last_attempt_at": "2026-11-18T15:00:00Z",
+        "last_success_at": "2026-11-18T15:00:00Z",
+        "stale": false,
+        "latest_snapshot": {
+          "id": "synthetic-snapshot",
+          "retrieved_at": "2026-11-18T15:00:00Z",
+          "published_at": "2026-11-18T15:00:00Z",
+          "observed_at": "2026-11-18T15:00:00Z",
+          "complete_current": false,
+          "content_hash": "synthetic-hash"
+        }
+      }
+    ],
+    "securities_availability": "available",
+    "stale": false,
+    "summary": "",
+    "limitations": [
+      "La forma jurídica proviene de RUES y no determina propiedad pública o privada."
+    ],
+    "has_registered_bvc_common_equity": true,
+    "common_equity_record_count": 1
+  },
+  "catalog": {
+    "source_id": "rues",
+    "source_url": "https://www.datos.gov.co/d/c82u-588k",
+    "verified_at": "2026-01-01T00:00:00Z",
+    "dataset_updated_at": null,
+    "note": "",
+    "groups": [
+      {
+        "key": "status",
+        "title": "Registration status",
+        "description": "Status of this registration record, not proof of entity-wide legal standing. Distinct codes remain separate.",
+        "code_field": "codigo_estado_matricula",
+        "label_field": "estado_matricula",
+        "options": [
+          {
+            "value": "01",
+            "code": "01",
+            "label": "ACTIVA"
+          },
+          {
+            "value": "02",
+            "code": "02",
+            "label": "Search"
+          }
+        ]
+      }
+    ]
+  },
+  "records": [
+    {
+      "id": "synthetic-evidence",
+      "external_record_id": "synthetic-registration-row",
+      "source_id": "rues",
+      "source_url": "https://www.datos.gov.co/d/c82u-588k",
+      "retrieved_at": "2026-11-18T15:00:00Z",
+      "source_updated_at": "2026-11-18T15:00:00Z",
+      "payload_hash": "synthetic-audit-hash",
+      "fields": {
+        "razon_social": "COMPAÑÍA SINTÉTICA DE INFRAESTRUCTURA Y SERVICIOS ANDINOS S.A.S.",
+        "estado_matricula": "ACTIVA",
+        "nit": "000123456",
+        "organizacion_juridica": "Sociedad por Acciones Simplificada"
+      },
+      "field_mapping": {
+        "legal_name": "razon_social",
+        "registration_status": "estado_matricula",
+        "nit": "nit"
+      }
+    }
+  ],
+  "contracts": [
+    {
+      "contract_id": "CO1.SYNTHETIC-1",
+      "source_identifier": "source-row",
+      "process_id": "SOURCE-PROCESS",
+      "reference": null,
+      "original_supplier_identifier": "0001234567",
+      "normalized_supplier_identifier": "000123456",
+      "supplier_document_type": "NIT",
+      "match_method": "exact_supplier_nit",
+      "match_status": "verified",
+      "buyer": "ENTIDAD PÚBLICA SINTÉTICA",
+      "buyer_nit": "123456789",
+      "description": "Prestación de servicios de mantenimiento de infraestructura. Registro sintético para revisión de interfaz.",
+      "value": "8137440199.125000",
+      "currency": "COP",
+      "raw_status": "En ejecución",
+      "status": "other",
+      "contract_type": "Prestación de servicios",
+      "modality": "Contratación directa",
+      "signature_date": "2025-01-01",
+      "start_date": null,
+      "end_date": null,
+      "department": "Bogotá D.C.",
+      "city": "Bogotá",
+      "source_url": "https://www.datos.gov.co/d/jbjy-vk9h",
+      "source_link_label": "Conjunto de datos oficial",
+      "retrieved_at": "2026-01-01T00:00:00Z",
+      "source_updated_at": null,
+      "evidence_id": "source-evidence"
+    },
+    {
+      "contract_id": "CO1.SYNTHETIC-2",
+      "source_identifier": "source-row",
+      "process_id": "SOURCE-PROCESS",
+      "reference": null,
+      "original_supplier_identifier": "0001234567",
+      "normalized_supplier_identifier": "000123456",
+      "supplier_document_type": "NIT",
+      "match_method": "exact_supplier_nit",
+      "match_status": "verified",
+      "buyer": "ENTIDAD PÚBLICA SINTÉTICA",
+      "buyer_nit": "123456789",
+      "description": "Prestación de servicios de mantenimiento de infraestructura. Registro sintético para revisión de interfaz.",
+      "value": "8137440199.125000",
+      "currency": "COP",
+      "raw_status": "En ejecución",
+      "status": "other",
+      "contract_type": "Prestación de servicios",
+      "modality": "Contratación directa",
+      "signature_date": "2025-01-01",
+      "start_date": null,
+      "end_date": null,
+      "department": "Bogotá D.C.",
+      "city": "Bogotá",
+      "source_url": "https://www.datos.gov.co/d/jbjy-vk9h",
+      "source_link_label": "Conjunto de datos oficial",
+      "retrieved_at": "2026-01-01T00:00:00Z",
+      "source_updated_at": null,
+      "evidence_id": "source-evidence"
+    },
+    {
+      "contract_id": "CO1.SYNTHETIC-3",
+      "source_identifier": "source-row",
+      "process_id": "SOURCE-PROCESS",
+      "reference": null,
+      "original_supplier_identifier": "0001234567",
+      "normalized_supplier_identifier": "000123456",
+      "supplier_document_type": "NIT",
+      "match_method": "exact_supplier_nit",
+      "match_status": "verified",
+      "buyer": "ENTIDAD PÚBLICA SINTÉTICA",
+      "buyer_nit": "123456789",
+      "description": "Prestación de servicios de mantenimiento de infraestructura. Registro sintético para revisión de interfaz.",
+      "value": "8137440199.125000",
+      "currency": "COP",
+      "raw_status": "En ejecución",
+      "status": "other",
+      "contract_type": "Prestación de servicios",
+      "modality": "Contratación directa",
+      "signature_date": "2025-01-01",
+      "start_date": null,
+      "end_date": null,
+      "department": "Bogotá D.C.",
+      "city": "Bogotá",
+      "source_url": "https://www.datos.gov.co/d/jbjy-vk9h",
+      "source_link_label": "Conjunto de datos oficial",
+      "retrieved_at": "2026-01-01T00:00:00Z",
+      "source_updated_at": null,
+      "evidence_id": "source-evidence"
+    },
+    {
+      "contract_id": "CO1.SYNTHETIC-4",
+      "source_identifier": "source-row",
+      "process_id": "SOURCE-PROCESS",
+      "reference": null,
+      "original_supplier_identifier": "0001234567",
+      "normalized_supplier_identifier": "000123456",
+      "supplier_document_type": "NIT",
+      "match_method": "exact_supplier_nit",
+      "match_status": "verified",
+      "buyer": "ENTIDAD PÚBLICA SINTÉTICA",
+      "buyer_nit": "123456789",
+      "description": "Prestación de servicios de mantenimiento de infraestructura. Registro sintético para revisión de interfaz.",
+      "value": "8137440199.125000",
+      "currency": "COP",
+      "raw_status": "En ejecución",
+      "status": "other",
+      "contract_type": "Prestación de servicios",
+      "modality": "Contratación directa",
+      "signature_date": "2025-01-01",
+      "start_date": null,
+      "end_date": null,
+      "department": "Bogotá D.C.",
+      "city": "Bogotá",
+      "source_url": "https://www.datos.gov.co/d/jbjy-vk9h",
+      "source_link_label": "Conjunto de datos oficial",
+      "retrieved_at": "2026-01-01T00:00:00Z",
+      "source_updated_at": null,
+      "evidence_id": "source-evidence"
+    },
+    {
+      "contract_id": "CO1.SYNTHETIC-5",
+      "source_identifier": "source-row",
+      "process_id": "SOURCE-PROCESS",
+      "reference": null,
+      "original_supplier_identifier": "0001234567",
+      "normalized_supplier_identifier": "000123456",
+      "supplier_document_type": "NIT",
+      "match_method": "exact_supplier_nit",
+      "match_status": "verified",
+      "buyer": "ENTIDAD PÚBLICA SINTÉTICA",
+      "buyer_nit": "123456789",
+      "description": "Prestación de servicios de mantenimiento de infraestructura. Registro sintético para revisión de interfaz.",
+      "value": "8137440199.125000",
+      "currency": "COP",
+      "raw_status": "En ejecución",
+      "status": "other",
+      "contract_type": "Prestación de servicios",
+      "modality": "Contratación directa",
+      "signature_date": "2025-01-01",
+      "start_date": null,
+      "end_date": null,
+      "department": "Bogotá D.C.",
+      "city": "Bogotá",
+      "source_url": "https://www.datos.gov.co/d/jbjy-vk9h",
+      "source_link_label": "Conjunto de datos oficial",
+      "retrieved_at": "2026-01-01T00:00:00Z",
+      "source_updated_at": null,
+      "evidence_id": "source-evidence"
+    },
+    {
+      "contract_id": "CO1.SYNTHETIC-6",
+      "source_identifier": "source-row",
+      "process_id": "SOURCE-PROCESS",
+      "reference": null,
+      "original_supplier_identifier": "0001234567",
+      "normalized_supplier_identifier": "000123456",
+      "supplier_document_type": "NIT",
+      "match_method": "exact_supplier_nit",
+      "match_status": "verified",
+      "buyer": "ENTIDAD PÚBLICA SINTÉTICA",
+      "buyer_nit": "123456789",
+      "description": "Prestación de servicios de mantenimiento de infraestructura. Registro sintético para revisión de interfaz.",
+      "value": "8137440199.125000",
+      "currency": "COP",
+      "raw_status": "En ejecución",
+      "status": "other",
+      "contract_type": "Prestación de servicios",
+      "modality": "Contratación directa",
+      "signature_date": "2025-01-01",
+      "start_date": null,
+      "end_date": null,
+      "department": "Bogotá D.C.",
+      "city": "Bogotá",
+      "source_url": "https://www.datos.gov.co/d/jbjy-vk9h",
+      "source_link_label": "Conjunto de datos oficial",
+      "retrieved_at": "2026-01-01T00:00:00Z",
+      "source_updated_at": null,
+      "evidence_id": "source-evidence"
+    },
+    {
+      "contract_id": "CO1.SYNTHETIC-7",
+      "source_identifier": "source-row",
+      "process_id": "SOURCE-PROCESS",
+      "reference": null,
+      "original_supplier_identifier": "0001234567",
+      "normalized_supplier_identifier": "000123456",
+      "supplier_document_type": "NIT",
+      "match_method": "exact_supplier_nit",
+      "match_status": "verified",
+      "buyer": "ENTIDAD PÚBLICA SINTÉTICA",
+      "buyer_nit": "123456789",
+      "description": "Prestación de servicios de mantenimiento de infraestructura. Registro sintético para revisión de interfaz.",
+      "value": "8137440199.125000",
+      "currency": "COP",
+      "raw_status": "En ejecución",
+      "status": "other",
+      "contract_type": "Prestación de servicios",
+      "modality": "Contratación directa",
+      "signature_date": "2025-01-01",
+      "start_date": null,
+      "end_date": null,
+      "department": "Bogotá D.C.",
+      "city": "Bogotá",
+      "source_url": "https://www.datos.gov.co/d/jbjy-vk9h",
+      "source_link_label": "Conjunto de datos oficial",
+      "retrieved_at": "2026-01-01T00:00:00Z",
+      "source_updated_at": null,
+      "evidence_id": "source-evidence"
+    }
+  ],
+  "platform": {
+    "checked_at": "2026-11-18T15:00:00Z",
+    "counts": {
+      "registrations": 1234567,
+      "source_records": 2345678,
+      "issuers": 307,
+      "instruments": 7251,
+      "snapshots": 9876,
+      "verified_links": 185,
+      "screening_runs": 214,
+      "secop_contracts": 12589
+    },
+    "directory_missing": false,
+    "import_access": "local",
+    "parameter_verified_at": "2026-11-18T15:00:00Z",
+    "parameter_options": 250,
+    "rues": {
+      "id": "rues",
+      "name": "RUES / Confecámaras",
+      "description": "Official Colombian business registration records, including natural persons and ESALs.",
+      "provider": "Confecámaras",
+      "dataset_url": "https://www.datos.gov.co/d/c82u-588k",
+      "last_checked_at": "2026-11-18T15:00:00Z",
+      "last_updated_at": "2026-11-18T15:00:00Z",
+      "enabled": true,
+      "availability": "available"
+    },
+    "sources": [
+      {
+        "id": "sfc_rnve_securities",
+        "name": "SFC · Valores inscritos",
+        "institution": "SFC",
+        "source_url": "https://www.superfinanciera.gov.co/",
+        "availability": "available",
+        "last_ingestion_status": "success",
+        "last_error": null,
+        "last_attempt_at": "2026-11-18T15:00:00Z",
+        "last_success_at": "2026-11-18T15:00:00Z",
+        "stale": false,
+        "latest_snapshot": {
+          "id": "synthetic-snapshot",
+          "retrieved_at": "2026-11-18T15:00:00Z",
+          "published_at": "2026-11-18T15:00:00Z",
+          "observed_at": "2026-11-18T15:00:00Z",
+          "complete_current": false,
+          "content_hash": "synthetic-hash"
+        }
+      }
+    ],
+    "secop": {
+      "status": "completed",
+      "last_attempt_at": "2026-11-18T15:00:00Z",
+      "last_success_at": "2026-11-18T15:00:00Z",
+      "source_updated_at": "2026-11-18T15:00:00Z",
+      "max_rows": 5000,
+      "cache_hours": 24
+    }
+  }
+}

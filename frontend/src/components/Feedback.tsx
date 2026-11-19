@@ -51,7 +51,6 @@ export function SearchLoadingDialog() {
       className="search-loading-dialog"
       aria-labelledby="search-loading-title"
       aria-describedby="search-loading-description"
-      onCancel={(event) => event.preventDefault()}
     >
       <img
         className="search-loading-animation"
@@ -70,6 +69,13 @@ export function SearchLoadingDialog() {
           {t('feedback.searchingOfficialCompanyRecordsPleaseWait')}
         </p>
       </div>
+      <button
+        type="button"
+        className="refresh-button search-loading-dismiss"
+        onClick={() => dialog.current?.close()}
+      >
+        {t('feedback.continueBrowsing')}
+      </button>
     </dialog>
   )
 }

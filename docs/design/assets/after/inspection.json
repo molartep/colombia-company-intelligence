@@ -1,0 +1,1085 @@
+{
+  "phase": "after",
+  "data": "synthetic API fixtures; actual application rendering",
+  "screens": [
+    {
+      "name": "home",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "home-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "results",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "results-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "overview",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "overview-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "sources",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "sources-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "markets",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "markets-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "secop",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "secop-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "contract-detail",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "contract-detail-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "parameters",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "parameters-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "references",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "references-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "empty-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "error",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "error-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "loading-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "stale",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "stale-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "home",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "results",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "overview",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "sources",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "markets",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "secop",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "contract-detail",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "parameters",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "references",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "error",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "stale",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Skip to content",
+          "w": 96,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "home",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "results",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "overview",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "sources",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "markets",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "secop",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "contract-detail",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "parameters",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "references",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "error",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "stale",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "home",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "home-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "results",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "results-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "overview",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "overview-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "sources",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "sources-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "markets",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "markets-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "secop",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "secop-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "contract-detail",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "contract-detail-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "parameters",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "parameters-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "references",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "references-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "empty-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "error",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "error-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        },
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "loading-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "stale",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "stale-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Saltar al contenido",
+          "w": 119,
+          "h": 22
+        }
+      ]
+    }
+  ],
+  "browser_errors": [],
+  "contrast_samples": [
+    {
+      "text": "ACTIVA",
+      "foreground": "rgb(22, 101, 52)",
+      "background": "rgb(240, 253, 244)",
+      "ratio": 6.811651629293788
+    },
+    {
+      "text": "Legal name",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Legal organization",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Primary CIIU code",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Registration number",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Chamber of Commerce",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Registration date",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Renewal date",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Last renewed year",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "ACTIVA",
+      "foreground": "rgb(22, 101, 52)",
+      "background": "rgb(240, 253, 244)",
+      "ratio": 6.811651629293788
+    },
+    {
+      "text": "Legal name",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Legal organization",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Primary CIIU code",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Registration number",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Chamber of Commerce",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Registration date",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Renewal date",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Last renewed year",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "ACTIVA",
+      "foreground": "rgb(22, 101, 52)",
+      "background": "rgb(240, 253, 244)",
+      "ratio": 6.811651629293788
+    },
+    {
+      "text": "Razón social",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Organización jurídica",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Código CIIU principal",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Matrícula",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Cámara de Comercio",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Fecha de matrícula",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Fecha de renovación",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Último año renovado",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "ACTIVA",
+      "foreground": "rgb(22, 101, 52)",
+      "background": "rgb(240, 253, 244)",
+      "ratio": 6.811651629293788
+    },
+    {
+      "text": "Razón social",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Organización jurídica",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Código CIIU principal",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Matrícula",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Cámara de Comercio",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Fecha de matrícula",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Fecha de renovación",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    },
+    {
+      "text": "Último año renovado",
+      "foreground": "rgb(95, 113, 108)",
+      "background": "rgb(255, 255, 255)",
+      "ratio": 5.165833010247794
+    }
+  ]
+}

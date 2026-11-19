@@ -1,0 +1,67 @@
+# UI/UX audit — Colombia Company Intelligence
+
+Baseline: 2026-11-19, commit `95b5f59`. Expert evaluation, not participant research or a WCAG conformance certification. This audit was written before interface changes. Implementation results are tracked separately below.
+
+## Evidence and method
+
+The running React/Vite application and FastAPI health endpoint both returned HTTP 200. Playwright rendered **52 cases**: 13 screens/states × English/Spanish × 1440px desktop/390px mobile. The app was evaluated through its real components and router, with synthetic, deterministic API responses to isolate UI behavior from publisher outages. No fixture is shipped as application data. **26 baseline screenshots** are in [assets/before](assets/before); the remaining combinations were inspected programmatically without redundant image files. The same fixture and matrix are reused after changes.
+
+Reviewed: home/search form, populated results, long-name Overview, expanded source records, populated Capital Markets and securities, SECOP summary/charts/table, contract detail, Parameters, Platform References, search loading, source timeout, zero results, and stale SECOP results. Both locales preserved original synthetic Spanish source values. Baseline frontend suite: **121 passing tests**.
+
+Primary journey: enter a NIT/name → inspect registration-scoped search results → open the company → preserve its identity while moving between Overview, Capital Markets and Government Contracts → inspect freshness, evidence and source records. Secondary journeys include filters/catalog lookup and source refresh/error recovery.
+
+Reference framework: [Nielsen’s usability heuristics](https://www.nngroup.com/articles/ten-usability-heuristics/) and [WCAG 2.2](https://www.w3.org/TR/WCAG22/) (particularly 1.4.3, 1.4.10, 1.4.11, 1.4.13, 2.1.1, 2.4.7, 2.4.11 and 2.5.8). Gestalt proximity/similarity inform grouping; financial dashboards require readable, aligned quantities and explicit units.
+
+## Prioritized findings
+
+P1 = implement now; P2 = small improvement after P1; P3 = defer for research or broader scope. No critical business-logic defects were found in this visual audit.
+
+| Screen/component | Identified issue | Principle | User impact | Severity | Recommended improvement | Priority | Expected benefit |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Shared metadata and table headers | Muted `#71807e` on white is about 4.12:1; table header `#6b7e74` on `#eef2ef` about 3.82:1. Small attribution text is weaker still. | WCAG 1.4.3; hierarchy | Freshness and column labels are difficult to read. Functional accessibility issue. | High | Darker semantic secondary text tokens; verify actual contrast pairs. | P1 | Readable evidence and financial labels. |
+| Shared typography | Badges at 9px, table headings at 10px and metadata at 11px compete with essential research details. | Recognition; legibility | Users zoom or overlook source context. | High | 12px metadata/badges, 13px table/body labels, restrained 14px body scale. Preserve table density. | P1 | Clearer scanning without a card-heavy redesign. |
+| Search input focus | The actual search input removes its outline; its container focus change is subtle. | WCAG 2.4.7; system status | Keyboard users can lose the active field. | High | A visible focus-within ring on the search control; consistent focus tokens on controls. | P1 | Obvious keyboard location. |
+| Search loading dialog | Modal blocks all navigation, has no visible exit, and explicitly prevents Escape. | User control/freedom; keyboard usability | A slow source traps users until the request finishes. | High | Add a localized Continue browsing action and permit native Escape; keep the request and an inline loading status running. | P1 | Users can leave the overlay without changing search semantics. |
+| Info tooltips and compact actions | Info buttons measure 22×22px; contract actions about 18px high; profile copy control is small. | WCAG 2.5.8; efficiency | Fiddly touch and keyboard controls. | Medium | 32px info buttons, 40px standard actions/44px mobile primary controls; preserve compact tables. | P1 | Easier interaction and fewer misses. |
+| Tooltip behavior | Hover/focus disclosure has no Escape dismissal. | WCAG 1.4.13; user control | A tooltip can cover nearby content while focused. | Medium | Escape dismisses until focus/hover leaves; retain accessible descriptions. | P1 | Predictable, dismissible guidance. |
+| Capital Markets securities table | Wide scroll area lacks the named, focusable region used by search and SECOP tables. | Consistency; keyboard access | Keyboard users have less reliable access to offscreen columns. | High | Name/focus the region, retain native scrolling, add shared mobile scroll guidance. | P1 | Equivalent table access across sources. |
+| Money and dates in tables | Amounts are left aligned; SECOP dates can wrap awkwardly. | Gestalt similarity; dashboard scanning | Harder to compare financial values and distinguish dates. | Medium | Right-align monetary columns with tabular numerals; keep dates together and amounts fully available. | P1 | More dependable comparison without altering any number. |
+| Mobile wide tables | Native horizontal scrolling works, but offscreen columns are not explained. | Recognition rather than recall | First-time users may not discover contract value/source columns. | Medium | Localized mobile horizontal-scroll hint, keyboard focus and sticky headers. | P2 | Discoverable dense tables, without replacing them with duplicate cards. |
+| Profile hierarchy and header | A roughly 197px desktop header and large long-name title push useful evidence below the initial viewport. | Minimalism; information priority | Slower first scan, especially for long legal names. Aesthetic/usability tradeoff. | Medium | Modestly compact the same black header/logo and title scale; keep full names and navigation. | P2 | More data visible while preserving brand recognition. |
+| Labels and component styling | `dt` forces title case (e.g. “Fecha De Matrícula”); control borders, radii, weights and spacing vary. | Consistency; real-world language | Spanish labels feel mechanical; inconsistent affordances. | Medium | Preserve catalog casing; unify existing components with semantic tokens. | P2 | More professional bilingual interface. |
+| Charts and KPIs | Full-precision values may wrap at small widths; native meters already have labels and exact values. | Accuracy; progressive disclosure | Long amounts need more breathing room, but rounding would conceal evidence. | Medium | Tabular numerals, deliberate line heights and minimum widths; keep the 2×2 KPI grid and all digits. | P2 | More readable metrics without misleading scales or currency conversion. |
+| Styling architecture | 2,000-line stylesheet contains many near-identical hardcoded colors and sizes; no authoritative design contract. | Consistency; maintainability | New screens drift and regressions repeat. | Medium | Central semantic tokens, documented component rules and agent guidance. | P1 | Repeatable, cohesive development. |
+| Search home guidance | Product purpose is communicated mainly by the brand and the form; no visible introductory page heading. | Help/guidance; minimalist design | First-time comprehension could improve. | Low | Preserve the familiar compact search; validate a concise introduction with real users before adding marketing copy. | P3 | Avoid speculative copy/layout changes. |
+| Missing/cancelled badges | Both use red accents, but explicit labels distinguish missing data from reported cancellation. | Evidence interpretation | Color could be mistaken for a risk judgement. | Medium | Preserve existing explicit statuses in this pass; document colors as data/operational states, never company risk. Consider neutral missing-data treatment with product approval. | P3 | Avoid undoing an established user preference or implying new findings. |
+| Mobile tabs | Later profile sections require native horizontal scrolling. | Recognition; efficiency | Government Contracts may initially be offscreen. | Low | Preserve order/scrolling; larger targets and visible focus. Research a stronger overflow cue before navigation redesign. | P3 | Retains users’ navigation model. |
+
+## What already works and must remain
+
+- The black brand header and existing Colombia network logo are distinctive. Keep the assets and palette direction.
+- Search by NIT/name, URL-preserved filters, five-contract pagination and return-to-search state support research continuity.
+- Exact supplier identity, original source statuses/descriptions, precise currency strings, independent source states and freshness timestamps support trust. No business or data logic changes are justified.
+- Existing source cards, methodology and workflow disclosures use progressive disclosure effectively. Retain native details/summary behavior.
+- Separate unavailable, no-match, stale and missing-identity outcomes prevent false negative findings.
+- EN/ES persistence, date/number helpers, source links, metric definitions, responsive diagrams and the existing 2×2 SECOP summary are useful foundations.
+- Quiet borders, restrained green/teal accents and native table scrolling suit a professional intelligence platform. Do not add gradients, decorative animation or a new theme system.
+
+## Scope limits and remaining research
+
+This is an expert review with deterministic fixtures, not interviews, task-success measurements or an assistive-technology certification. Live supplier datasets were not re-queried to evaluate visual states. Publisher timing, authentication and schema behavior are covered by existing integration tests, not screenshots. The visual fixture uses public-style synthetic values and `.invalid` contacts; it is never a real company finding or promotional evidence of actual contracts. Screen reader announcements should receive a future manual NVDA/VoiceOver pass. Only light mode exists; no dark-mode system is introduced. Extremely large portfolios and long values are stress cases, not representative research findings.
+
+## Implementation and final validation
+
+Implemented all P1/P2 recommendations in the table: semantic tokens; readable text/headers/badges; coherent radii, spacing, weights and control heights; compact existing desktop masthead; visible search focus; dismissible search overlay plus continuing inline progress; Escape-dismissable tooltips; named/focusable securities scroll region; mobile scroll hints; aligned precise monetary cells and unbroken dates; native meter colors; single-line KPI fitting without dropping digits; and preserved catalog casing. The missing/cancelled badge convention, home introduction and profile-tab overflow changes remain P3 recommendations as recorded above.
+
+**Validation:** 127 frontend tests pass, including tooltip dismissal and dismissing a search overlay while the same request completes. Lint, type checking, formatting and production build pass. The unchanged backend suite reports 229 passed / 65 optional database/browser tests skipped in this run; no API, schema, connector, matching or financial arithmetic changed. The build retains the pre-existing bundle-size advisory.
+
+The final Playwright matrix passes 52 primary rendered cases at 390px/1440px, with **26 after screenshots** and no browser errors or page-wide overflow. A further **52 cases at 320px/768px** pass in both languages. Keyboard checks cover skip link → main → search, submission → original company profile, focused tooltip + Escape, native modal Escape while progress continues, and SECOP pagination. Source descriptions and original records remain untouched. The explicitly approved SECOP status/entity/modality display labels use uppercase while API values retain originals; locale-formatted decimal totals retain every digit. Reduced-motion uses the static search icon. See [after inspection](assets/after/inspection.json) and [narrow-width inspection](assets/narrow-inspection.json).
+
+Measured text contrast now: muted text on white **5.17:1**, on the canvas **4.85:1**, on selected surfaces **4.62:1**; secondary text on white **6.13:1**. Input borders on white are **3.51:1**, focus outline on white **5.05:1**. Browser samples use actual computed text/background colors; these checks cover representative pairs, not every possible composition or an accessibility certification.
+
+Prioritized next recommendations: (1) manual NVDA/VoiceOver testing and task-based testing with first-time EN/ES researchers; (2) validate mobile tab/column discovery before changing navigation; (3) evaluate a neutral Missing convention with the product owner, retaining explicit source semantics. Code-splitting the existing large JS chunk is a separate performance task, not a visual redesign.
+
+
+### Follow-up presentation rules
+
+The subsequent product refinement establishes: currency amounts never wrap; shared-currency sections declare the code in their heading/column; `FitMetricValue` fits exact summary values to one line; SECOP status, entity and modality alone use uppercase display with original filter values preserved; filter options and status distributions are alphabetical. Chart lists reserve a scrollbar gutter and 20px end padding. These deliberate rules supersede the baseline’s original-case display and soft-break recommendations. See manual v1.1 and the refreshed after-state captures.

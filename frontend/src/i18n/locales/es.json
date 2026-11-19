@@ -155,7 +155,8 @@
     "de": "de",
     "siguiente": "Siguiente →",
     "rnveBolsaNoInformada": "RNVE; bolsa no informada",
-    "obtenido2": "Obtenido:"
+    "obtenido2": "Obtenido:",
+    "securitiesTable": "Tabla de valores registrados"
   },
   "provenance": {
     "dataSourceInformation": "Información de las fuentes",
@@ -222,8 +223,9 @@
     "contractsFound_other": "{{count}} contratos encontrados",
     "contractCount_one": "{{count}} contrato",
     "contractCount_other": "{{count}} contratos",
-    "contractsIncluded_one": "{{count}} contrato incluido en sumas",
-    "contractsIncluded_other": "{{count}} contratos incluidos en sumas"
+    "contractsIncluded_one": "{{count}} contrato incluido en los totales",
+    "contractsIncluded_other": "{{count}} contratos incluidos en los totales",
+    "scrollTable": "Desplázate horizontalmente para ver todas las columnas."
   },
   "feedback": {
     "theRnveIssuerDirectoryNeedsImporting": "Es necesario importar el directorio RNVE de emisores.",
@@ -233,7 +235,8 @@
     "retrievingResults": "Recuperando resultados",
     "searchingOfficialCompanyRecordsPleaseWait": "Buscando registros oficiales de empresas. Espera un momento…",
     "refreshing": "Actualizando…",
-    "refreshData": "Actualizar datos"
+    "refreshData": "Actualizar datos",
+    "continueBrowsing": "Seguir navegando"
   },
   "fields": {
     "missing": "Ausente",
@@ -258,7 +261,7 @@
       "ciiu_description": "Descripción CIIU",
       "securities_listing": "Listado de valores",
       "financials": "Información financiera",
-      "screening": "Contratos con el Estado",
+      "screening": "Contratos con el Gobierno",
       "ownership": "Propiedad",
       "present": "Presente",
       "missing_from_record": "Ausente en el registro",
@@ -375,7 +378,7 @@
     "anterior": "← Anterior",
     "de": "de",
     "siguiente": "Siguiente →",
-    "governmentContractsSecopIi": "CONTRATOS CON EL ESTADO · SECOP II",
+    "governmentContractsSecopIi": "CONTRATOS CON EL GOBIERNO · SECOP II",
     "secopIiContratacionPublica": "SECOP II — Contratación Pública",
     "nit": "· NIT:",
     "noConfirmado": "No confirmado",
@@ -392,14 +395,14 @@
     "conjuntoDeDatosOficial": "Conjunto de datos oficial ↗",
     "actualizarConsulta": "Actualizar consulta",
     "consultarSecop": "Consultar SECOP",
-    "contratosIncluidosEnSumas": "contratos incluidos en sumas ·",
+    "contratosIncluidosEnSumas": "contratos incluidos en los totales ·",
     "sinMoneda": "sin moneda ·",
     "sinValorValido3": "sin valor válido ·",
     "conValorCero": "con valor cero.",
     "contratosPorEstado": "Contratos por estado",
     "valorContractualAnualCop": "Valor contractual anual (COP)",
-    "cincoEntidadesPorValorContractualCop": "Cinco entidades por valor contractual (COP)",
-    "valoresExpresadosEnPesosColombianosCopPorConfiguracionDeLa": "Valores expresados en pesos colombianos (COP) por configuración de la aplicación. Son valores contractuales reportados, no pagos ni ingresos.",
+    "cincoEntidadesPorValorContractualCop": "Top cinco entidades por valor contractual (COP)",
+    "valoresExpresadosEnPesosColombianosCopPorConfiguracionDeLa": "Valores contractuales reportados, no representan pagos ni ingresos.",
     "metodologiaYAlcance": "Metodología y alcance",
     "coincidenciaExactaDelNitDelProveedorNuncaPorSimilitudDe": "Coincidencia exacta del NIT del proveedor, nunca por similitud de nombre ni por el NIT de la entidad compradora.",
     "matchMethods": {
@@ -409,7 +412,10 @@
       "verified": "Verificado"
     },
     "valueValueContratos_one": "{{value0}}: {{count}} contrato",
-    "valueValueContratos_other": "{{value0}}: {{count}} contratos"
+    "valueValueContratos_other": "{{value0}}: {{count}} contratos",
+    "annualContractValue": "Valor contractual anual",
+    "topFiveBuyersByValue": "Top cinco entidades por valor contractual",
+    "updatingPreviousResults": "Actualizando… Resultados anteriores."
   },
   "search": {
     "search": "Buscar",
@@ -546,10 +552,10 @@
       "other": "Registros almacenados en la base de datos para esta métrica."
     },
     "secopReadiness": {
-      "title": "SECOP II · Contratos con el Estado",
+      "title": "SECOP II · Contratos con el Gobierno",
       "unavailable": "Información de estado no disponible",
       "scope": "Última consulta entre todas las empresas; no es un historial completo de contratación pública.",
-      "dependency": "Bajo demanda desde Contratos con el Estado, con NIT verificado del proveedor. Independiente de las importaciones RNVE.",
+      "dependency": "Bajo demanda desde Contratos con el Gobierno, con NIT verificado del proveedor. Independiente de las importaciones RNVE.",
       "policy": "Cache exitosa: {{hours}} horas · Límite: {{rows}} filas. Superar el límite hace fallar la consulta; no se publican totales parciales.",
       "states": {
         "not_yet_checked": "Aún no consultado",
@@ -560,7 +566,7 @@
       }
     },
     "secopWorkflow": {
-      "title": "6. Contratos con el Estado: coincidencia exacta del proveedor",
+      "title": "6. Contratos con el Gobierno: coincidencia exacta del proveedor",
       "body": "La empresa necesita un NIT base verificado de nueve dígitos. Una consulta o actualización explícita solicita contratos electrónicos SECOP II mediante filtros Socrata en el servidor sobre la identificación del proveedor, nunca de la entidad contratante. Los identificadores de nueve dígitos coinciden con el NIT base; los de diez deben coincidir también con el DV confirmado. El nombre por sí solo no establece coincidencia.",
       "detail": "La consulta acotada y ordenada valida el esquema y los identificadores exactos, deduplica versiones de contratos y guarda una consulta con su evidencia. El límite configurable es de 5.000 filas por defecto; superarlo hace fallar la consulta y muestra una alerta sin publicar totales parciales. Las sumas decimales en COP incluyen solo contratos verificados sin duplicados; son valores contractuales reportados, no pagos ni ingresos. Los resultados exitosos usan una cache independiente (24 horas por defecto). Se bloquean actualizaciones simultáneas; los fallos y límites de tiempo conservan evidencia exitosa anterior con una advertencia de desactualización. No encontrar coincidencias es distinto de no poder consultar."
     },
@@ -575,7 +581,7 @@
       "ruesBody": "Búsqueda de empresas y evidencia registral",
       "marketsTitle": "Mercado de capitales · SFC / BVC",
       "marketsBody": "Reportes RNVE; cotizaciones de BVC → La República → SFC",
-      "secopTitle": "Contratos con el Estado · SECOP II",
+      "secopTitle": "Contratos con el Gobierno · SECOP II",
       "secopBody": "Consulta por NIT del proveedor; independiente de Mercado de capitales",
       "selectCompany": "Buscar empresa → conservar su identidad registral verificada → seleccionar fuente",
       "ruesStep1": "Consulta selectiva por nombre / NIT",
@@ -603,7 +609,7 @@
     "financials": "Información financiera",
     "comingLater": "Próximamente",
     "corporateEvents": "Eventos corporativos",
-    "governmentContracts": "Contratos con el Estado",
+    "governmentContracts": "Contratos con el Gobierno",
     "verifiedSourceFields": "CAMPOS VERIFICADOS DE LA FUENTE",
     "companyIdentity": "Identidad de la empresa",
     "legalName": "Razón social",

@@ -503,3 +503,27 @@ test('Overview source information is initially collapsed and can refresh the ori
   expect(paths).toContain('/api/v1/companies/synthetic-id?refresh=true')
   expect(paths.filter((path) => path.endsWith('/sources')).length).toBeGreaterThanOrEqual(2)
 })
+
+test('search loading can be dismissed while the same request continues and later completes', async () => {
+  let finish!: (value: unknown) => void
+  const fetcher = vi.fn(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve
+      }),
+  )
+  vi.stubGlobal('fetch', fetcher)
+  wrapper(<Search />)
+  await userEvent.type(screen.getByLabelText('Company name or NIT'), 'SYNTHETIC')
+  await userEvent.click(screen.getAllByRole('button', { name: /Search/ })[0]!)
+  const dialog = await screen.findByRole('dialog', { name: 'Retrieving results' })
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Continue browsing' }))
+  expect(dialog).not.toHaveAttribute('open')
+  expect(screen.getByText('Consulting official records…')).toBeVisible()
+  expect(fetcher).toHaveBeenCalledOnce()
+  await act(async () =>
+    finish({ ok: true, json: async () => ({ items: [], has_more: false, page: 1 }) }),
+  )
+  expect(await screen.findByText('No matching registrations')).toBeVisible()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+})

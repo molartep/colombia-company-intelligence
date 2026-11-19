@@ -7,7 +7,7 @@ import { readFilters, filterParams, searchKey } from '../api/filters'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
-import { Failure, SearchLoadingDialog, RefreshAlert } from '../components/Feedback'
+import { Failure, Loading, SearchLoadingDialog, RefreshAlert } from '../components/Feedback'
 import { RegistrationStatus } from '../components/RegistrationStatus'
 import { SearchForm } from '../components/SearchForm'
 import { RegistrationDate } from '../components/FieldValues'
@@ -104,7 +104,14 @@ export function Search() {
               </span>
             )}
           </div>
-          {results.isFetching && <SearchLoadingDialog />}
+          {results.isFetching && (
+            <>
+              <div className="search-loading-inline">
+                <Loading />
+              </div>
+              <SearchLoadingDialog />
+            </>
+          )}
           {results.isError && (
             <Failure error={results.error} retry={() => void results.refetch()} />
           )}
@@ -137,8 +144,12 @@ export function Search() {
                 </div>
               ) : (
                 <>
+                  <p className="table-scroll-hint" id="search-scroll-hint">
+                    {t('common.scrollTable')}
+                  </p>
                   <div
                     className="table-wrap search-table-wrap"
+                    aria-describedby="search-scroll-hint"
                     role="region"
                     aria-label={t('search.companySearchResultsTable')}
                     tabIndex={0}
@@ -215,6 +226,7 @@ export function Search() {
                             </td>
                             <td>
                               <Link
+                                className="profile-open-link"
                                 aria-label={t('search.viewValue', { value0: company.legal_name })}
                                 to={`/companies/${company.id}`}
                                 state={navigationState}

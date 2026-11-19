@@ -1,4 +1,5 @@
 import { formatNumber } from '../i18n/format'
+import { FitMetricValue } from './FitMetricValue'
 import { uiMessage, errorMessage } from '../i18n/messages'
 import { formatCurrency, formatDecimal } from '../i18n/format'
 import { t, useLanguage } from '../i18n'
@@ -355,11 +356,13 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                     </span>
                     <p className="bvc-price">
                       {quote.last_price !== null ? (
-                        quote.currency ? (
-                          formatCurrency(quote.last_price, quote.currency)
-                        ) : (
-                          formatDecimal(quote.last_price)
-                        )
+                        <FitMetricValue
+                          value={
+                            quote.currency
+                              ? formatCurrency(quote.last_price, quote.currency)
+                              : formatDecimal(quote.last_price)
+                          }
+                        />
                       ) : (
                         <MissingValue />
                       )}
@@ -693,7 +696,16 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                     : t('capitalMarkets.recordsFound')}
                 </p>
                 {instruments.length ? (
-                  <div className="table-wrap">
+                  <div
+                    className="table-wrap instruments-table-wrap"
+                    role="region"
+                    tabIndex={0}
+                    aria-label={t('capitalMarkets.securitiesTable')}
+                    aria-describedby="securities-scroll-hint"
+                  >
+                    <p className="table-scroll-hint" id="securities-scroll-hint">
+                      {t('common.scrollTable')}
+                    </p>
                     <table className="instruments-table">
                       <thead>
                         <tr>
@@ -702,7 +714,7 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                           <th>{t('capitalMarkets.mercadoRegistrado')}</th>
                           <th>{t('capitalMarkets.fechasDeInscripcion')}</th>
                           <th>{t('capitalMarkets.estado')}</th>
-                          <th>{t('capitalMarkets.importe')}</th>
+                          <th className="numeric-cell">{t('capitalMarkets.importe')}</th>
                           <th>{t('capitalMarkets.calificacionReportada')}</th>
                           <th>{t('capitalMarkets.fuente2')}</th>
                         </tr>
@@ -759,7 +771,7 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                                 </p>
                               )}
                             </td>
-                            <td>
+                            <td className="numeric-cell">
                               {instrument.authorized_amount === null
                                 ? t('capitalMarkets.importeNoInformado')
                                 : instrument.currency

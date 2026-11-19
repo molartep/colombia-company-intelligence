@@ -17,8 +17,19 @@ export function FilterHelp({ text, label }: { text: string; label: string }) {
   useLanguage()
 
   const id = useId()
+  const [dismissed, setDismissed] = useState(false)
   return (
-    <span className="filter-help">
+    <span
+      className="filter-help"
+      data-dismissed={dismissed || undefined}
+      onMouseEnter={() => setDismissed(false)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setDismissed(false)
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') setDismissed(true)
+      }}
+    >
       <button
         type="button"
         aria-label={t('filters.helpValue', { value0: label })}

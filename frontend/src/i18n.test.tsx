@@ -307,28 +307,33 @@ test('source company values and source taxonomy labels stay exact in both langua
   expect(screen.getByRole('cell', { name: 'ACTIVA' })).toBeInTheDocument()
 })
 
-test('SECOP source values keep their original casing while labels and amounts localize', async () => {
+test('SECOP display casing follows the allowlist while API values and descriptions stay original', async () => {
   const fetcher = mount(`/companies/${id}?tab=screening`)
   await screen.findByRole('cell', { name: contract.description })
   const count = fetcher.mock.calls.length
   for (const value of [
     contract.description,
-    contract.raw_status,
-    contract.modality,
-    contract.buyer,
+    contract.raw_status.toLocaleUpperCase('es-CO'),
+    contract.modality.toLocaleUpperCase('es-CO'),
+    contract.buyer.toLocaleUpperCase('es-CO'),
   ])
     expect(screen.getByRole('cell', { name: value })).toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: 'Spanish' }))
   for (const value of [
     contract.description,
-    contract.raw_status,
-    contract.modality,
-    contract.buyer,
+    contract.raw_status.toLocaleUpperCase('es-CO'),
+    contract.modality.toLocaleUpperCase('es-CO'),
+    contract.buyer.toLocaleUpperCase('es-CO'),
   ])
     expect(screen.getByRole('cell', { name: value })).toBeInTheDocument()
   expect(screen.getByRole('heading', { name: company.legal_name })).toBeInTheDocument()
   expect(fetcher.mock.calls.length).toBe(count)
-  expect(screen.getByRole('option', { name: contract.raw_status })).toHaveValue(contract.raw_status)
+  expect(contract.raw_status).toBe('enviado Proveedor')
+  expect(contract.buyer).toBe('Entidad Mixta')
+  expect(contract.modality).toBe('Contratación directa')
+  expect(
+    screen.getByRole('option', { name: contract.raw_status.toLocaleUpperCase('es-CO') }),
+  ).toHaveValue(contract.raw_status)
 })
 
 test('SFC security names, source classifications and report fields are never translated', async () => {

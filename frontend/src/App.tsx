@@ -21,7 +21,7 @@ export function App({ queryClient = client }: { queryClient?: QueryClient } = {}
             {t('application.skipToContent')}
           </a>
           <SiteHeader />
-          <main id="main">
+          <main id="main" tabIndex={-1}>
             <Routes>
               <Route path="/parameters" element={<Parameters />} />
               <Route path="/references" element={<Advanced />} />

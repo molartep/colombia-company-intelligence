@@ -408,3 +408,16 @@ test('BVC filter restores from URL and Parameters explains positive-only coverag
   expect(screen.getByText(/boolean checkbox/)).toHaveTextContent('Acciones ordinarias')
   expect(screen.getByText(/A blank cell means registration has not been established/)).toBeVisible()
 })
+
+test('keyboard users can dismiss a focused information tooltip with Escape', async () => {
+  setup()
+  const button = screen.getByRole('button', { name: 'Help: BVC registration' })
+  button.focus()
+  expect(button).toHaveAccessibleDescription(
+    "Finds companies with registered common stocks in Colombia's stock market (BVC).",
+  )
+  await userEvent.keyboard('{Escape}')
+  expect(button.closest('.filter-help')).toHaveAttribute('data-dismissed', 'true')
+  await userEvent.tab()
+  expect(button.closest('.filter-help')).not.toHaveAttribute('data-dismissed')
+})

@@ -1,0 +1,2587 @@
+{
+  "phase": "before",
+  "data": "synthetic API fixtures; actual application rendering",
+  "screens": [
+    {
+      "name": "home",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "home-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View parameters ↗",
+          "w": 98,
+          "h": 15
+        },
+        {
+          "text": "Help: Economic activity / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Last renewed year",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: registration dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: renewal dates",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "results",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "results-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View parameters ↗",
+          "w": 98,
+          "h": 15
+        },
+        {
+          "text": "Help: Economic activity / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Last renewed year",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: registration dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: renewal dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View COMPAÑÍA SINTÉTICA DE INFRAESTRUCTURA Y SERVICIOS ANDINOS S.A.S.",
+          "w": 12,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "overview",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "overview-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Open official dataset ↗",
+          "w": 128,
+          "h": 18
+        },
+        {
+          "text": "Attribute availability & provenance",
+          "w": 1102,
+          "h": 21
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Registration record  · RUES / Confecámaras",
+          "w": 1102,
+          "h": 21
+        },
+        {
+          "text": "Public fields & field mappings",
+          "w": 1102,
+          "h": 20
+        },
+        {
+          "text": "View originating dataset ↗",
+          "w": 147,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "sources",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "sources-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Open official dataset ↗",
+          "w": 128,
+          "h": 18
+        },
+        {
+          "text": "Attribute availability & provenance",
+          "w": 1102,
+          "h": 21
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Registration record  · RUES / Confecámaras",
+          "w": 1102,
+          "h": 21
+        },
+        {
+          "text": "Public fields & field mappings",
+          "w": 1102,
+          "h": 20
+        },
+        {
+          "text": "View originating dataset ↗",
+          "w": 147,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "markets",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "markets-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Official RNVE source ↗",
+          "w": 127,
+          "h": 18
+        },
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Source: BVC ↗",
+          "w": 83,
+          "h": 18
+        },
+        {
+          "text": "https://example.invalid ↗",
+          "w": 141,
+          "h": 18
+        },
+        {
+          "text": "SFC ↗",
+          "w": 37,
+          "h": 18
+        },
+        {
+          "text": "Original SFC values",
+          "w": 179,
+          "h": 20
+        },
+        {
+          "text": "Official source ↗",
+          "w": 93,
+          "h": 18
+        },
+        {
+          "text": "Evidence details",
+          "w": 1062,
+          "h": 21
+        },
+        {
+          "text": "Scope and limitations",
+          "w": 1102,
+          "h": 21
+        }
+      ]
+    },
+    {
+      "name": "secop",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "secop-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-1",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-2",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-3",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-4",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-5",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "contract-detail",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "contract-detail-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-1",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-2",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-3",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-4",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-5",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "parameters",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "parameters-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Return to Search →",
+          "w": 105,
+          "h": 18
+        },
+        {
+          "text": "RUES / Confecámaras source ↗",
+          "w": 173,
+          "h": 20
+        }
+      ]
+    },
+    {
+      "name": "references",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "references-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Help: Registrations",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Source records",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Issuers",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Instruments",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Snapshots",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Verified links",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: SECOP checks",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: SECOP contracts",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "RUES / Confecámaras ↗",
+          "w": 134,
+          "h": 18
+        },
+        {
+          "text": "SFC · Registered securities ↗",
+          "w": 160,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "empty-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View parameters ↗",
+          "w": 98,
+          "h": 15
+        },
+        {
+          "text": "Help: Economic activity / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Last renewed year",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: registration dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: renewal dates",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "error",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "error-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View parameters ↗",
+          "w": 98,
+          "h": 15
+        },
+        {
+          "text": "Help: Economic activity / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Last renewed year",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: registration dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: renewal dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Try again",
+          "w": 49,
+          "h": 20
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "loading-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View parameters ↗",
+          "w": 98,
+          "h": 15
+        },
+        {
+          "text": "Help: Economic activity / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Last renewed year",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: registration dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: renewal dates",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "stale",
+      "language": "en",
+      "viewport": "desktop",
+      "screenshot": "stale-en-desktop.png",
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-1",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-2",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-3",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-4",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-5",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "home",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View parameters ↗",
+          "w": 98,
+          "h": 15
+        },
+        {
+          "text": "Help: Economic activity / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Last renewed year",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: registration dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: renewal dates",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "results",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View parameters ↗",
+          "w": 98,
+          "h": 15
+        },
+        {
+          "text": "Help: Economic activity / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Last renewed year",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: registration dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: renewal dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View COMPAÑÍA SINTÉTICA DE INFRAESTRUCTURA Y SERVICIOS ANDINOS S.A.S.",
+          "w": 12,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "overview",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Open official dataset ↗",
+          "w": 128,
+          "h": 18
+        },
+        {
+          "text": "Attribute availability & provenance",
+          "w": 309,
+          "h": 21
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Registration record  · RUES / Confecámaras",
+          "w": 309,
+          "h": 21
+        },
+        {
+          "text": "Public fields & field mappings",
+          "w": 309,
+          "h": 20
+        },
+        {
+          "text": "View originating dataset ↗",
+          "w": 147,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "sources",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Open official dataset ↗",
+          "w": 128,
+          "h": 18
+        },
+        {
+          "text": "Attribute availability & provenance",
+          "w": 309,
+          "h": 21
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Supporting record ↓",
+          "w": 112,
+          "h": 18
+        },
+        {
+          "text": "Registration record  · RUES / Confecámaras",
+          "w": 309,
+          "h": 21
+        },
+        {
+          "text": "Public fields & field mappings",
+          "w": 309,
+          "h": 20
+        },
+        {
+          "text": "View originating dataset ↗",
+          "w": 147,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "markets",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Official RNVE source ↗",
+          "w": 127,
+          "h": 18
+        },
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Source: BVC ↗",
+          "w": 83,
+          "h": 18
+        },
+        {
+          "text": "https://example.invalid ↗",
+          "w": 141,
+          "h": 18
+        },
+        {
+          "text": "SFC ↗",
+          "w": 37,
+          "h": 18
+        },
+        {
+          "text": "Original SFC values",
+          "w": 179,
+          "h": 20
+        },
+        {
+          "text": "Official source ↗",
+          "w": 93,
+          "h": 18
+        },
+        {
+          "text": "Evidence details",
+          "w": 277,
+          "h": 21
+        },
+        {
+          "text": "Scope and limitations",
+          "w": 309,
+          "h": 21
+        }
+      ]
+    },
+    {
+      "name": "secop",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-1",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-2",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-3",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-4",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-5",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "contract-detail",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-1",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-2",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-3",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-4",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-5",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "parameters",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Return to Search →",
+          "w": 105,
+          "h": 18
+        },
+        {
+          "text": "RUES / Confecámaras source ↗",
+          "w": 173,
+          "h": 20
+        }
+      ]
+    },
+    {
+      "name": "references",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Help: Registrations",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Source records",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Issuers",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Instruments",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Snapshots",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Verified links",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: SECOP checks",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: SECOP contracts",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View parameters ↗",
+          "w": 98,
+          "h": 15
+        },
+        {
+          "text": "Help: Economic activity / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Last renewed year",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: registration dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: renewal dates",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "error",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View parameters ↗",
+          "w": 98,
+          "h": 15
+        },
+        {
+          "text": "Help: Economic activity / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Last renewed year",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: registration dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: renewal dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Try again",
+          "w": 49,
+          "h": 20
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "Help: BVC registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "View parameters ↗",
+          "w": 98,
+          "h": 15
+        },
+        {
+          "text": "Help: Economic activity / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: Last renewed year",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: registration dates",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Help: renewal dates",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "stale",
+      "language": "en",
+      "viewport": "mobile",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "en",
+      "smallTargets": [
+        {
+          "text": "← Company search",
+          "w": 107,
+          "h": 16
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-1",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-2",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-3",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-4",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        },
+        {
+          "text": "CO1.SYNTHETIC-5",
+          "w": 104,
+          "h": 18
+        },
+        {
+          "text": "Official dataset ↗",
+          "w": 97,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "home",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver parámetros ↗",
+          "w": 91,
+          "h": 15
+        },
+        {
+          "text": "Ayuda: Actividad económica / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Último año renovado",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de renewal",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "results",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver parámetros ↗",
+          "w": 91,
+          "h": 15
+        },
+        {
+          "text": "Ayuda: Actividad económica / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Último año renovado",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de renewal",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver COMPAÑÍA SINTÉTICA DE INFRAESTRUCTURA Y SERVICIOS ANDINOS S.A.S.",
+          "w": 12,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "overview",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Abrir conjunto de datos oficial ↗",
+          "w": 180,
+          "h": 18
+        },
+        {
+          "text": "Disponibilidad y procedencia de atributos",
+          "w": 1102,
+          "h": 21
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de matrícula  · RUES / Confecámaras",
+          "w": 1102,
+          "h": 21
+        },
+        {
+          "text": "Campos públicos y correspondencias",
+          "w": 1102,
+          "h": 20
+        },
+        {
+          "text": "Ver conjunto de datos de origen ↗",
+          "w": 192,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "sources",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Abrir conjunto de datos oficial ↗",
+          "w": 180,
+          "h": 18
+        },
+        {
+          "text": "Disponibilidad y procedencia de atributos",
+          "w": 1102,
+          "h": 21
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de matrícula  · RUES / Confecámaras",
+          "w": 1102,
+          "h": 21
+        },
+        {
+          "text": "Campos públicos y correspondencias",
+          "w": 1102,
+          "h": 20
+        },
+        {
+          "text": "Ver conjunto de datos de origen ↗",
+          "w": 192,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "markets",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Fuente oficial RNVE ↗",
+          "w": 122,
+          "h": 18
+        },
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Fuente: BVC ↗",
+          "w": 83,
+          "h": 18
+        },
+        {
+          "text": "https://example.invalid ↗",
+          "w": 141,
+          "h": 18
+        },
+        {
+          "text": "SFC ↗",
+          "w": 37,
+          "h": 18
+        },
+        {
+          "text": "Valores originales SFC",
+          "w": 171,
+          "h": 20
+        },
+        {
+          "text": "Fuente oficial ↗",
+          "w": 88,
+          "h": 18
+        },
+        {
+          "text": "Detalles de la evidencia",
+          "w": 1062,
+          "h": 21
+        },
+        {
+          "text": "Alcance y limitaciones",
+          "w": 1102,
+          "h": 21
+        }
+      ]
+    },
+    {
+      "name": "secop",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Conjunto de datos oficial ↗",
+          "w": 152,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "contract-detail",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Conjunto de datos oficial ↗",
+          "w": 152,
+          "h": 18
+        },
+        {
+          "text": "Conjunto de datos oficial ↗",
+          "w": 152,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "parameters",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Volver a Buscar →",
+          "w": 98,
+          "h": 18
+        },
+        {
+          "text": "Fuente RUES / Confecámaras ↗",
+          "w": 174,
+          "h": 20
+        }
+      ]
+    },
+    {
+      "name": "references",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Ayuda: Matrículas",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Registros de fuente",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Emisores",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Instrumentos",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Snapshots",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Vínculos verificados",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Consultas SECOP",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Contratos SECOP",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "RUES / Confecámaras ↗",
+          "w": 134,
+          "h": 18
+        },
+        {
+          "text": "SFC · Valores inscritos ↗",
+          "w": 134,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver parámetros ↗",
+          "w": 91,
+          "h": 15
+        },
+        {
+          "text": "Ayuda: Actividad económica / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Último año renovado",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de renewal",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "error",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver parámetros ↗",
+          "w": 91,
+          "h": 15
+        },
+        {
+          "text": "Ayuda: Actividad económica / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Último año renovado",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de renewal",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Intentar de nuevo",
+          "w": 97,
+          "h": 20
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver parámetros ↗",
+          "w": 91,
+          "h": 15
+        },
+        {
+          "text": "Ayuda: Actividad económica / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Último año renovado",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de renewal",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "stale",
+      "language": "es",
+      "viewport": "desktop",
+      "screenshot": null,
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Conjunto de datos oficial ↗",
+          "w": 152,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "home",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "home-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver parámetros ↗",
+          "w": 91,
+          "h": 15
+        },
+        {
+          "text": "Ayuda: Actividad económica / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Último año renovado",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de renewal",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "results",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "results-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver parámetros ↗",
+          "w": 91,
+          "h": 15
+        },
+        {
+          "text": "Ayuda: Actividad económica / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Último año renovado",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de renewal",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver COMPAÑÍA SINTÉTICA DE INFRAESTRUCTURA Y SERVICIOS ANDINOS S.A.S.",
+          "w": 12,
+          "h": 16
+        }
+      ]
+    },
+    {
+      "name": "overview",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "overview-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Abrir conjunto de datos oficial ↗",
+          "w": 180,
+          "h": 18
+        },
+        {
+          "text": "Disponibilidad y procedencia de atributos",
+          "w": 309,
+          "h": 21
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de matrícula  · RUES / Confecámaras",
+          "w": 309,
+          "h": 21
+        },
+        {
+          "text": "Campos públicos y correspondencias",
+          "w": 309,
+          "h": 20
+        },
+        {
+          "text": "Ver conjunto de datos de origen ↗",
+          "w": 192,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "sources",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "sources-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Abrir conjunto de datos oficial ↗",
+          "w": 180,
+          "h": 18
+        },
+        {
+          "text": "Disponibilidad y procedencia de atributos",
+          "w": 309,
+          "h": 21
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de respaldo ↓",
+          "w": 125,
+          "h": 18
+        },
+        {
+          "text": "Registro de matrícula  · RUES / Confecámaras",
+          "w": 309,
+          "h": 21
+        },
+        {
+          "text": "Campos públicos y correspondencias",
+          "w": 309,
+          "h": 20
+        },
+        {
+          "text": "Ver conjunto de datos de origen ↗",
+          "w": 192,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "markets",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "markets-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Fuente oficial RNVE ↗",
+          "w": 122,
+          "h": 18
+        },
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Fuente: BVC ↗",
+          "w": 83,
+          "h": 18
+        },
+        {
+          "text": "https://example.invalid ↗",
+          "w": 141,
+          "h": 18
+        },
+        {
+          "text": "SFC ↗",
+          "w": 37,
+          "h": 18
+        },
+        {
+          "text": "Valores originales SFC",
+          "w": 171,
+          "h": 20
+        },
+        {
+          "text": "Fuente oficial ↗",
+          "w": 88,
+          "h": 18
+        },
+        {
+          "text": "Detalles de la evidencia",
+          "w": 277,
+          "h": 21
+        },
+        {
+          "text": "Alcance y limitaciones",
+          "w": 309,
+          "h": 21
+        }
+      ]
+    },
+    {
+      "name": "secop",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "secop-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Conjunto de datos oficial ↗",
+          "w": 152,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "contract-detail",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "contract-detail-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Conjunto de datos oficial ↗",
+          "w": 152,
+          "h": 18
+        },
+        {
+          "text": "Conjunto de datos oficial ↗",
+          "w": 152,
+          "h": 18
+        }
+      ]
+    },
+    {
+      "name": "parameters",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "parameters-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Volver a Buscar →",
+          "w": 98,
+          "h": 18
+        },
+        {
+          "text": "Fuente RUES / Confecámaras ↗",
+          "w": 174,
+          "h": 20
+        }
+      ]
+    },
+    {
+      "name": "references",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "references-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Ayuda: Matrículas",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Registros de fuente",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Emisores",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Instrumentos",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Snapshots",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Vínculos verificados",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Consultas SECOP",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Contratos SECOP",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "empty-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver parámetros ↗",
+          "w": 91,
+          "h": 15
+        },
+        {
+          "text": "Ayuda: Actividad económica / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Último año renovado",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de renewal",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "error",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "error-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "INPUT",
+          "w": 16,
+          "h": 16
+        },
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver parámetros ↗",
+          "w": 91,
+          "h": 15
+        },
+        {
+          "text": "Ayuda: Actividad económica / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Último año renovado",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de renewal",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Intentar de nuevo",
+          "w": 97,
+          "h": 20
+        }
+      ]
+    },
+    {
+      "name": "loading",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "loading-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "Ayuda: Registro BVC",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ver parámetros ↗",
+          "w": 91,
+          "h": 15
+        },
+        {
+          "text": "Ayuda: Actividad económica / CIIU",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Último año renovado",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de registration",
+          "w": 22,
+          "h": 22
+        },
+        {
+          "text": "Ayuda: Fechas de renewal",
+          "w": 22,
+          "h": 22
+        }
+      ]
+    },
+    {
+      "name": "stale",
+      "language": "es",
+      "viewport": "mobile",
+      "screenshot": "stale-es-mobile.png",
+      "overflow": false,
+      "lang": "es",
+      "smallTargets": [
+        {
+          "text": "← Búsqueda de empresas",
+          "w": 144,
+          "h": 16
+        },
+        {
+          "text": "Conjunto de datos oficial ↗",
+          "w": 152,
+          "h": 18
+        }
+      ]
+    }
+  ],
+  "browser_errors": []
+}

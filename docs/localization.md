@@ -24,10 +24,9 @@ Translate interface labels, normalized application classifications, explanatory 
 application-generated notifications. Render external evidence **directly**: legal/company names,
 RUES status/organization/CIIU labels, SFC security names and report fields, ratings, SECOP
 contract descriptions, raw statuses, buyer names and procurement modalities. Do not trim,
-uppercase, translate, or pass these values to `t()`, even if they happen to equal a translation
+translate, or pass these values to `t()`, even if they happen to equal a translation
 key or common UI word. Technical codes, identifiers, URLs and source payloads remain unchanged.
-SECOP status/entity/modality display now preserves original casing, superseding the previous
-uppercase presentation rule.
+The explicitly approved SECOP status/entity/modality fields display in uppercase, including filters; stored evidence, responses and outgoing filter values keep their originals. All other fields preserve original casing. See the growing registry in the brand manual.
 
 `i18n/messages.ts` translates a finite allowlist of existing **application-generated** backend
 messages, warnings and source-descriptor prose using `messageKeys.json`. This compatibility

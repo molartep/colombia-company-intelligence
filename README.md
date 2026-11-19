@@ -381,3 +381,9 @@ Use the EN/ES control in the main navigation. The selection persists across visi
 The former Advanced page now documents architecture, data readiness and technical workflows
 for RUES, Capital Markets and SECOP II. It includes responsive diagrams, metric definitions and
 collapsed workflow details. See [Platform References and technical glossary](docs/platform-references.md).
+
+### Design system and visual review
+
+Frontend development follows the [brand and UI guidelines](docs/design/BRAND_AND_UI_GUIDELINES.md)
+and shared [design tokens](frontend/src/design-tokens.css). See the [prioritized UI/UX audit](docs/design/ui-ux-audit.md)
+and [actual before/after screenshots and reproduction steps](docs/design/assets/README.md).
