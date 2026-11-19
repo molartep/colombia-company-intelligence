@@ -61,12 +61,21 @@ Secondary-source quotes do not set an authoritative verified BVC listing state.
 
 ## Retrieval, cache, provenance and coverage
 
-The BVC connector remains primary. If it has no fresh matched quote, a configured La República
-page can supply a separately attributed observation. Sources have independent snapshots, errors,
-15-minute quote caches and per-source manual refresh. The initial page catalog covers the supplied
-Ecopetrol URL. More official publisher pages can be configured using `LA_REPUBLICA_PAGE_URLS`
-(JSON ANN-to-URL routing hints); their responses still must pass identity validation. No unbounded
-stock-page crawl is performed.
+The BVC connector remains primary. La República fallback automatically discovers stock links
+from its public movimiento-accionario directory. No company URL overrides or slug guesses are used.
+The directory is persisted in source records with a private HTML SHA-256 artifact and a 24-hour TTL.
+At most 100 distinct stock links are accepted; at most three candidate pages are inspected per issuer.
+Directory labels and previous verified mappings only rank candidates; every downloaded technical
+sheet must independently pass the exact identity rules above. Multiple matching pages are rejected.
+A prior mapping is reused only if its URL still appears in the current directory.
+
+Successful quote records persist the discovered URL, directory HTML hash, discovery time, exact
+match type/value, and linked ANN; quote snapshots retain the page HTML hash and verification time.
+Sources have independent 15-minute quote caches and per-source manual refresh. Directory failures
+also have a persisted 15-minute retry cooldown. Failure details distinguish directory unavailability,
+no candidate, page identity mismatch, invalid pages, and ambiguous matches. The official SFC daily
+report remains the next fallback. The Advanced tab exposes the directory's current source state.
+No initial catalog import or deployment configuration is required for this connector.
 
 Normal Chromium navigation uses isolated contexts, two concurrent slots and a total deadline.
 Raw HTML artifacts are private and SHA-256 identified. Public payloads contain only quote/identity
@@ -96,6 +105,26 @@ routed from RNVE ANN `COT60PAAO005`. Its technical sheet reports `CELSIA S.A. E.
 matching the former name in `AO CELSIA S.A. - ANTES CELSIA S.A. E.S.P.`. The page uses uppercase
 `NEMOTÉCNICO`; browser readiness is case-insensitive. URLs are routing hints, never identity evidence.
 
+
+## Nutresa verification — 2026-11-18
+
+The local RNVE evidence identifies Grupo Nutresa's single BVC ordinary-share instrument as
+ANN `COT04PAAO003`, with issuer type/code `066:032` and NIT `890900050-1`. The original lookup
+had no La República page locator for that ANN, so it never requested the Nutresa page and used
+the SFC daily-price fallback instead. This was missing routing coverage, not a rejected name match.
+
+Automatic discovery now finds the publisher link to the
+[La República Nutresa page](https://www.larepublica.co/indicadores-economicos/movimiento-accionario/nutresa).
+Its technical-sheet name `GRUPO NUTRESA S.A.` passes the existing exact-name rule; the `NUTRESA`
+ticker and URL slug are not used to establish identity. Live parser validation returned that name
+and the publisher's dated quote without adding a synthetic price or loosening identifier checks.
+
+The browser also returned an empty `body.innerText` despite HTTP 200 and a complete server-rendered
+quote in the HTML. Readiness now checks DOM text content rather than visible layout text. The
+unchanged parser still requires the primary quote and technical-sheet structure and rejects missing
+or conflicting identity. A synthetic Chromium contract test covers hidden-body rendering; the
+Postgres fallback/cache/refresh tests exercise arbitrary publisher routes with no environment override.
+Run the browser contract with `RUN_BROWSER_TESTS=1` when Chromium is installed.
 
 ## Registered ordinary-share fallback (Terpel case)
 

@@ -30,7 +30,6 @@ class Settings(BaseSettings):
     capital_markets_max_age_hours: int = Field(default=24, ge=1, le=8760)
     bvc_cache_minutes: int = Field(default=15, ge=1, le=1440)
     bvc_page_urls: dict[str, str] = {}
-    la_republica_page_urls: dict[str, str] = {}
     upstream_concurrency: int = Field(default=4, ge=1, le=20)
 
     @model_validator(mode="after")

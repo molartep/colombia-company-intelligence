@@ -1,3 +1,5 @@
+import asyncio
+import os
 from datetime import timedelta
 from decimal import Decimal
 
@@ -60,6 +62,41 @@ def test_live_layout_scopes_price_technical_name_ticker_and_time():
     assert result.nit is None and result.ann_code is None
 
 
+@pytest.mark.skipif(os.getenv("RUN_BROWSER_TESTS") != "1", reason="Opt-in Chromium contract test")
+async def test_server_rendered_quote_with_hidden_body(monkeypatch):
+    from playwright.async_api import BrowserContext, Route
+
+    from app.integrations.capital_markets.secondary_quotes import LaRepublicaPublicPages
+
+    original = BrowserContext.new_page
+
+    async def fixture_page(context):
+        page = await original(context)
+
+        async def respond(route: Route):
+            await route.fulfill(
+                status=200,
+                content_type="text/html; charset=utf-8",
+                body=(
+                    b"<html><head><style>body { display: none }</style></head><body>"
+                    + lr_fixture()
+                    + b"</body></html>"
+                ),
+            )
+
+        await page.route("**/*", respond)
+        return page
+
+    monkeypatch.setattr(BrowserContext, "new_page", fixture_page)
+    async with asyncio.timeout(10):
+        content = await LaRepublicaPublicPages().fetch(
+            "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/synthetic"
+        )
+    parsed = parse_la_republica(content)
+    assert parsed.legal_name == "COMPAÑÍA SINTÉTICA ANDINA S.A.S."
+    assert parsed.last_price == Decimal("1234")
+
+
 def test_exact_match_priority_and_conflicting_strong_identifiers():
     codes = {"COSYNTH00001"}
     assert exact_match(quote(nit="000123456"), "000123456", [], codes)[0] == "exact_nit"
@@ -113,3 +150,12 @@ def test_former_names_are_explicit_and_retain_legal_suffixes():
     assert not exact_match(quote(legal_name="SINTÉTICA SA ESP"), None, names, {"COSYNTH00001"})
     assert former_legal_names("BO SINTÉTICA - ANTES OTRA S.A.") == []
     assert former_legal_names("AO SINTÉTICA ANTES OTRA S.A.") == []
+
+
+def lr_index_fixture(slug="synthetic", label="COMPAÑÍA SINTÉTICA ANDINA S.A.S."):
+    from html import escape
+
+    return (
+        f'<a href="/indicadores-economicos/movimiento-accionario/{escape(slug)}">'
+        f"{escape(label)}</a>"
+    ).encode()

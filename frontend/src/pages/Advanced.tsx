@@ -33,7 +33,7 @@ const workflows = [
     title: '5. Capital Markets retrieval and quote fallback',
     body: 'Opening Capital Markets for a verified issuer retrieves missing or stale RNVE summaries and securities reports. Chromium renders public summary pages; HTTPX retrieves the public issuer-specific report. Successful summary and securities caches last 24 hours independently, and failures have independent 15-minute cooldowns. Opening a page without a verified issuer cannot retrieve issuer-specific evidence.',
     detail:
-      'Quote resolution tries BVC, then La República, then official SFC daily-price reports, requiring exact identity evidence at each step. Quotes are cached separately (15 minutes by default). More than one common-equity record blocks quote attribution rather than selecting an arbitrary instrument. SFC daily weighted averages are labeled as such, not presented as a current last trade. Manual source refresh targets only the selected connector; the directory uses its import action.',
+      'Quote resolution tries BVC, then La República, then official SFC daily-price reports, requiring exact identity evidence at each step. La República discovers links from its public stock directory (24-hour cache, at most 100 links), checks up to three candidate technical sheets, and rejects ambiguous matches. Labels only route requests; NIT, ANN or exact legal name establishes identity. Verified mappings retain URL, discovery time and directory hash. Quotes are cached separately (15 minutes by default). More than one common-equity record blocks quote attribution rather than selecting an arbitrary instrument. SFC daily weighted averages are labeled as such, not presented as a current last trade. Manual source refresh targets only the selected connector; the directory uses its import action.',
   },
   {
     title: '6. Runtime boundaries and administration',
@@ -49,8 +49,10 @@ const dependencies: Record<string, string> = {
   sfc_rnve_securities: 'On demand for discovered/verified issuers; no bulk import required.',
   bvc_listings:
     'Verified ordinary-share identity and configured public-page locator; publisher access can fail.',
+  la_republica_stock_directory:
+    'Fetched automatically on demand; persisted for 24 hours, up to 100 links; failures retry after 15 minutes.',
   la_republica_quotes:
-    'Secondary quote fallback; exact identity evidence and a supported page locator required.',
+    'Automatic publisher-directory discovery, then exact identity verification; no company URL setup.',
   sfc_daily_quotes: 'Official daily-price fallback using an exact ANN; not a live trade feed.',
 }
 

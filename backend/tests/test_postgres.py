@@ -765,7 +765,8 @@ async def test_capital_ingestion_idempotence_debt_only_and_api(
             )
             assert len(issuers.json()["items"]) == 1
             sources = await client.get("/api/v1/capital-markets/sources")
-            assert len(sources.json()) == 6
+            assert len(sources.json()) == 7
+            assert any(s["id"] == "la_republica_stock_directory" for s in sources.json())
             assert all(
                 s["latest_snapshot"]["content_hash"] for s in sources.json() if s["latest_snapshot"]
             )
@@ -1856,13 +1857,14 @@ async def test_bvc_does_not_query_for_debt_or_unresolved_issuer(
     bvc.fetch.assert_not_awaited()
 
 
+@pytest.mark.parametrize("slug", ["unpredictable-stock-route", "another-publisher-route"])
 async def test_secondary_quote_fallback_cache_match_and_refresh_isolation(
-    session, record, tmp_path, monkeypatch
+    session, record, tmp_path, monkeypatch, slug
 ):
     from types import SimpleNamespace
 
     from capital_fixtures import SYNTHETIC_BVC_CODE, issuer_xlsx, security_html
-    from test_secondary_quotes import lr_fixture
+    from test_secondary_quotes import lr_fixture, lr_index_fixture
 
     from app.core.config import get_settings
     from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
@@ -1871,18 +1873,13 @@ async def test_secondary_quote_fallback_cache_match_and_refresh_isolation(
     from app.integrations.capital_markets.service import company_profile
     from app.models.capital_markets import SecuritiesIssuer
 
+    ann = SYNTHETIC_BVC_CODE
+    expected_url = "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/" + slug
     monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
     monkeypatch.setattr(
         get_settings(),
         "bvc_page_urls",
-        {SYNTHETIC_BVC_CODE: "https://www.bvc.com.co/renta-variable-mercado-local/synthetic"},
-    )
-    monkeypatch.setattr(
-        get_settings(),
-        "la_republica_page_urls",
-        {
-            SYNTHETIC_BVC_CODE: "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/synthetic"
-        },
+        {ann: "https://www.bvc.com.co/renta-variable-mercado-local/synthetic"},
     )
     await ensure_source(session)
     company = await persist(
@@ -1899,7 +1896,7 @@ async def test_secondary_quote_fallback_cache_match_and_refresh_isolation(
             rows=[
                 [
                     "AO SYNTHETIC COMMON",
-                    SYNTHETIC_BVC_CODE,
+                    ann,
                     "202601",
                     "AUT",
                     "BVC",
@@ -1917,12 +1914,24 @@ async def test_secondary_quote_fallback_cache_match_and_refresh_isolation(
     bvc = SimpleNamespace(
         fetch=AsyncMock(side_effect=SourceError("bvc_http_403", "SYNTHETIC blocked"))
     )
-    lr = SimpleNamespace(fetch=AsyncMock(return_value=lr_fixture()))
+    lr = SimpleNamespace(
+        fetch=AsyncMock(return_value=lr_fixture()),
+        fetch_index=AsyncMock(return_value=lr_index_fixture(slug=slug)),
+    )
     result = await company_profile(session, company, bvc_retriever=bvc, secondary_retriever=lr)
+    lr.fetch.assert_awaited_once_with(expected_url)
+    lr.fetch_index.assert_awaited_once()
     quote = result.exchange_listing.quotes[0]
     assert quote.source_id == "la_republica_quotes" and quote.match_type == "exact_legal_name"
     assert quote.matched_value == record["razon_social"] and quote.last_price == 1234
     assert quote.price_as_of and result.equity_listed is None
+    mapping = await session.scalar(
+        select(SourceRecord).where(SourceRecord.source_id == "la_republica_quotes")
+    )
+    assert mapping.source_url == expected_url
+    assert mapping.raw_payload["directory_url"].endswith("/movimiento-accionario")
+    assert len(mapping.raw_payload["directory_hash"]) == 64
+    assert mapping.raw_payload["verified_at"] and mapping.raw_payload["discovered_at"]
     assert next(s for s in result.sources if s.id == "bvc_listings").last_error == "bvc_http_403"
     assert (
         next(s for s in result.sources if s.id == "la_republica_quotes").availability == "available"
@@ -1975,7 +1984,7 @@ async def test_quote_former_name_and_multiple_common_record_guard(
     from types import SimpleNamespace
 
     from capital_fixtures import SYNTHETIC_BVC_CODE, issuer_xlsx, security_html
-    from test_secondary_quotes import lr_fixture
+    from test_secondary_quotes import lr_fixture, lr_index_fixture
 
     from app.core.config import get_settings
     from app.integrations.capital_markets.ingestion import ingest_issuers, ingest_securities
@@ -1989,13 +1998,6 @@ async def test_quote_former_name_and_multiple_common_record_guard(
         get_settings(),
         "bvc_page_urls",
         {SYNTHETIC_BVC_CODE: "https://www.bvc.com.co/renta-variable-mercado-local/synthetic"},
-    )
-    monkeypatch.setattr(
-        get_settings(),
-        "la_republica_page_urls",
-        {
-            SYNTHETIC_BVC_CODE: "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/synthetic"
-        },
     )
     await ensure_source(session)
     company = await persist(
@@ -2024,7 +2026,8 @@ async def test_quote_former_name_and_multiple_common_record_guard(
     await ingest_securities(session, issuer, security_html(rows=rows), securities_url("001", "001"))
     bvc = SimpleNamespace(fetch=AsyncMock(side_effect=SourceError("bvc_http_403", "SYNTHETIC")))
     lr = SimpleNamespace(
-        fetch=AsyncMock(return_value=lr_fixture(name="SINTÉTICA ANTERIOR S.A. E.S.P."))
+        fetch_index=AsyncMock(return_value=lr_index_fixture()),
+        fetch=AsyncMock(return_value=lr_fixture(name="SINTÉTICA ANTERIOR S.A. E.S.P.")),
     )
     profile = await company_profile(session, company, bvc_retriever=bvc, secondary_retriever=lr)
     assert profile.has_registered_bvc_common_equity
@@ -2354,7 +2357,7 @@ async def test_quote_fallback_order_exact_identity_cache_and_attempt_summary(
     from types import SimpleNamespace
 
     from capital_fixtures import issuer_xlsx, security_html
-    from test_secondary_quotes import lr_fixture
+    from test_secondary_quotes import lr_fixture, lr_index_fixture
     from test_sfc_quotes import CODE, sfc_fixture
 
     from app.core.config import get_settings
@@ -2369,11 +2372,6 @@ async def test_quote_fallback_order_exact_identity_cache_and_attempt_summary(
         get_settings(),
         "bvc_page_urls",
         {CODE: "https://www.bvc.com.co/renta-variable-mercado-local/synthetic"},
-    )
-    monkeypatch.setattr(
-        get_settings(),
-        "la_republica_page_urls",
-        {CODE: "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/synthetic"},
     )
     await ensure_source(session)
     company = await persist(
@@ -2399,11 +2397,12 @@ async def test_quote_fallback_order_exact_identity_cache_and_attempt_summary(
     await ingest_securities(session, issuer, security_html(rows=rows), securities_url("001", "001"))
     bvc = SimpleNamespace(fetch=AsyncMock(side_effect=SourceError("bvc_http_403", "SYNTHETIC")))
     lr = SimpleNamespace(
+        fetch_index=AsyncMock(return_value=lr_index_fixture()),
         fetch=AsyncMock(
             return_value=lr_fixture()
             if outcome == "lr_match"
             else b"<p>Descripci\xc3\xb3n</p><p>Accion SYNTHETIC</p><p>$ 1.234</p>"
-        )
+        ),
     )
     sfc = SimpleNamespace(
         fetch=AsyncMock(
@@ -2466,3 +2465,73 @@ async def test_quote_fallback_order_exact_identity_cache_and_attempt_summary(
             ).status
             == "unavailable"
         )
+
+
+@pytest.mark.parametrize(
+    "outcome", ["match", "no_candidate", "mismatch", "ambiguous", "unavailable"]
+)
+async def test_lr_discovery_catalog_provenance_and_failure_states(
+    session, tmp_path, monkeypatch, outcome
+):
+    from datetime import UTC, datetime, timedelta
+    from types import SimpleNamespace
+
+    from test_secondary_quotes import lr_fixture, lr_index_fixture
+
+    from app.core.config import get_settings
+    from app.integrations.capital_markets.lr_discovery import directory, discover_quote
+    from app.integrations.capital_markets.secondary_quotes import LR_DIRECTORY_SOURCE, LR_INDEX_URL
+    from app.models.capital_markets import CapitalMarketsSourceSnapshot as Snapshot
+
+    monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
+    label = "Unrelated" if outcome == "no_candidate" else "Sintética"
+    content = lr_index_fixture(slug="arbitrary-route", label=label)
+    if outcome == "ambiguous":
+        content += lr_index_fixture(slug="duplicate-route", label=label)
+    retriever = SimpleNamespace(
+        fetch_index=AsyncMock(return_value=content),
+        fetch=AsyncMock(
+            return_value=lr_fixture(name="Other issuer") if outcome == "mismatch" else lr_fixture()
+        ),
+    )
+    if outcome == "unavailable":
+        retriever.fetch_index.side_effect = SourceError("lr_page_unavailable", "synthetic failure")
+    kwargs = dict(
+        nit=None, names=["COMPAÑÍA SINTÉTICA ANDINA S.A.S."], codes={"SYNTHETIC"}, dv=None
+    )
+    if outcome == "match":
+        found = await discover_quote(session, retriever, **kwargs)
+        assert found.url == LR_INDEX_URL + "/arbitrary-route"
+        assert found.match[0] == "exact_legal_name"
+        saved = await session.scalar(
+            select(SourceRecord).where(SourceRecord.source_id == LR_DIRECTORY_SOURCE)
+        )
+        assert saved.raw_payload["content_hash"] == found.directory_hash
+        assert len(found.directory_hash) == 64
+        await discover_quote(session, retriever, **kwargs)
+        retriever.fetch_index.assert_awaited_once()
+        saved.retrieved_at = datetime.now(UTC) - timedelta(hours=25)
+        await session.commit()
+        retriever.fetch_index.return_value = lr_index_fixture(slug="new-route", label=label)
+        changed = await discover_quote(session, retriever, preferred=found.url, **kwargs)
+        assert changed.url.endswith("/new-route") and retriever.fetch_index.await_count == 2
+    else:
+        expected = {
+            "no_candidate": "lr_no_candidate",
+            "mismatch": "quote_no_exact_match",
+            "ambiguous": "lr_ambiguous_match",
+            "unavailable": "lr_directory_unavailable",
+        }[outcome]
+        with pytest.raises(SourceError) as error:
+            await discover_quote(session, retriever, **kwargs)
+        assert error.value.code == expected
+        if outcome == "unavailable":
+            with pytest.raises(SourceError):
+                await directory(session, retriever)
+            retriever.fetch_index.assert_awaited_once()
+            latest = await session.scalar(
+                select(Snapshot).where(Snapshot.source_id == LR_DIRECTORY_SOURCE)
+            )
+            assert latest.ingestion_status == "failed"
+        if outcome == "no_candidate":
+            retriever.fetch.assert_not_awaited()

@@ -15,7 +15,11 @@ from app.integrations.capital_markets.issuer_details import DETAILS_SOURCE
 from app.integrations.capital_markets.matching import reconcile
 from app.integrations.capital_markets.parsers import parse_issuers, parse_securities
 from app.integrations.capital_markets.reports import store_artifact
-from app.integrations.capital_markets.secondary_quotes import LR_SOURCE
+from app.integrations.capital_markets.secondary_quotes import (
+    LR_DIRECTORY_SOURCE,
+    LR_INDEX_URL,
+    LR_SOURCE,
+)
 from app.integrations.capital_markets.sfc_quotes import INDEX_URL, SFC_QUOTES
 from app.integrations.capital_markets.types import (
     BVC_SOURCE,
@@ -61,9 +65,16 @@ async def ensure_sources(session: AsyncSession) -> None:
             "Issuer contact and administration fields from public RNVE summary pages.",
         ),
         (
+            LR_DIRECTORY_SOURCE,
+            "La República · Directorio de páginas bursátiles",
+            LR_INDEX_URL,
+            "Automatically discovered stock-page links; "
+            "labels route requests, not identity evidence.",
+        ),
+        (
             LR_SOURCE,
             "La República · Cotizaciones de acciones",
-            "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/ecopetrol",
+            LR_INDEX_URL,
             (
                 "Secondary public stock quotes with exact NIT, ANN or legal-name evidence; "
                 "timestamps are reported separately."
@@ -89,7 +100,7 @@ async def ensure_sources(session: AsyncSession) -> None:
                 name=name,
                 description=description,
                 provider="La República"
-                if key == LR_SOURCE
+                if key in {LR_SOURCE, LR_DIRECTORY_SOURCE}
                 else "Bolsa de Valores de Colombia"
                 if key == BVC_SOURCE
                 else "Superintendencia Financiera de Colombia",
@@ -99,7 +110,8 @@ async def ensure_sources(session: AsyncSession) -> None:
                 availability="not_yet_checked",
             )
             .on_conflict_do_update(
-                index_elements=["id"], set_={"name": name, "description": description}
+                index_elements=["id"],
+                set_={"name": name, "description": description, "dataset_url": url},
             )
         )
 

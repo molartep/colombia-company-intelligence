@@ -20,7 +20,11 @@ from app.integrations.capital_markets.parsers import optional
 from app.integrations.capital_markets.quote_attempts import quote_attempts
 from app.integrations.capital_markets.reports import SecuritiesRetriever
 from app.integrations.capital_markets.secondary_quote_service import secondary_quotes
-from app.integrations.capital_markets.secondary_quotes import LR_SOURCE, SecondaryRetriever
+from app.integrations.capital_markets.secondary_quotes import (
+    LR_DIRECTORY_SOURCE,
+    LR_SOURCE,
+    SecondaryRetriever,
+)
 from app.integrations.capital_markets.sfc_quotes import SFC_PROVIDER, SFC_QUOTES
 from app.integrations.capital_markets.summary_renderer import SummaryRetriever
 from app.integrations.capital_markets.types import (
@@ -99,6 +103,7 @@ async def source_views(
         .where(
             DataSource.id.in_(
                 [
+                    *([LR_DIRECTORY_SOURCE] if issuer_ids is None else []),
                     ISSUER_SOURCE,
                     SECURITIES_SOURCE,
                     BVC_SOURCE,
@@ -157,7 +162,9 @@ async def source_views(
                 last_attempt_at=latest.retrieved_at if latest else None,
                 last_success_at=success.retrieved_at if success else None,
                 refresh_interval_hours=(
-                    0.25
+                    24
+                    if source.id == LR_DIRECTORY_SOURCE
+                    else 0.25
                     if source.id in {LR_SOURCE, SFC_QUOTES}
                     else get_settings().bvc_cache_minutes / 60
                     if source.id == BVC_SOURCE

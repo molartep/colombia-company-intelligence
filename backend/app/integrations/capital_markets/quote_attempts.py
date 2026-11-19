@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.integrations.capital_markets.bvc import DEFAULT_PAGES
-from app.integrations.capital_markets.secondary_quotes import LR_DEFAULT_PAGES, LR_SOURCE
+from app.integrations.capital_markets.secondary_quotes import LR_INDEX_URL, LR_SOURCE
 from app.integrations.capital_markets.sfc_quotes import SFC_PROVIDER
 from app.integrations.capital_markets.types import BVC_SOURCE, SECURITIES_SOURCE, SecurityCategory
 from app.models.capital_markets import CapitalMarketsSourceSnapshot as Snapshot
@@ -43,7 +43,7 @@ async def quote_attempts(
         (
             LR_SOURCE,
             "La República",
-            {**LR_DEFAULT_PAGES, **settings.la_republica_page_urls}.get(ann),
+            LR_INDEX_URL,
         ),
         (SFC_PROVIDER.source_id, SFC_PROVIDER.name, SFC_PROVIDER.url_for(ann)),
     ]
@@ -67,7 +67,14 @@ async def quote_attempts(
                 if latest.ingestion_status == "success" and source_id in verified_sources
                 else "no_exact_match"
                 if latest.ingestion_status == "success"
-                or latest.error_details in {"quote_no_exact_match", "quote_identity_missing"}
+                or latest.error_details
+                in {
+                    "quote_no_exact_match",
+                    "quote_identity_missing",
+                    "lr_no_candidate",
+                    "lr_ambiguous_match",
+                    "lr_page_invalid",
+                }
                 else "unavailable"
             )
             detail = (

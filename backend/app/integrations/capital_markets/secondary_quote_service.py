@@ -19,10 +19,12 @@ from app.integrations.capital_markets.equity_identity import (
     former_legal_names,
 )
 from app.integrations.capital_markets.ingestion import ensure_sources, raw_record, record_failure
+from app.integrations.capital_markets.lr_discovery import discover_quote
 from app.integrations.capital_markets.reports import store_artifact
 from app.integrations.capital_markets.secondary_quotes import (
-    LR_DEFAULT_PAGES,
+    LR_INDEX_URL,
     LR_SOURCE,
+    DirectoryRetriever,
     SecondaryQuote,
     SecondaryRetriever,
     exact_match,
@@ -63,11 +65,12 @@ async def secondary_quotes(
 ) -> list[BvcQuoteView]:
     from app.integrations.capital_markets.quote_provider import QuoteProvider
 
-    if provider is None:
-        pages = {**LR_DEFAULT_PAGES, **get_settings().la_republica_page_urls}
+    discovery = provider is None
+    if discovery:
         provider = QuoteProvider(
-            LR_SOURCE, "La República", pages.get, validate_lr_url, parse_la_republica
+            LR_SOURCE, "La República", lambda ann: LR_INDEX_URL, validate_lr_url, parse_la_republica
         )
+    assert provider is not None
     source_id = provider.source_id
     count, _ = await common_equity_counts(session, issuer_ids)
     if count > 1:
@@ -129,10 +132,43 @@ async def secondary_quotes(
                     if not fresh:
                         digest = None
                         try:
-                            provider.validate_url(url)
+                            discovery_details = {}
                             async with asyncio.timeout(get_settings().capital_markets_timeout):
-                                content = await retriever.fetch(url)
-                            quote = provider.parse(content)
+                                if discovery:
+                                    if not isinstance(retriever, DirectoryRetriever):
+                                        raise SourceError(
+                                            "lr_directory_unavailable",
+                                            "The directory connector is unavailable.",
+                                        )
+                                    previous = await session.scalar(
+                                        select(SourceRecord)
+                                        .where(
+                                            SourceRecord.source_id == source_id,
+                                            SourceRecord.external_record_id == key,
+                                        )
+                                        .order_by(SourceRecord.retrieved_at.desc())
+                                        .limit(1)
+                                    )
+                                    found = await discover_quote(
+                                        session,
+                                        retriever,
+                                        company_nit,
+                                        legal_names,
+                                        codes,
+                                        dv,
+                                        previous.source_url if previous else None,
+                                    )
+                                    content, quote, url = found.content, found.quote, found.url
+                                    discovery_details = {
+                                        "directory_url": LR_INDEX_URL,
+                                        "directory_hash": found.directory_hash,
+                                        "discovered_at": found.discovered_at,
+                                        "verified_at": datetime.now(UTC).isoformat(),
+                                    }
+                                else:
+                                    provider.validate_url(url)
+                                    content = await retriever.fetch(url)
+                                    quote = provider.parse(content)
                             digest = store_artifact(
                                 content, get_settings().capital_markets_storage_dir
                             )
@@ -148,6 +184,7 @@ async def secondary_quotes(
                                 "match_type": match[0],
                                 "matched_value": match[1],
                                 "linked_ann": ann,
+                                **discovery_details,
                             }
                             await raw_record(session, source_id, key, payload, url)
                             session.add(
@@ -167,6 +204,7 @@ async def secondary_quotes(
                                         "match_type": match[0],
                                         "matched_value": match[1],
                                         "coverage": "one_secondary_stock_quote",
+                                        **discovery_details,
                                     },
                                 )
                             )
@@ -210,6 +248,8 @@ async def secondary_quotes(
         recent = await attempt_for(
             session, str(instrument.issuer_id), instrument.ann_code, source_id
         )
+        if recent and recent.error_details == "lr_ambiguous_match":
+            continue
         stale = bool(recent and recent.ingestion_status == "failed") or datetime.now(
             UTC
         ) - record.retrieved_at > timedelta(minutes=15)

@@ -5,7 +5,7 @@ import re
 import unicodedata
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
@@ -18,11 +18,8 @@ from app.integrations.capital_markets.bvc import PublicText, canonical
 from app.integrations.capital_markets.parsers import MAX_BYTES
 
 LR_SOURCE = "la_republica_quotes"
-LR_DEFAULT_PAGES = {
-    "COC04PAAO008": "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/ecopetrol",
-    "COG20PAAO006": "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/terpel",
-    "COT60PAAO005": "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/celsia",
-}
+LR_DIRECTORY_SOURCE = "la_republica_stock_directory"
+LR_INDEX_URL = "https://www.larepublica.co/indicadores-economicos/movimiento-accionario"
 
 
 class SecondaryQuote(BaseModel):
@@ -192,6 +189,11 @@ class SecondaryRetriever(Protocol):
     async def fetch(self, url: str) -> bytes: ...
 
 
+@runtime_checkable
+class DirectoryRetriever(SecondaryRetriever, Protocol):
+    async def fetch_index(self) -> bytes: ...
+
+
 class LaRepublicaPublicPages:
     def __init__(self) -> None:
         self._slots = asyncio.Semaphore(2)
@@ -200,8 +202,15 @@ class LaRepublicaPublicPages:
         async with self._slots:
             return await self._fetch(url)
 
-    async def _fetch(self, url: str) -> bytes:
-        validate_lr_url(url)
+    async def fetch_index(self) -> bytes:
+        async with self._slots:
+            return await self._fetch(LR_INDEX_URL, directory=True)
+
+    async def _fetch(self, url: str, directory: bool = False) -> bytes:
+        if not directory:
+            validate_lr_url(url)
+        elif url != LR_INDEX_URL:
+            raise ValueError("Only the fixed publisher directory can be fetched.")
         try:
             async with async_playwright() as driver:
                 browser = await driver.chromium.launch(channel="chromium", headless=True)
@@ -231,7 +240,12 @@ class LaRepublicaPublicPages:
                             "La República public quote page could not be loaded.",
                         )
                     await page.wait_for_function(
-                        "() => document.body.innerText.toUpperCase().includes('DESCRIPCIÓN')"
+                        # Publisher CSS can hide the body while the complete public quote is
+                        # already server-rendered. Parsing below still validates price/identity.
+                        "() => !!document.querySelector('a[href*=\"movimiento-accionario/\"]')"
+                        if directory
+                        else "() => (document.body.textContent || '').normalize('NFD')"
+                        ".replace(/[\\u0300-\\u036f]/g, '').toUpperCase().includes('DESCRIPCION')"
                     )
                     content = (await page.content()).encode()
                     if len(content) > MAX_BYTES:

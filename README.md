@@ -349,7 +349,8 @@ See [BVC source and validation details](docs/capital-markets-sources.md#bvc-acce
 
 La República now supplies dated public-browser stock quotes when primary BVC access fails. The
 publisher, source quote time and exact NIT/ANN/legal-name evidence remain visible. Ecopetrol was
-verified end to end; additional page locators use `LA_REPUBLICA_PAGE_URLS`. Grupo Aval was reachable
+verified end to end. Stock URLs are discovered automatically from the publisher directory, cached
+for 24 hours, and verified by exact identity; no per-company URL configuration is needed. Grupo Aval was reachable
 but had an empty main quote table and no eligible row identity, so it is not activated as a fallback.
 See [tested access paths and source feasibility](docs/quote-source-access.md).
 
