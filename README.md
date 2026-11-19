@@ -4,6 +4,12 @@ An open-source, evidence-backed starting point for researching Colombian busines
 Search by NIT or legal name, compare official registration candidates, and inspect a company profile
 with source records, mappings, and separate retrieval/update timestamps.
 
+![Colombia Company Intelligence — búsqueda, registro, valores inscritos y contratos del Gobierno](media/exports/colombia-company-intelligence-demo.gif)
+
+[30-second introduction](media/exports/colombia-company-intelligence-promo-30s.mp4) · [60-second walkthrough](media/exports/colombia-company-intelligence-walkthrough-60s.mp4) · [Static poster](media/exports/colombia-company-intelligence-poster.png)
+
+*Spanish narration and captions. Recorded public-source evidence for Ecopetrol; source dates vary. [Media provenance and reproduction](media/README.md).*
+
 **Phase 1 is implemented:** live server-side RUES/Confecámaras queries, conservative identity
 resolution, PostgreSQL caching and raw audit records, a FastAPI API, and a responsive React UI.
 There is no production demo data. Tests use clearly synthetic companies.
@@ -14,7 +20,7 @@ Issuer exports are downloaded through the public portal and imported administrat
 currently returns HTTP 403 here, so listing and quote fields remain unverified on retrieval failure.
 See [capital-markets operations](docs/capital-markets.md) and [verified sources and limitations](docs/capital-markets-sources.md).
 
-The application does **not** determine ownership, financial condition, acquisitions, procurement,
+The application does **not** determine ownership, financial condition, acquisitions,
 fiscal responsibility, or AI summaries. RUES legal form, RNVE registration, and BVC listing are
 separate concepts. A missing result is not evidence that an entity has never registered or issued securities.
 

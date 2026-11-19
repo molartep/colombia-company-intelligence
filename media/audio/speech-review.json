@@ -1,0 +1,108 @@
+{
+  "promo": [
+    {
+      "start": 0.0,
+      "end": 4.06,
+      "text": " Investigar una empresa en Colombia no debería exigir tantas fuentes.",
+      "avg_logprob": -0.14017959708695885
+    },
+    {
+      "start": 5.0,
+      "end": 8.6,
+      "text": " Una búsqueda reuna información pública en una sola experiencia.",
+      "avg_logprob": -0.14017959708695885
+    },
+    {
+      "start": 10.02,
+      "end": 14.1,
+      "text": " Busca por eneite, consulta su identidad y sus valores registrados.",
+      "avg_logprob": -0.14017959708695885
+    },
+    {
+      "start": 15.14,
+      "end": 19.06,
+      "text": " Explora contratos del gobierno, con cifras y evidencia verificables.",
+      "avg_logprob": -0.14017959708695885
+    },
+    {
+      "start": 20.54,
+      "end": 24.4,
+      "text": " Menos tiempo reuniendo datos más contexto para tu investigación.",
+      "avg_logprob": -0.14017959708695885
+    },
+    {
+      "start": 25.82,
+      "end": 28.32,
+      "text": " Datos públicos con fuentes a la vista.",
+      "avg_logprob": -0.2047337761947087
+    }
+  ],
+  "walkthrough": [
+    {
+      "start": 0.0,
+      "end": 3.98,
+      "text": " Así puedes investigar Ecopetrol con información pública de Colombia.",
+      "avg_logprob": -0.1418397185778377
+    },
+    {
+      "start": 5.16,
+      "end": 7.64,
+      "text": " Escribe el nombre, compare las coincidencias.",
+      "avg_logprob": -0.1418397185778377
+    },
+    {
+      "start": 9.06,
+      "end": 14.02,
+      "text": " Abre la entidad correcta, su identidad conserva la matrícula y la fuente del registro.",
+      "avg_logprob": -0.1418397185778377
+    },
+    {
+      "start": 15.06,
+      "end": 19.2,
+      "text": " Previsa la razón social, la actividad económica y los datos de matrícula.",
+      "avg_logprob": -0.1418397185778377
+    },
+    {
+      "start": 20.66,
+      "end": 23.94,
+      "text": " Cada fuente conserva sus propias fechas y límites.",
+      "avg_logprob": -0.1418397185778377
+    },
+    {
+      "start": 24.64,
+      "end": 29.8,
+      "text": " En mercado de capitales, consulta el registro de misor y su identidad verificada.",
+      "avg_logprob": -0.1224296639891381
+    },
+    {
+      "start": 31.06,
+      "end": 36.84,
+      "text": " Explora los valores inscritos, el registro por sí solo no demuestra negociación vigente en bolsa.",
+      "avg_logprob": -0.1224296639891381
+    },
+    {
+      "start": 38.18,
+      "end": 42.48,
+      "text": " Se cop 2 consulta el eneite del proveedor, contratos, valores y entidades.",
+      "avg_logprob": -0.1224296639891381
+    },
+    {
+      "start": 44.08,
+      "end": 47.5,
+      "text": " Consulta la actividad histórica y las entidades contratantes.",
+      "avg_logprob": -0.1224296639891381
+    },
+    {
+      "start": 48.76,
+      "end": 52.96,
+      "text": " Abre el contrato, participar no es por sí solo un hallazgo adverso.",
+      "avg_logprob": -0.16958583371583805
+    },
+    {
+      "start": 54.18,
+      "end": 58.26,
+      "text": " Información organizada con sus límites a la vista, explora el proyecto.",
+      "avg_logprob": -0.16958583371583805
+    }
+  ]
+}

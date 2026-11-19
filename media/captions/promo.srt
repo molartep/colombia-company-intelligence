@@ -1,0 +1,23 @@
+1
+00:00:00,180 --> 00:00:04,191
+Investigar una empresa en Colombia no debería exigir tantas fuentes.
+
+2
+00:00:05,180 --> 00:00:08,785
+Una búsqueda reúne información pública en una sola experiencia.
+
+3
+00:00:10,180 --> 00:00:14,276
+Busca por NIT. Consulta su identidad y sus valores registrados.
+
+4
+00:00:15,180 --> 00:00:19,127
+Explora contratos del Gobierno, con cifras y evidencia verificable.
+
+5
+00:00:20,680 --> 00:00:24,648
+Menos tiempo reuniendo datos. Más contexto para tu investigación.
+
+6
+00:00:26,180 --> 00:00:28,463
+Datos públicos, con fuentes a la vista.

@@ -1,0 +1,9 @@
+# Audio and visual provenance
+
+- **Narration:** locally generated with `kokoro-onnx` 0.4.9 and Kokoro-82M v1.0, generic Spanish voice `ef_dora`, Spanish Latin American phonemization (`es-419`). No identifiable individual was requested or imitated. This is disclosed synthetic speech, not a human recording or macOS system voice. Model card declares Apache-2.0: https://huggingface.co/hexgrad/Kokoro-82M and voice listing https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md . Apache license text is retained here; model weights are downloaded separately. Model hashes are in `audio/manifest.json`.
+- **Inference engine:** https://github.com/thewh1teagle/kokoro-onnx (MIT). Transitive libraries retain their own licenses; `pip freeze` can audit the isolated environment. The phonemizer dependency includes eSpeak NG; its package license applies to its software, not an assertion of exclusive rights over speech output.
+- **Music:** original procedural four-chord pad and soft arpeggio, composed directly in `scripts/audio.py`. No stock music, external recordings or sampled instruments. Released under this repository's MIT license. Stems retained in `audio/*-music.flac`.
+- **Visuals:** actual application component captures; original product logo reused without alteration. Source records and publisher references are attributed in `../SOURCES.md`. No stock footage, purchased graphics or generated fictional UI.
+- **Typography:** Avenir Next uses the build machine's installed font solely to render images/video. No font file is copied or distributed. Other systems require their own appropriately licensed installed font.
+
+Licensed model availability is not a guarantee of pronunciation, jurisdiction-specific publicity rights or human performance. A native speaker's final voice audition remains recommended before paid distribution. No third-party price screen is included.

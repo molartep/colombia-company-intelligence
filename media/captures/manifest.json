@@ -1,0 +1,156 @@
+{
+  "home": {
+    "file": "home.png",
+    "width": 840,
+    "height": 349,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "typing-1": {
+    "file": "typing-1.png",
+    "width": 840,
+    "height": 66,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "typing-4": {
+    "file": "typing-4.png",
+    "width": 840,
+    "height": 66,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "typing-9": {
+    "file": "typing-9.png",
+    "width": 840,
+    "height": 66,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "typing": {
+    "file": "typing.png",
+    "width": 840,
+    "height": 349,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "typing-gif": {
+    "file": "typing-gif.png",
+    "width": 840,
+    "height": 66,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "search": {
+    "file": "search.png",
+    "width": 1140,
+    "height": 464,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "result-gif": {
+    "file": "result-gif.png",
+    "width": 454,
+    "height": 117,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "overview-tabs": {
+    "file": "overview-tabs.png",
+    "width": 1140,
+    "height": 63,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "identity": {
+    "file": "identity.png",
+    "width": 1140,
+    "height": 164,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "identity-gif": {
+    "file": "identity-gif.png",
+    "width": 558,
+    "height": 445,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "overview": {
+    "file": "overview.png",
+    "width": 1140,
+    "height": 469,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "rues-source": {
+    "file": "rues-source.png",
+    "width": 1090,
+    "height": 325,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "issuer-tabs": {
+    "file": "issuer-tabs.png",
+    "width": 1140,
+    "height": 63,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "issuer": {
+    "file": "issuer.png",
+    "width": 558,
+    "height": 649,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "issuer-gif": {
+    "file": "issuer-gif.png",
+    "width": 558,
+    "height": 649,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "securities": {
+    "file": "securities.png",
+    "width": 1140,
+    "height": 1066,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "secop-tabs": {
+    "file": "secop-tabs.png",
+    "width": 1140,
+    "height": 63,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "secop": {
+    "file": "secop.png",
+    "width": 1140,
+    "height": 435,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "secop-gif": {
+    "file": "secop-gif.png",
+    "width": 533,
+    "height": 300,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "activity": {
+    "file": "activity.png",
+    "width": 1140,
+    "height": 1046,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  },
+  "evidence": {
+    "file": "evidence.png",
+    "width": 1090,
+    "height": 1198,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "data": "recorded public-source API evidence; not synthetic"
+  }
+}

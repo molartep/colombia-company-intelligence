@@ -1,0 +1,1405 @@
+{
+  "search": {
+    "items": [
+      {
+        "id": "1bd03742-c759-403c-8498-dc2b4f55d8af",
+        "nit": "900925798",
+        "verification_digit": "3",
+        "legal_name": "ECOPETROL COSTA AFUERA COLOMBIA S A S",
+        "legal_form": "SOCIEDADES POR ACCIONES SIMPLIFICADAS SAS",
+        "registration_status": "ACTIVA",
+        "primary_ciiu": "0610",
+        "department": null,
+        "municipality": null,
+        "registered_bvc": false,
+        "registration_number": "2643525",
+        "chamber": "BOGOTA",
+        "chamber_code": "04",
+        "registration_date": "20160118",
+        "renewal_date": "20260325",
+        "match_type": "partial_name",
+        "evidence": [
+          "Normalized query occurs in the legal name."
+        ],
+        "data_source": "rues-c82u-588k"
+      },
+      {
+        "id": "505600b0-1ed5-4173-8425-700e0bc78f56",
+        "nit": "901165502",
+        "verification_digit": "2",
+        "legal_name": "ECOPETROL ENERGIA SAS ESP",
+        "legal_form": "SOCIEDADES POR ACCIONES SIMPLIFICADAS SAS",
+        "registration_status": "CANCELADA",
+        "primary_ciiu": "3514",
+        "department": null,
+        "municipality": null,
+        "registered_bvc": false,
+        "registration_number": "2932870",
+        "chamber": "BOGOTA",
+        "chamber_code": "04",
+        "registration_date": "20180314",
+        "renewal_date": "20230316",
+        "match_type": "partial_name",
+        "evidence": [
+          "Normalized query occurs in the legal name."
+        ],
+        "data_source": "rues-c82u-588k"
+      },
+      {
+        "id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+        "nit": "899999068",
+        "verification_digit": "1",
+        "legal_name": "ECOPETROL S A",
+        "legal_form": "SOCIEDAD ANONIMA",
+        "registration_status": "ACTIVA",
+        "primary_ciiu": "0610",
+        "department": null,
+        "municipality": null,
+        "registered_bvc": true,
+        "registration_number": "1291197",
+        "chamber": "BOGOTA",
+        "chamber_code": "04",
+        "registration_date": "20030718",
+        "renewal_date": "20260330",
+        "match_type": "partial_name",
+        "evidence": [
+          "Normalized query occurs in the legal name."
+        ],
+        "data_source": "rues-c82u-588k"
+      }
+    ],
+    "page": 1,
+    "page_size": 20,
+    "has_more": false,
+    "stale": true,
+    "warning": "source_timeout: official source failed; showing previously retrieved records.",
+    "ranking_scope": "current cached page"
+  },
+  "markets": {
+    "has_registered_bvc_common_equity": true,
+    "common_equity_record_count": 1,
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "rnve": {
+      "status": "registered_active",
+      "issuer_name": "ECOPETROL S.A.",
+      "issuer_code": "036",
+      "source": "sfc_rnve",
+      "match_status": "verified",
+      "checked_snapshot_id": "61c660c9-76d7-4a8c-9dc2-51a5aca7e658"
+    },
+    "exchange_listing": {
+      "attempts": [
+        {
+          "source_id": "bvc_listings",
+          "source_name": "Bolsa de Valores de Colombia",
+          "source_url": "https://www.bvc.com.co/renta-variable-mercado-local/ecopetrol?tab=resumen",
+          "status": "unavailable",
+          "last_attempt_at": "2026-11-19T23:11:41.919466Z",
+          "detail": "bvc_http_403"
+        },
+        {
+          "source_id": "la_republica_quotes",
+          "source_name": "La República",
+          "source_url": "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/ecopetrol",
+          "status": "matched",
+          "last_attempt_at": "2026-11-19T23:11:44.903352Z",
+          "detail": null
+        },
+        {
+          "source_id": "sfc_daily_quotes",
+          "source_name": "SFC · Promedio diario de cotización",
+          "source_url": "https://www.superfinanciera.gov.co/info/superfinancierav8/media/MercadoAccionario/Precios/Diarios/d_coc04paao008.htm",
+          "status": "not_checked",
+          "last_attempt_at": null,
+          "detail": "No fue necesario consultar esta fuente."
+        }
+      ],
+      "quotes": [],
+      "match_status": "matched",
+      "status": "unknown",
+      "exchange": "BVC",
+      "verified_as_of": null,
+      "availability": "available",
+      "explanation": "Cotización de La República con identidad verificada por coincidencia exacta. La fecha publicada y la fuente se muestran con el precio; no es una cotización en tiempo real."
+    },
+    "equity_listed": null,
+    "ownership": {
+      "type": "unknown",
+      "verification_status": "not_assessed"
+    },
+    "issuers": [
+      {
+        "id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "nit": "899999068",
+        "source_nit": "8999990681",
+        "verification_digit": "1",
+        "issuer_name": "ECOPETROL S.A.",
+        "regulator_entity_code": "036",
+        "regulator_entity_type": "260",
+        "registration_status": "registered_active",
+        "registration_date": null,
+        "cancellation_date": null,
+        "last_verified_at": "2026-11-18T21:32:11.600159Z",
+        "raw_source_record_id": "ce40c1fd-5171-4316-b912-60ee89632765",
+        "source_id": "sfc_rnve",
+        "source_url": "https://www.superfinanciera.gov.co/SIMEV2/rnve/emisoresinscritosvigentes",
+        "snapshot_id": "61c660c9-76d7-4a8c-9dc2-51a5aca7e658",
+        "regulator_entity_type_description": "ENTIDADES PUBLICAS",
+        "contacts": {
+          "institutional_email": "presidencia@ecopetrol.com.co",
+          "address": "CR13 # 36 - 24",
+          "city": "Bogotá, D.c.",
+          "phone": "3103158600",
+          "website": "www.ecopetrol.com.co",
+          "social_networks": [
+            "https://https://www.linkedin.com/company/ecopetroloficial",
+            "https://https://twitter.com/ECOPETROL_SA",
+            "https://https://www.facebook.com/EcopetrolOficial",
+            "https://https://www.instagram.com/ecopetroloficial/"
+          ]
+        },
+        "administration": {
+          "board_members_count": 9,
+          "legal_representative": "Juan Carlos Hurtado Parra",
+          "rnve_information_representative": "Joaquin Guitierrez Caballero"
+        },
+        "contacts_source_url": "https://www.superfinanciera.gov.co/SIMEV2/rnve/resumenentidad/260/36/0",
+        "contacts_retrieved_at": "2026-11-19T05:11:19.240364Z",
+        "administration_source_url": "https://www.superfinanciera.gov.co/SIMEV2/rnve/resumenentidad/260/36/0",
+        "administration_retrieved_at": "2026-11-19T05:11:19.240364Z",
+        "details_availability": "available",
+        "details_last_attempt_at": "2026-11-19T05:11:19.237203Z",
+        "details_last_attempt_failed": false,
+        "match_method": "exact_nit",
+        "match_status": "verified"
+      }
+    ],
+    "instruments": [
+      {
+        "id": "64cfe196-c9c9-4e9a-808f-39e38424f680",
+        "issuer_id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "security_name": "AO PEC ECOPETROL S.A.",
+        "security_type_raw": "AO",
+        "security_category": "common_equity",
+        "ticker": null,
+        "isin": null,
+        "ann_code": "COC04PAAO008",
+        "issuance_number": "200707",
+        "exchange": "BVC",
+        "rnve_registration_date": "2007-07-27",
+        "bvc_registration_date": "2007-08-22",
+        "listing_status": "unknown",
+        "authorized_amount": null,
+        "currency": null,
+        "credit_rating": null,
+        "source_id": "sfc_rnve_securities",
+        "source_record_id": "1afd6dba-ccaf-4457-a1fd-a9773ad20979",
+        "last_verified_at": "2026-11-19T04:47:26.460117Z",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "snapshot_id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+        "source_values": {
+          "Moneda": "N/A",
+          "Código ANN": "COC04PAAO008",
+          "Inscrito en": "BVC",
+          "No. Emisión": "200707",
+          "Monto Autorizado": "N/A",
+          "Tipo Inscripción": "NOR",
+          "Inscrito BVC Fecha": "22/08/2007",
+          "Nombre del título": "AO PEC ECOPETROL S.A.",
+          "Inscrito RNVE Fecha": "27/07/2007",
+          "Última Calificacion": "N/A",
+          "Número de Acto Administrativo RNVE": "1314"
+        },
+        "stale": false,
+        "observation_status": "present_in_latest_report",
+        "quality_notes": []
+      },
+      {
+        "id": "8f24a3d3-f48a-4b71-b3d0-9afb54286b75",
+        "issuer_id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "security_name": "BDPI ECOPETROL S.A.",
+        "security_type_raw": "BDPI",
+        "security_category": "other_debt",
+        "ticker": null,
+        "isin": null,
+        "ann_code": "COC04CBVP023",
+        "issuance_number": "201011",
+        "exchange": "BVC",
+        "rnve_registration_date": "2010-11-11",
+        "bvc_registration_date": "2010-11-26",
+        "listing_status": "unknown",
+        "authorized_amount": "1000000000000.0000",
+        "currency": "COP",
+        "credit_rating": "AAA",
+        "source_id": "sfc_rnve_securities",
+        "source_record_id": "7ab121a8-f446-42a7-8edb-70bd96e0c306",
+        "last_verified_at": "2026-11-19T04:47:26.460117Z",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "snapshot_id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+        "source_values": {
+          "Moneda": "COP",
+          "Código ANN": "COC04CBVP023",
+          "Inscrito en": "BVC",
+          "No. Emisión": "201011",
+          "Monto Autorizado": "1.000.000.000.000",
+          "Tipo Inscripción": "NOR",
+          "Inscrito BVC Fecha": "26/11/2010",
+          "Nombre del título": "BDPI ECOPETROL S.A.",
+          "Inscrito RNVE Fecha": "11/11/2010",
+          "Última Calificacion": "AAA",
+          "Número de Acto Administrativo RNVE": "2176"
+        },
+        "stale": false,
+        "observation_status": "present_in_latest_report",
+        "quality_notes": []
+      },
+      {
+        "id": "9bbcfc69-1947-40e1-bc75-96101e1960d4",
+        "issuer_id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "security_name": "BDPI PEC - 1A. EMISION ECOPETROL S.A.",
+        "security_type_raw": "BDPI",
+        "security_category": "other_debt",
+        "ticker": null,
+        "isin": null,
+        "ann_code": "COC04CBVP007",
+        "issuance_number": "201308",
+        "exchange": "BVC",
+        "rnve_registration_date": "2013-08-02",
+        "bvc_registration_date": "2013-08-22",
+        "listing_status": "unknown",
+        "authorized_amount": "900000000000.0000",
+        "currency": "COP",
+        "credit_rating": "AAA",
+        "source_id": "sfc_rnve_securities",
+        "source_record_id": "51873cca-7c55-4a8c-86b1-0e6d9552f7cd",
+        "last_verified_at": "2026-11-19T04:47:26.460117Z",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "snapshot_id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+        "source_values": {
+          "Moneda": "COP",
+          "Código ANN": "COC04CBVP007",
+          "Inscrito en": "BVC",
+          "No. Emisión": "201308",
+          "Monto Autorizado": "900.000.000.000",
+          "Tipo Inscripción": "NOR",
+          "Inscrito BVC Fecha": "22/08/2013",
+          "Nombre del título": "BDPI PEC - 1A. EMISION ECOPETROL S.A.",
+          "Inscrito RNVE Fecha": "02/08/2013",
+          "Última Calificacion": "AAA",
+          "Número de Acto Administrativo RNVE": "1470"
+        },
+        "stale": false,
+        "observation_status": "present_in_latest_report",
+        "quality_notes": []
+      },
+      {
+        "id": "ec341c96-7ecc-488f-9323-32a61fdf2e01",
+        "issuer_id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "security_name": "BONOS PENSIONALES EMPRESA COLOMBIANA DE PETROLEOS",
+        "security_type_raw": "BONOS",
+        "security_category": "other_or_unknown",
+        "ticker": null,
+        "isin": null,
+        "ann_code": "COC04CBVO017",
+        "issuance_number": "200302",
+        "exchange": "BVC",
+        "rnve_registration_date": "2003-02-20",
+        "bvc_registration_date": "2003-05-02",
+        "listing_status": "unknown",
+        "authorized_amount": "99600000.0000",
+        "currency": "COP",
+        "credit_rating": null,
+        "source_id": "sfc_rnve_securities",
+        "source_record_id": "cfd252c9-48cb-4765-960a-83dba1c54787",
+        "last_verified_at": "2026-11-19T04:47:26.460117Z",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "snapshot_id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+        "source_values": {
+          "Moneda": "COP",
+          "Código ANN": "COC04CBVO017",
+          "Inscrito en": "BVC",
+          "No. Emisión": "200302",
+          "Monto Autorizado": "99.600.000",
+          "Tipo Inscripción": "NOR",
+          "Inscrito BVC Fecha": "02/05/2003",
+          "Nombre del título": "BONOS PENSIONALES EMPRESA COLOMBIANA DE PETROLEOS",
+          "Inscrito RNVE Fecha": "20/02/2003",
+          "Última Calificacion": "N/A",
+          "Número de Acto Administrativo RNVE": "95"
+        },
+        "stale": false,
+        "observation_status": "present_in_latest_report",
+        "quality_notes": []
+      },
+      {
+        "id": "870c4bae-7a81-444a-93e3-b84703f157b8",
+        "issuer_id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "security_name": "PC PEC ECOPETROL S.A.",
+        "security_type_raw": "PC",
+        "security_category": "commercial_paper",
+        "ticker": null,
+        "isin": null,
+        "ann_code": "COC04CPPC016",
+        "issuance_number": "201308",
+        "exchange": "BVC",
+        "rnve_registration_date": "2013-08-02",
+        "bvc_registration_date": "2013-08-22",
+        "listing_status": "unknown",
+        "authorized_amount": null,
+        "currency": null,
+        "credit_rating": null,
+        "source_id": "sfc_rnve_securities",
+        "source_record_id": "5e362406-dc19-48ad-a5b5-e79ded2a3182",
+        "last_verified_at": "2026-11-19T04:47:26.460117Z",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "snapshot_id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+        "source_values": {
+          "Moneda": "N/A",
+          "Código ANN": "COC04CPPC016",
+          "Inscrito en": "BVC",
+          "No. Emisión": "201308",
+          "Monto Autorizado": "N/A",
+          "Tipo Inscripción": "NOR",
+          "Inscrito BVC Fecha": "22/08/2013",
+          "Nombre del título": "PC PEC ECOPETROL S.A.",
+          "Inscrito RNVE Fecha": "02/08/2013",
+          "Última Calificacion": "N/A",
+          "Número de Acto Administrativo RNVE": "1470"
+        },
+        "stale": false,
+        "observation_status": "present_in_latest_report",
+        "quality_notes": []
+      }
+    ],
+    "securities_availability": "available",
+    "sources": [
+      {
+        "id": "bvc_listings",
+        "name": "BVC · Acciones ordinarias",
+        "institution": "Bolsa de Valores de Colombia",
+        "source_url": "https://www.bvc.com.co/renta-variable-mercado-local/ecopetrol?tab=resumen",
+        "availability": "failed_to_retrieve",
+        "last_ingestion_status": "failed",
+        "last_error": "bvc_http_403",
+        "last_attempt_at": "2026-11-19T23:11:41.919466Z",
+        "last_success_at": null,
+        "refresh_interval_hours": 0.25,
+        "stale": true,
+        "latest_snapshot": null
+      },
+      {
+        "id": "la_republica_quotes",
+        "name": "La República · Cotizaciones de acciones",
+        "institution": "La República",
+        "source_url": "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/ecopetrol",
+        "availability": "available",
+        "last_ingestion_status": "success",
+        "last_error": null,
+        "last_attempt_at": "2026-11-19T23:11:44.903352Z",
+        "last_success_at": "2026-11-19T23:11:44.903352Z",
+        "refresh_interval_hours": 0.25,
+        "stale": false,
+        "latest_snapshot": {
+          "id": "eb1b8677-7701-4e39-a253-a7a30960212d",
+          "source_id": "la_republica_quotes",
+          "retrieved_at": "2026-11-19T23:11:44.903352Z",
+          "published_at": null,
+          "source_url": "https://www.larepublica.co/indicadores-economicos/movimiento-accionario/ecopetrol",
+          "content_hash": "78dc41702f8a1089435c3a937db7fc27f87aa76a2151d7166d137be966c47764",
+          "record_count": 1,
+          "ingestion_status": "success",
+          "error_details": null,
+          "observed_at": "2026-11-19T15:49:02-05:00",
+          "complete_current": false
+        }
+      },
+      {
+        "id": "sfc_daily_quotes",
+        "name": "SFC · Promedio diario de cotización",
+        "institution": "Superintendencia Financiera de Colombia",
+        "source_url": "https://www.superfinanciera.gov.co/info/superfinancierav8/media/MercadoAccionario/Precios/Diarios/ppal_promedios.htm",
+        "availability": "not_yet_checked",
+        "last_ingestion_status": "not_yet_checked",
+        "last_error": null,
+        "last_attempt_at": null,
+        "last_success_at": null,
+        "refresh_interval_hours": 0.25,
+        "stale": true,
+        "latest_snapshot": null
+      },
+      {
+        "id": "sfc_rnve",
+        "name": "SFC · Registro Nacional de Valores y Emisores",
+        "institution": "Superintendencia Financiera de Colombia",
+        "source_url": "https://www.superfinanciera.gov.co/SIMEV2/rnve/emisoresinscritosvigentes",
+        "availability": "available",
+        "last_ingestion_status": "success",
+        "last_error": null,
+        "last_attempt_at": "2026-11-18T21:32:11.600159Z",
+        "last_success_at": "2026-11-18T21:32:11.600159Z",
+        "refresh_interval_hours": 24.0,
+        "stale": true,
+        "latest_snapshot": {
+          "id": "61c660c9-76d7-4a8c-9dc2-51a5aca7e658",
+          "source_id": "sfc_rnve",
+          "retrieved_at": "2026-11-18T21:32:11.600159Z",
+          "published_at": null,
+          "source_url": "https://www.superfinanciera.gov.co/SIMEV2/rnve/emisoresinscritosvigentes",
+          "content_hash": "8555106c4d7c295467fd93eb21f9ff1e842e3eb890263d3757c209531ac4c8e3",
+          "record_count": 307,
+          "ingestion_status": "success",
+          "error_details": null,
+          "observed_at": "2026-11-18T21:32:11Z",
+          "complete_current": false
+        }
+      },
+      {
+        "id": "sfc_rnve_issuer_details",
+        "name": "SFC · Datos del emisor RNVE",
+        "institution": "Superintendencia Financiera de Colombia",
+        "source_url": "https://www.superfinanciera.gov.co/SIMEV2/rnve/resumenentidad/260/36/0",
+        "availability": "available",
+        "last_ingestion_status": "success",
+        "last_error": null,
+        "last_attempt_at": "2026-11-19T05:11:19.237203Z",
+        "last_success_at": "2026-11-19T05:11:19.237203Z",
+        "refresh_interval_hours": 24.0,
+        "stale": false,
+        "latest_snapshot": {
+          "id": "92a9c283-9216-42e8-8c2b-6d7928e683f7",
+          "source_id": "sfc_rnve_issuer_details",
+          "retrieved_at": "2026-11-19T05:11:19.237203Z",
+          "published_at": null,
+          "source_url": "https://www.superfinanciera.gov.co/SIMEV2/rnve/resumenentidad/260/36/0",
+          "content_hash": "8e358d040db8997e4b70ded4b660c877ca16e22a43abf76436c8a7473be4c54a",
+          "record_count": 1,
+          "ingestion_status": "success",
+          "error_details": null,
+          "observed_at": null,
+          "complete_current": false
+        }
+      },
+      {
+        "id": "sfc_rnve_securities",
+        "name": "SFC · Valores inscritos",
+        "institution": "Superintendencia Financiera de Colombia",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "availability": "available",
+        "last_ingestion_status": "success",
+        "last_error": null,
+        "last_attempt_at": "2026-11-19T04:47:26.460117Z",
+        "last_success_at": "2026-11-19T04:47:26.460117Z",
+        "refresh_interval_hours": 24.0,
+        "stale": false,
+        "latest_snapshot": {
+          "id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+          "source_id": "sfc_rnve_securities",
+          "retrieved_at": "2026-11-19T04:47:26.460117Z",
+          "published_at": null,
+          "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+          "content_hash": "451c211572023e35e4c979b563cd1e0d5344db2ae7472a821262a10168af9d4c",
+          "record_count": 5,
+          "ingestion_status": "success",
+          "error_details": null,
+          "observed_at": "2026-11-19T04:47:26Z",
+          "complete_current": false
+        }
+      }
+    ],
+    "last_checked_at": "2026-11-18T21:32:11.600159Z",
+    "stale": true,
+    "summary": "La empresa figura como emisor vigente en la fuente RNVE consultada. Se identificaron valores de deuda registrados. No se ha verificado un listado vigente de acciones en la BVC.",
+    "limitations": [
+      "La forma jurídica proviene de RUES y no determina propiedad pública o privada.",
+      "RNVE no equivale a acciones listadas. Los códigos ANN no se convierten en ticker o ISIN.",
+      "Las fechas BVC de SFC son eventos de inscripción, no verificación de negociación vigente.",
+      "Los candidatos por nombre y las matrículas con NIT compartido requieren revisión."
+    ]
+  },
+  "securities": {
+    "total": 5,
+    "unfiltered_total": 5,
+    "items": [
+      {
+        "id": "64cfe196-c9c9-4e9a-808f-39e38424f680",
+        "issuer_id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "security_name": "AO PEC ECOPETROL S.A.",
+        "security_type_raw": "AO",
+        "security_category": "common_equity",
+        "ticker": null,
+        "isin": null,
+        "ann_code": "COC04PAAO008",
+        "issuance_number": "200707",
+        "exchange": "BVC",
+        "rnve_registration_date": "2007-07-27",
+        "bvc_registration_date": "2007-08-22",
+        "listing_status": "unknown",
+        "authorized_amount": null,
+        "currency": null,
+        "credit_rating": null,
+        "source_id": "sfc_rnve_securities",
+        "source_record_id": "1afd6dba-ccaf-4457-a1fd-a9773ad20979",
+        "last_verified_at": "2026-11-19T04:47:26.460117Z",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "snapshot_id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+        "source_values": {
+          "Moneda": "N/A",
+          "Código ANN": "COC04PAAO008",
+          "Inscrito en": "BVC",
+          "No. Emisión": "200707",
+          "Monto Autorizado": "N/A",
+          "Tipo Inscripción": "NOR",
+          "Inscrito BVC Fecha": "22/08/2007",
+          "Nombre del título": "AO PEC ECOPETROL S.A.",
+          "Inscrito RNVE Fecha": "27/07/2007",
+          "Última Calificacion": "N/A",
+          "Número de Acto Administrativo RNVE": "1314"
+        },
+        "stale": false,
+        "observation_status": "present_in_latest_report",
+        "quality_notes": []
+      },
+      {
+        "id": "8f24a3d3-f48a-4b71-b3d0-9afb54286b75",
+        "issuer_id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "security_name": "BDPI ECOPETROL S.A.",
+        "security_type_raw": "BDPI",
+        "security_category": "other_debt",
+        "ticker": null,
+        "isin": null,
+        "ann_code": "COC04CBVP023",
+        "issuance_number": "201011",
+        "exchange": "BVC",
+        "rnve_registration_date": "2010-11-11",
+        "bvc_registration_date": "2010-11-26",
+        "listing_status": "unknown",
+        "authorized_amount": "1000000000000.0000",
+        "currency": "COP",
+        "credit_rating": "AAA",
+        "source_id": "sfc_rnve_securities",
+        "source_record_id": "7ab121a8-f446-42a7-8edb-70bd96e0c306",
+        "last_verified_at": "2026-11-19T04:47:26.460117Z",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "snapshot_id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+        "source_values": {
+          "Moneda": "COP",
+          "Código ANN": "COC04CBVP023",
+          "Inscrito en": "BVC",
+          "No. Emisión": "201011",
+          "Monto Autorizado": "1.000.000.000.000",
+          "Tipo Inscripción": "NOR",
+          "Inscrito BVC Fecha": "26/11/2010",
+          "Nombre del título": "BDPI ECOPETROL S.A.",
+          "Inscrito RNVE Fecha": "11/11/2010",
+          "Última Calificacion": "AAA",
+          "Número de Acto Administrativo RNVE": "2176"
+        },
+        "stale": false,
+        "observation_status": "present_in_latest_report",
+        "quality_notes": []
+      },
+      {
+        "id": "9bbcfc69-1947-40e1-bc75-96101e1960d4",
+        "issuer_id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "security_name": "BDPI PEC - 1A. EMISION ECOPETROL S.A.",
+        "security_type_raw": "BDPI",
+        "security_category": "other_debt",
+        "ticker": null,
+        "isin": null,
+        "ann_code": "COC04CBVP007",
+        "issuance_number": "201308",
+        "exchange": "BVC",
+        "rnve_registration_date": "2013-08-02",
+        "bvc_registration_date": "2013-08-22",
+        "listing_status": "unknown",
+        "authorized_amount": "900000000000.0000",
+        "currency": "COP",
+        "credit_rating": "AAA",
+        "source_id": "sfc_rnve_securities",
+        "source_record_id": "51873cca-7c55-4a8c-86b1-0e6d9552f7cd",
+        "last_verified_at": "2026-11-19T04:47:26.460117Z",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "snapshot_id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+        "source_values": {
+          "Moneda": "COP",
+          "Código ANN": "COC04CBVP007",
+          "Inscrito en": "BVC",
+          "No. Emisión": "201308",
+          "Monto Autorizado": "900.000.000.000",
+          "Tipo Inscripción": "NOR",
+          "Inscrito BVC Fecha": "22/08/2013",
+          "Nombre del título": "BDPI PEC - 1A. EMISION ECOPETROL S.A.",
+          "Inscrito RNVE Fecha": "02/08/2013",
+          "Última Calificacion": "AAA",
+          "Número de Acto Administrativo RNVE": "1470"
+        },
+        "stale": false,
+        "observation_status": "present_in_latest_report",
+        "quality_notes": []
+      },
+      {
+        "id": "ec341c96-7ecc-488f-9323-32a61fdf2e01",
+        "issuer_id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "security_name": "BONOS PENSIONALES EMPRESA COLOMBIANA DE PETROLEOS",
+        "security_type_raw": "BONOS",
+        "security_category": "other_or_unknown",
+        "ticker": null,
+        "isin": null,
+        "ann_code": "COC04CBVO017",
+        "issuance_number": "200302",
+        "exchange": "BVC",
+        "rnve_registration_date": "2003-02-20",
+        "bvc_registration_date": "2003-05-02",
+        "listing_status": "unknown",
+        "authorized_amount": "99600000.0000",
+        "currency": "COP",
+        "credit_rating": null,
+        "source_id": "sfc_rnve_securities",
+        "source_record_id": "cfd252c9-48cb-4765-960a-83dba1c54787",
+        "last_verified_at": "2026-11-19T04:47:26.460117Z",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "snapshot_id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+        "source_values": {
+          "Moneda": "COP",
+          "Código ANN": "COC04CBVO017",
+          "Inscrito en": "BVC",
+          "No. Emisión": "200302",
+          "Monto Autorizado": "99.600.000",
+          "Tipo Inscripción": "NOR",
+          "Inscrito BVC Fecha": "02/05/2003",
+          "Nombre del título": "BONOS PENSIONALES EMPRESA COLOMBIANA DE PETROLEOS",
+          "Inscrito RNVE Fecha": "20/02/2003",
+          "Última Calificacion": "N/A",
+          "Número de Acto Administrativo RNVE": "95"
+        },
+        "stale": false,
+        "observation_status": "present_in_latest_report",
+        "quality_notes": []
+      },
+      {
+        "id": "870c4bae-7a81-444a-93e3-b84703f157b8",
+        "issuer_id": "7cba65ad-1e70-4a90-81e1-e113157292e6",
+        "security_name": "PC PEC ECOPETROL S.A.",
+        "security_type_raw": "PC",
+        "security_category": "commercial_paper",
+        "ticker": null,
+        "isin": null,
+        "ann_code": "COC04CPPC016",
+        "issuance_number": "201308",
+        "exchange": "BVC",
+        "rnve_registration_date": "2013-08-02",
+        "bvc_registration_date": "2013-08-22",
+        "listing_status": "unknown",
+        "authorized_amount": null,
+        "currency": null,
+        "credit_rating": null,
+        "source_id": "sfc_rnve_securities",
+        "source_record_id": "5e362406-dc19-48ad-a5b5-e79ded2a3182",
+        "last_verified_at": "2026-11-19T04:47:26.460117Z",
+        "source_url": "https://www.superfinanciera.gov.co/ReportesInformacionRelevante/faces/B_simevRelevantes/G_valoresInscritos/repoValoresInscritos.xhtml?entidad=036&tipoEntidad=260",
+        "snapshot_id": "e438bf1e-08fd-4c10-856c-6a5d14c3539a",
+        "source_values": {
+          "Moneda": "N/A",
+          "Código ANN": "COC04CPPC016",
+          "Inscrito en": "BVC",
+          "No. Emisión": "201308",
+          "Monto Autorizado": "N/A",
+          "Tipo Inscripción": "NOR",
+          "Inscrito BVC Fecha": "22/08/2013",
+          "Nombre del título": "PC PEC ECOPETROL S.A.",
+          "Inscrito RNVE Fecha": "02/08/2013",
+          "Última Calificacion": "N/A",
+          "Número de Acto Administrativo RNVE": "1470"
+        },
+        "stale": false,
+        "observation_status": "present_in_latest_report",
+        "quality_notes": []
+      }
+    ],
+    "page": 1,
+    "page_size": 10,
+    "has_more": false,
+    "availability": "available"
+  },
+  "records": [
+    {
+      "id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+      "external_record_id": "row-fnen.r97m~2frj",
+      "source_id": "rues-c82u-588k",
+      "source_url": "https://www.datos.gov.co/d/c82u-588k",
+      "retrieved_at": "2026-11-19T23:08:39.589503Z",
+      "source_updated_at": "2026-10-16T22:35:14.227000Z",
+      "payload_hash": "680af580e80075b38c81c2b6d615bf96f29f480b5c37702997dbf6dc896513ff",
+      "fields": {
+        "nit": "899999068",
+        "matricula": "1291197",
+        "upstream_id": "row-fnen.r97m~2frj",
+        "razon_social": "ECOPETROL S A",
+        "codigo_camara": "04",
+        "camara_comercio": "BOGOTA",
+        "fecha_matricula": "20030718",
+        "estado_matricula": "ACTIVA",
+        "fecha_renovacion": "20260330",
+        "categoria_matricula": "SOCIEDAD ó PERSONA JURIDICA PRINCIPAL ó ESAL",
+        "digito_verificacion": "1",
+        "fecha_actualizacion": "2026/10/16 17:35:14.227000000",
+        "ultimo_ano_renovado": "2026",
+        "cod_ciiu_act_econ_pri": "0610",
+        "cod_ciiu_act_econ_sec": "0620",
+        "organizacion_juridica": "SOCIEDAD ANONIMA",
+        "codigo_estado_matricula": "01",
+        "codigo_categoria_matricula": "01",
+        "codigo_organizacion_juridica": "04"
+      },
+      "field_mapping": {
+        "nit": "nit",
+        "verification_digit": "digito_verificacion",
+        "legal_name": "razon_social",
+        "legal_form": "organizacion_juridica",
+        "registration_status": "estado_matricula",
+        "primary_ciiu": "cod_ciiu_act_econ_pri",
+        "registration_number": "matricula",
+        "chamber": "camara_comercio",
+        "chamber_code": "codigo_camara",
+        "registration_date": "fecha_matricula",
+        "renewal_date": "fecha_renovacion",
+        "last_renewed_year": "ultimo_ano_renovado",
+        "cancellation_date": "fecha_cancelacion"
+      }
+    }
+  ],
+  "contracts": {
+    "items": [
+      {
+        "contract_id": "CO1.PCCNTR.8305019",
+        "process_id": "CO1.BDOS.8727737",
+        "reference": "CO1.PCCNTR.8305019",
+        "original_supplier_identifier": "899999068",
+        "normalized_supplier_identifier": "899999068",
+        "supplier_document_type": "NIT",
+        "source_identifier": "row-b3k8_fp8y.hk5k",
+        "match_method": "exact_supplier_nit",
+        "match_status": "verified",
+        "buyer": "GOBERNACIÓN DE LA GUAJIRA",
+        "buyer_nit": "8921150151",
+        "description": "LA GOBERNACIÓN DE LA GUAJIRA ENTREGA A TITULO DE COMODATO UN ÁREA PERTENECIENTE AL INMUEBLE DENOMINADO CENTRO CULTURAL DE LA GUAJIRA A FAVOR DE ECOPETROL S.A. PARA SU USO GRATUITO Y CON CARGO A RESTITUIR EL BIEN",
+        "value": "0",
+        "currency": "COP",
+        "currency_basis": "application_policy",
+        "raw_status": "Aprobado",
+        "status": "other",
+        "contract_type": "Comodato",
+        "modality": "Contratación directa",
+        "signature_date": "2025-11-04",
+        "start_date": null,
+        "end_date": "2026-09-09",
+        "department": "La Guajira",
+        "city": "Riohacha",
+        "source_url": "https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.8751178&isFromPublicArea=True&isModal=true&asPopupView=true",
+        "source_link_label": "Proceso oficial SECOP II",
+        "retrieved_at": "2026-11-19T04:53:40.231318Z",
+        "source_updated_at": null,
+        "evidence_id": "b46caca5-6f9a-47e8-b1d3-96eecabd251e"
+      },
+      {
+        "contract_id": "CO1.PCCNTR.8317598",
+        "process_id": "CO1.BDOS.8738971",
+        "reference": "1142-2025",
+        "original_supplier_identifier": "899999068",
+        "normalized_supplier_identifier": "899999068",
+        "supplier_document_type": "NIT",
+        "source_identifier": "row-fa45_nu29-2f8c",
+        "match_method": "exact_supplier_nit",
+        "match_status": "verified",
+        "buyer": "SERVICIO GEOLOGICO COLOMBIANO**",
+        "buyer_nit": "899999294",
+        "description": "Realizar el procesamiento y análisis de muestras de suelos; rocas y fluidos para la generación de conocimiento geocientífico del Servicio Geológico Colombiano",
+        "value": "602150472",
+        "currency": "COP",
+        "currency_basis": "application_policy",
+        "raw_status": "terminado",
+        "status": "terminated",
+        "contract_type": "Prestación de servicios",
+        "modality": "Contratación directa",
+        "signature_date": "2025-09-12",
+        "start_date": "2025-09-15",
+        "end_date": "2026-02-27",
+        "department": "Distrito Capital de Bogotá",
+        "city": "Bogotá",
+        "source_url": "https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.8768612&isFromPublicArea=True&isModal=true&asPopupView=true",
+        "source_link_label": "Proceso oficial SECOP II",
+        "retrieved_at": "2026-11-19T04:53:40.231318Z",
+        "source_updated_at": "2026-09-24T16:57:28.758000Z",
+        "evidence_id": "b7d4345f-a11d-456f-9988-5c35ab741f1f"
+      },
+      {
+        "contract_id": "CO1.PCCNTR.3852749",
+        "process_id": "CO1.BDOS.3073964",
+        "reference": "COMODATO 362 DE 2022",
+        "original_supplier_identifier": "899999068",
+        "normalized_supplier_identifier": "899999068",
+        "supplier_document_type": "NIT",
+        "source_identifier": "row-9k32~2icn~fsjj",
+        "match_method": "exact_supplier_nit",
+        "match_status": "verified",
+        "buyer": "INSTITUTO DE HIDROLOGIA; METEOROLOGÍA Y ESTUDIOS AMBIENTALES",
+        "buyer_nit": "830000602",
+        "description": "EL COMODANTE entrega al COMODATARIO y éste recibe; a título de Comodato o Préstamo de Uso; el bien que se describe a continuación: Lote que forma parte de uno de mayor extensión denominado LOTE CONCESIÓN DE MARES; ubicado en el corregimiento de El Centro; en jurisdicción del Municipio de Barrancabermeja; distinguido con la cédula catastral No. 680810500000000010001000000000; el cual fue adquirido por EL COMODANTE mediante DONACIÓN.",
+        "value": "0",
+        "currency": "COP",
+        "currency_basis": "application_policy",
+        "raw_status": "En ejecución",
+        "status": "in_execution",
+        "contract_type": "Comodato",
+        "modality": "Contratación directa",
+        "signature_date": "2022-07-28",
+        "start_date": "2022-07-31",
+        "end_date": "2027-07-31",
+        "department": "Distrito Capital de Bogotá",
+        "city": "Bogotá",
+        "source_url": "https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.3077679&isFromPublicArea=True&isModal=true&asPopupView=true",
+        "source_link_label": "Proceso oficial SECOP II",
+        "retrieved_at": "2026-11-19T04:53:40.231318Z",
+        "source_updated_at": null,
+        "evidence_id": "7f8fadda-4aa2-481e-8e2d-4317df77bb70"
+      },
+      {
+        "contract_id": "CO1.PCCNTR.3826049",
+        "process_id": "CO1.BDOS.3049166",
+        "reference": "CONVENIO 348 DE 2022",
+        "original_supplier_identifier": "899999068",
+        "normalized_supplier_identifier": "899999068",
+        "supplier_document_type": "NIT",
+        "source_identifier": "row-fw3v-56av~ar23",
+        "match_method": "exact_supplier_nit",
+        "match_status": "verified",
+        "buyer": "INSTITUTO DE HIDROLOGIA; METEOROLOGÍA Y ESTUDIOS AMBIENTALES",
+        "buyer_nit": "830000602",
+        "description": "Contribuir en la generación de información meteorológica a través del Sistema Nacional de Radares con el fin de prever riesgos a la infraestructura económica y social por eventos climáticos extremos que se puedan presentar en áreas de interés de Ecopetrol",
+        "value": "0",
+        "currency": "COP",
+        "currency_basis": "application_policy",
+        "raw_status": "En ejecución",
+        "status": "in_execution",
+        "contract_type": "Otro",
+        "modality": "Contratación directa",
+        "signature_date": "2022-07-22",
+        "start_date": "2022-07-31",
+        "end_date": "2027-11-30",
+        "department": "Distrito Capital de Bogotá",
+        "city": "Bogotá",
+        "source_url": "https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.3052853&isFromPublicArea=True&isModal=true&asPopupView=true",
+        "source_link_label": "Proceso oficial SECOP II",
+        "retrieved_at": "2026-11-19T04:53:40.231318Z",
+        "source_updated_at": "2023-11-30T23:44:51.800000Z",
+        "evidence_id": "ea0b7976-cf02-4cfd-8e03-d31816fdbfd9"
+      },
+      {
+        "contract_id": "CO1.PCCNTR.1892191",
+        "process_id": "CO1.BDOS.1488373",
+        "reference": "20200551",
+        "original_supplier_identifier": "899999068",
+        "normalized_supplier_identifier": "899999068",
+        "supplier_document_type": "NIT",
+        "source_identifier": "row-6k7j~b3zv_t9tp",
+        "match_method": "exact_supplier_nit",
+        "match_status": "verified",
+        "buyer": "MINISTERIO DE AGRICULTURA Y DESARROLLO RURAL",
+        "buyer_nit": "899999028",
+        "description": "AUNAR ESFUERZOS FINANCIEROS; ADMINISTRATIVOS Y TÉCNICOS ENTRE ECOPETROL S.A. Y EL MINISTERIO DE AGRICULTURA Y DESARROLLO RURAL PARA LA GESTIÓN E IMPLEMENTACION DE POLÍTICAS; PROGRAMAS Y PROYECTOS DE DESARROLLO RURAL CON ENFOQUE TERRITORIAL EN ZONAS DE INTERÉS COMÚN.",
+        "value": "0",
+        "currency": "COP",
+        "currency_basis": "application_policy",
+        "raw_status": "En ejecución",
+        "status": "in_execution",
+        "contract_type": "Otro",
+        "modality": "Contratación directa",
+        "signature_date": "2020-10-19",
+        "start_date": "2020-10-19",
+        "end_date": "2024-10-04",
+        "department": "Distrito Capital de Bogotá",
+        "city": "Bogotá",
+        "source_url": "https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.1486209&isFromPublicArea=True&isModal=true&asPopupView=true",
+        "source_link_label": "Proceso oficial SECOP II",
+        "retrieved_at": "2026-11-19T04:53:40.231318Z",
+        "source_updated_at": null,
+        "evidence_id": "55c4b4f5-f98e-4e06-b63b-17f488472719"
+      }
+    ],
+    "page": 1,
+    "page_size": 5,
+    "total": 7,
+    "has_more": true,
+    "run_id": "19b5f0cc-7ac7-430e-936b-b94324ea9245"
+  },
+  "profile": {
+    "id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "nit": "899999068",
+    "verification_digit": "1",
+    "legal_name": "ECOPETROL S A",
+    "legal_form": "SOCIEDAD ANONIMA",
+    "registration_status": "ACTIVA",
+    "primary_ciiu": "0610",
+    "department": null,
+    "municipality": null,
+    "created_at": "2026-11-19T04:46:20.515332Z",
+    "updated_at": "2026-11-19T23:08:39.588919Z",
+    "registration": {
+      "registration_number": "1291197",
+      "chamber": "BOGOTA",
+      "chamber_code": "04",
+      "registration_date": "20030718",
+      "renewal_date": "20260330",
+      "last_renewed_year": "2026",
+      "cancellation_date": null
+    },
+    "attributes": {
+      "nit": {
+        "state": "present",
+        "source_field": "nit",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "verification_digit": {
+        "state": "present",
+        "source_field": "digito_verificacion",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "legal_name": {
+        "state": "present",
+        "source_field": "razon_social",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "legal_form": {
+        "state": "present",
+        "source_field": "organizacion_juridica",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "registration_status": {
+        "state": "present",
+        "source_field": "estado_matricula",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "primary_ciiu": {
+        "state": "present",
+        "source_field": "cod_ciiu_act_econ_pri",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "registration_number": {
+        "state": "present",
+        "source_field": "matricula",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "chamber": {
+        "state": "present",
+        "source_field": "camara_comercio",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "chamber_code": {
+        "state": "present",
+        "source_field": "codigo_camara",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "registration_date": {
+        "state": "present",
+        "source_field": "fecha_matricula",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "renewal_date": {
+        "state": "present",
+        "source_field": "fecha_renovacion",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "last_renewed_year": {
+        "state": "present",
+        "source_field": "ultimo_ano_renovado",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "cancellation_date": {
+        "state": "missing_from_record",
+        "source_field": "fecha_cancelacion",
+        "record_id": "ab0314b7-eee2-454f-ac5b-cdd262cbc9d9",
+        "note": null
+      },
+      "department": {
+        "state": "unavailable_in_source",
+        "source_field": null,
+        "record_id": null,
+        "note": null
+      },
+      "municipality": {
+        "state": "unavailable_in_source",
+        "source_field": null,
+        "record_id": null,
+        "note": null
+      },
+      "ciiu_description": {
+        "state": "unavailable_in_source",
+        "source_field": null,
+        "record_id": null,
+        "note": null
+      },
+      "securities_listing": {
+        "state": "not_yet_checked",
+        "source_field": null,
+        "record_id": null,
+        "note": null
+      },
+      "financials": {
+        "state": "not_yet_checked",
+        "source_field": null,
+        "record_id": null,
+        "note": null
+      },
+      "screening": {
+        "state": "not_yet_checked",
+        "source_field": null,
+        "record_id": null,
+        "note": null
+      },
+      "ownership": {
+        "state": "not_yet_checked",
+        "source_field": null,
+        "record_id": null,
+        "note": null
+      }
+    },
+    "sources": [
+      {
+        "id": "rues-c82u-588k",
+        "name": "RUES · Confecámaras",
+        "description": "Official Colombian business registration records, including natural persons and ESALs.",
+        "provider": "Confecámaras",
+        "dataset_url": "https://www.datos.gov.co/d/c82u-588k",
+        "api_url": "https://www.datos.gov.co/resource/c82u-588k.json",
+        "last_checked_at": "2026-11-19T23:10:58.915560Z",
+        "last_updated_at": "2026-11-06T20:49:30Z",
+        "enabled": true,
+        "availability": "failed_to_retrieve"
+      }
+    ],
+    "retrieved_at": "2026-11-19T23:08:39.589503Z",
+    "source_updated_at": "2026-10-16T22:35:14.227000Z",
+    "dataset_updated_at": "2026-11-06T20:49:30Z",
+    "resolution_note": "Registration-scoped profile. Shared NITs and similar names are never automatically merged.",
+    "conflicting_registration_count": 0
+  },
+  "secop": {
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "company_name": "ECOPETROL S A",
+    "nit": "899999068",
+    "source_id": "secop-ii-jbjy-vk9h",
+    "source_url": "https://www.datos.gov.co/d/jbjy-vk9h",
+    "publisher": "Agencia Nacional de Contratación Pública — Colombia Compra Eficiente",
+    "outcome": "completed_with_matches",
+    "run_id": "19b5f0cc-7ac7-430e-936b-b94324ea9245",
+    "run_status": "completed",
+    "last_attempted_at": "2026-11-19T04:53:40.231318Z",
+    "last_successful_at": "2026-11-19T04:53:42.042046Z",
+    "source_updated_at": "2026-11-18T23:36:18Z",
+    "cache_age_seconds": 65836,
+    "cache_ttl_seconds": 86400,
+    "summary": {
+      "total_contracts": 7,
+      "total_values": {
+        "COP": "8137440199"
+      },
+      "monetary_contracts": 7,
+      "missing_or_invalid_values": 0,
+      "unknown_currency_contracts": 0,
+      "zero_value_contracts": 5,
+      "distinct_buyers": 5,
+      "latest_signature_date": "2025-11-04",
+      "annual": [
+        {
+          "label": "2020",
+          "count": 1,
+          "values": {
+            "COP": "0"
+          }
+        },
+        {
+          "label": "2022",
+          "count": 2,
+          "values": {
+            "COP": "0"
+          }
+        },
+        {
+          "label": "2025",
+          "count": 2,
+          "values": {
+            "COP": "602150472"
+          }
+        },
+        {
+          "label": "Sin fecha de firma",
+          "count": 2,
+          "values": {
+            "COP": "7535289727"
+          }
+        }
+      ],
+      "statuses": [
+        {
+          "label": "Aprobado",
+          "count": 1,
+          "values": {
+            "COP": "0"
+          }
+        },
+        {
+          "label": "En aprobación",
+          "count": 1,
+          "values": {
+            "COP": "7535289727"
+          }
+        },
+        {
+          "label": "En ejecución",
+          "count": 3,
+          "values": {
+            "COP": "0"
+          }
+        },
+        {
+          "label": "enviado Proveedor",
+          "count": 1,
+          "values": {
+            "COP": "0"
+          }
+        },
+        {
+          "label": "terminado",
+          "count": 1,
+          "values": {
+            "COP": "602150472"
+          }
+        }
+      ],
+      "top_buyers": [
+        {
+          "label": "SERVICIO GEOLOGICO COLOMBIANO**",
+          "count": 2,
+          "values": {
+            "COP": "8137440199"
+          }
+        },
+        {
+          "label": "INSTITUTO DE HIDROLOGIA; METEOROLOGÍA Y ESTUDIOS AMBIENTALES",
+          "count": 2,
+          "values": {
+            "COP": "0"
+          }
+        },
+        {
+          "label": "GOBERNACIÓN DE LA GUAJIRA",
+          "count": 1,
+          "values": {
+            "COP": "0"
+          }
+        },
+        {
+          "label": "JEFATURA DE FORMACION INSTRUCCION Y EDUCACION NAVAL",
+          "count": 1,
+          "values": {
+            "COP": "0"
+          }
+        },
+        {
+          "label": "MINISTERIO DE AGRICULTURA Y DESARROLLO RURAL",
+          "count": 1,
+          "values": {
+            "COP": "0"
+          }
+        }
+      ],
+      "modalities": [
+        {
+          "label": "Contratación directa",
+          "count": 7,
+          "values": {
+            "COP": "8137440199"
+          }
+        }
+      ],
+      "departments": [
+        {
+          "label": "Distrito Capital de Bogotá",
+          "count": 6,
+          "values": {
+            "COP": "8137440199"
+          }
+        },
+        {
+          "label": "La Guajira",
+          "count": 1,
+          "values": {
+            "COP": "0"
+          }
+        }
+      ],
+      "executive_summary": "Se identificaron 7 contratos únicos en SECOP II asociados al NIT consultado, con 5 entidades contratantes. La firma más reciente es 2025-11-04. El valor contractual acumulado es 8,137,440,199.00 COP. Los valores SECOP se interpretan en COP por configuración; no representan ingresos."
+    },
+    "warnings": [
+      "Cobertura limitada al conjunto SECOP II de contratos electrónicos; no es un historial completo del Estado.",
+      "Los valores se interpretan en pesos colombianos (COP) por configuración de la aplicación; la fuente no publica un campo de moneda. No equivalen a pagos ni ingresos.",
+      "Valor total reportado por la fuente; no equivale a pagos ni ingresos. No se verifica si incorpora todas las modificaciones.",
+      "Se conserva la observación más reciente por ID de contrato; versiones contradictorias sin orden temporal se excluyen.",
+      "NIT del proveedor: nueve dígitos se comparan con el NIT base; diez dígitos se comparan con el NIT base más el DV confirmado. Otras longitudes se excluyen.",
+      "Participar en contratación pública no constituye una señal adversa. La fuente puede tener retrasos e inconsistencias."
+    ],
+    "error_code": null,
+    "query_metadata": {
+      "row_cap": 5000,
+      "variants": [
+        "8 999 990 681",
+        "8.999.990.681",
+        "899 999 068",
+        "899 999 068 - 1",
+        "899 999 068-1",
+        "899.999.068",
+        "899.999.068 - 1",
+        "899.999.068-1",
+        "899999068",
+        "899999068 - 1",
+        "899999068-1",
+        "8999990681"
+      ],
+      "source_rows": 7,
+      "match_method": "exact_supplier_nit",
+      "deduplication": "id_contrato/latest_ultima_actualizacion",
+      "currency_policy": "secop_cop_v1",
+      "matching_policy": "supplier_nit_9_base_10_with_dv_v1",
+      "verification_digit": "1",
+      "excluded_rows_or_conflicts": 0,
+      "summary_policy": "raw_status_groups_v1"
+    }
+  },
+  "contracts_page2": {
+    "items": [
+      {
+        "contract_id": "CO1.PCCNTR.2599322",
+        "process_id": "CO1.BDOS.2039546",
+        "reference": "CO1.PCCNTR.2599322",
+        "original_supplier_identifier": "899999068",
+        "normalized_supplier_identifier": "899999068",
+        "supplier_document_type": "NIT",
+        "source_identifier": "row-vnyd_kphk.56iw",
+        "match_method": "exact_supplier_nit",
+        "match_status": "verified",
+        "buyer": "SERVICIO GEOLOGICO COLOMBIANO**",
+        "buyer_nit": "899999294",
+        "description": "AUNAR ESFUERZOS TÉCNICOS; ADMINISTRATIVOS Y FINANCIEROS PARA LA GENERACIÓN DE CONOCIMIENTO GEO CIENTÍFICO Y NUCLEAR QUE PERMITAN ADELANTAR ESTUDIOS DE LOS MATERIALES QUE PRESENTEN RADIACTIVIDAD NATURAL EN OPERACIONES DE YACIMIENTOS NO CONVENCIONALES",
+        "value": "7535289727",
+        "currency": "COP",
+        "currency_basis": "application_policy",
+        "raw_status": "En aprobación",
+        "status": "other",
+        "contract_type": "Otro",
+        "modality": "Contratación directa",
+        "signature_date": null,
+        "start_date": null,
+        "end_date": "2024-02-21",
+        "department": "Distrito Capital de Bogotá",
+        "city": "Bogotá",
+        "source_url": "https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.2041320&isFromPublicArea=True&isModal=true&asPopupView=true",
+        "source_link_label": "Proceso oficial SECOP II",
+        "retrieved_at": "2026-11-19T04:53:40.231318Z",
+        "source_updated_at": null,
+        "evidence_id": "8ba534c5-555e-486e-a6f8-67794818accc"
+      },
+      {
+        "contract_id": "CO1.PCCNTR.7355063",
+        "process_id": "CO1.BDOS.6633653",
+        "reference": "CO1.PCCNTR.7355063",
+        "original_supplier_identifier": "899999068",
+        "normalized_supplier_identifier": "899999068",
+        "supplier_document_type": "NIT",
+        "source_identifier": "row-4et8-5us4_kewb",
+        "match_method": "exact_supplier_nit",
+        "match_status": "verified",
+        "buyer": "JEFATURA DE FORMACION INSTRUCCION Y EDUCACION NAVAL",
+        "buyer_nit": "8001416441",
+        "description": "AUNAR ESFUERZOS PARA EL DESARROLLO DE CAPACIDADES CIENTÍFICAS; TECNOLÓGICAS Y DE INNOVACIÓN EN EL ÁMBITO MARÍTIMO; QUE GENEREN COMPETENCIAS EN LAS PARTES MEDIANTE LA INVESTIGACIÓN; DESARROLLO Y TRANSFERENCIA DE CONOCIMIENTO DEL MEDIO AMBIENTE MARÍTIMO; FLUVIAL; GEOCIENCIAS Y ÁREAS AFINES.",
+        "value": "0",
+        "currency": "COP",
+        "currency_basis": "application_policy",
+        "raw_status": "enviado Proveedor",
+        "status": "other",
+        "contract_type": "Otro",
+        "modality": "Contratación directa",
+        "signature_date": null,
+        "start_date": null,
+        "end_date": "2030-07-17",
+        "department": "Distrito Capital de Bogotá",
+        "city": "Bogotá",
+        "source_url": "https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.7477722&isFromPublicArea=True&isModal=true&asPopupView=true",
+        "source_link_label": "Proceso oficial SECOP II",
+        "retrieved_at": "2026-11-19T04:53:40.231318Z",
+        "source_updated_at": null,
+        "evidence_id": "db56b57d-63df-4193-958e-9cf3c4d8d77d"
+      }
+    ],
+    "page": 2,
+    "page_size": 5,
+    "total": 7,
+    "has_more": false,
+    "run_id": "19b5f0cc-7ac7-430e-936b-b94324ea9245"
+  },
+  "detail": {
+    "contract_id": "CO1.PCCNTR.8317598",
+    "process_id": "CO1.BDOS.8738971",
+    "reference": "1142-2025",
+    "original_supplier_identifier": "899999068",
+    "normalized_supplier_identifier": "899999068",
+    "supplier_document_type": "NIT",
+    "source_identifier": "row-fa45_nu29-2f8c",
+    "match_method": "exact_supplier_nit",
+    "match_status": "verified",
+    "buyer": "SERVICIO GEOLOGICO COLOMBIANO**",
+    "buyer_nit": "899999294",
+    "description": "Realizar el procesamiento y análisis de muestras de suelos; rocas y fluidos para la generación de conocimiento geocientífico del Servicio Geológico Colombiano",
+    "value": "602150472",
+    "currency": "COP",
+    "currency_basis": "application_policy",
+    "raw_status": "terminado",
+    "status": "terminated",
+    "contract_type": "Prestación de servicios",
+    "modality": "Contratación directa",
+    "signature_date": "2025-09-12",
+    "start_date": "2025-09-15",
+    "end_date": "2026-02-27",
+    "department": "Distrito Capital de Bogotá",
+    "city": "Bogotá",
+    "source_url": "https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.8768612&isFromPublicArea=True&isModal=true&asPopupView=true",
+    "source_link_label": "Proceso oficial SECOP II",
+    "retrieved_at": "2026-11-19T04:53:40.231318Z",
+    "source_updated_at": "2026-09-24T16:57:28.758000Z",
+    "evidence_id": "b7d4345f-a11d-456f-9988-5c35ab741f1f"
+  },
+  "provenance": {
+    "captured_at": "2026-11-19T23:12:47.490698+00:00",
+    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
+    "nit": "899999068",
+    "dv": "1",
+    "synthetic": false,
+    "playback": "Recorded source-backed API responses; dates retained; not a live quote feed.",
+    "prices": "Not captured or featured; no publisher price redistribution rights assumed.",
+    "company_scope": "BOGOTA registration 1291197, exact supplier NIT. No subsidiary or consortium attribution.",
+    "omitted_fields": [
+      "markets.exchange_listing.quotes (unfeatured price collection excluded; redistribution rights not established)"
+    ]
+  }
+}

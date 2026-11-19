@@ -1,0 +1,192 @@
+{
+  "language": "es-419",
+  "voice": "ef_dora",
+  "promo": {
+    "duration": 30,
+    "scenes": [
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "problem",
+        "title": "Una empresa.\nMúltiples fuentes.",
+        "kicker": "INVESTIGAR NO DEBERÍA SER RECOPILAR",
+        "narration": "Investigar una empresa en Colombia no debería exigir tantas fuentes."
+      },
+      {
+        "start": 5,
+        "end": 10,
+        "capture": "search",
+        "title": "Una búsqueda. Más contexto.",
+        "kicker": "COLOMBIA COMPANY INTELLIGENCE",
+        "narration": "Una búsqueda reúne información pública en una sola experiencia."
+      },
+      {
+        "start": 10,
+        "end": 15,
+        "capture": "overview",
+        "title": "Empieza por la identidad correcta.",
+        "kicker": "RUES · IDENTIDAD Y REGISTRO",
+        "narration": "Busca por NIT. Consulta su identidad y sus valores registrados."
+      },
+      {
+        "start": 15,
+        "end": 20.5,
+        "capture": "secop",
+        "title": "La contratación pública, en contexto.",
+        "kicker": "SECOP II · NIT DEL PROVEEDOR",
+        "narration": "Explora contratos del Gobierno, con cifras y evidencia verificable."
+      },
+      {
+        "start": 20.5,
+        "end": 26,
+        "capture": "evidence",
+        "title": "Cada hallazgo conserva su fuente.",
+        "kicker": "MENOS RECOPILACIÓN. MÁS INVESTIGACIÓN.",
+        "narration": "Menos tiempo reuniendo datos. Más contexto para tu investigación."
+      },
+      {
+        "start": 26,
+        "end": 30,
+        "kind": "closing",
+        "title": "Datos públicos.\nFuentes a la vista.",
+        "kicker": "OPEN SOURCE · ENGLISH / ESPAÑOL",
+        "narration": "Datos públicos, con fuentes a la vista."
+      }
+    ]
+  },
+  "walkthrough": {
+    "duration": 60,
+    "scenes": [
+      {
+        "start": 0,
+        "end": 5,
+        "kind": "intro",
+        "capture": "identity",
+        "title": "Investiga Ecopetrol, paso a paso.",
+        "kicker": "UN RECORRIDO REAL POR EL PRODUCTO",
+        "narration": "Así puedes investigar Ecopetrol con información pública de Colombia."
+      },
+      {
+        "start": 5,
+        "end": 9,
+        "capture": "typing",
+        "title": "01 · Busca por nombre o NIT.",
+        "kicker": "BÚSQUEDA DE EMPRESAS",
+        "narration": "Escribe el nombre. Compara las coincidencias."
+      },
+      {
+        "start": 9,
+        "end": 15,
+        "capture": "search",
+        "title": "Selecciona la entidad correcta.",
+        "kicker": "ECOPETROL S A · NIT 899999068-1",
+        "narration": "Abre la entidad correcta. Su identidad conserva la matrícula y la fuente del registro."
+      },
+      {
+        "start": 15,
+        "end": 21,
+        "capture": "overview",
+        "title": "02 · Entiende el registro empresarial.",
+        "kicker": "RAZÓN SOCIAL · ACTIVIDAD · MATRÍCULA",
+        "narration": "Revisa la razón social, la actividad económica y los datos de matrícula."
+      },
+      {
+        "start": 21,
+        "end": 25,
+        "capture": "rues-source",
+        "title": "Consulta el origen y las fechas.",
+        "kicker": "EVIDENCIA PÚBLICA · RECUPERACIÓN REGISTRADA",
+        "narration": "Cada fuente conserva sus propias fechas y límites."
+      },
+      {
+        "start": 25,
+        "end": 31,
+        "capture": "issuer",
+        "title": "03 · Consulta el registro de emisor.",
+        "kicker": "SUPERINTENDENCIA FINANCIERA · RNVE",
+        "narration": "En Mercado de capitales, consulta el registro de emisor y su identidad verificada."
+      },
+      {
+        "start": 31,
+        "end": 38,
+        "capture": "securities",
+        "title": "Inscripción no significa negociación vigente.",
+        "kicker": "VALORES INSCRITOS · FUENTE SFC",
+        "narration": "Explora los valores inscritos. El registro por sí solo no demuestra negociación vigente en bolsa."
+      },
+      {
+        "start": 38,
+        "end": 44,
+        "capture": "secop",
+        "title": "04 · Revisa contratos con el Gobierno.",
+        "kicker": "SECOP II · COINCIDENCIA EXACTA DEL NIT",
+        "narration": "SECOP dos consulta el NIT del proveedor: contratos, valores y entidades."
+      },
+      {
+        "start": 44,
+        "end": 49,
+        "capture": "activity",
+        "title": "Observa la actividad registrada.",
+        "kicker": "VALORES REPORTADOS · NO PAGOS NI INGRESOS",
+        "narration": "Consulta la actividad histórica y las entidades contratantes."
+      },
+      {
+        "start": 49,
+        "end": 54,
+        "capture": "evidence",
+        "title": "Inspecciona el contrato y su fuente.",
+        "kicker": "PARTICIPAR NO ES UNA SEÑAL ADVERSA",
+        "narration": "Abre el contrato. Participar no es por sí solo un hallazgo adverso."
+      },
+      {
+        "start": 54,
+        "end": 60,
+        "kind": "closing",
+        "title": "Investiga con contexto.\nVerifica la fuente.",
+        "kicker": "EXPLORA EL PROYECTO EN GITHUB",
+        "narration": "Información organizada, con sus límites a la vista. Explora el proyecto."
+      }
+    ]
+  },
+  "gif": {
+    "duration": 12,
+    "scenes": [
+      {
+        "start": 0,
+        "end": 2.3,
+        "capture": "typing-gif",
+        "title": "Busca una empresa"
+      },
+      {
+        "start": 2.3,
+        "end": 4.4,
+        "capture": "result-gif",
+        "title": "Elige la identidad correcta"
+      },
+      {
+        "start": 4.4,
+        "end": 6.5,
+        "capture": "identity-gif",
+        "title": "Consulta su registro"
+      },
+      {
+        "start": 6.5,
+        "end": 8.6,
+        "capture": "issuer-gif",
+        "title": "Explora Mercado de capitales"
+      },
+      {
+        "start": 8.6,
+        "end": 11.3,
+        "capture": "secop-gif",
+        "title": "Revisa contratos del Gobierno"
+      },
+      {
+        "start": 11.3,
+        "end": 12,
+        "capture": "typing-gif",
+        "title": "Busca una empresa"
+      }
+    ]
+  }
+}
