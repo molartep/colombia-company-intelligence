@@ -1,3 +1,4 @@
+import type { Contract, ContractPage, SecopScreening } from '../types/secop'
 import type { MarketsProfile, SecuritiesPage } from '../types/capitalMarkets'
 import type { ParameterCatalog, Profile, RecordView, SearchPage } from '../types'
 import type { ImportResult, PlatformStatus } from '../types/platform'
@@ -46,6 +47,24 @@ export async function request<T>(
   return response.json() as Promise<T>
 }
 export const api = {
+  secop: (id: string, signal?: AbortSignal) =>
+    request<SecopScreening>(`/api/v1/companies/${encodeURIComponent(id)}/screening/secop`, signal),
+  refreshSecop: (id: string) =>
+    request<SecopScreening>(
+      `/api/v1/companies/${encodeURIComponent(id)}/screening/secop/refresh`,
+      undefined,
+      { method: 'POST' },
+    ),
+  secopContracts: (id: string, params: URLSearchParams, signal?: AbortSignal) =>
+    request<ContractPage>(
+      `/api/v1/companies/${encodeURIComponent(id)}/screening/secop/contracts?${params}`,
+      signal,
+    ),
+  secopContract: (id: string, contractId: string, signal?: AbortSignal, runId?: string) =>
+    request<Contract>(
+      `/api/v1/companies/${encodeURIComponent(id)}/screening/secop/contracts/${encodeURIComponent(contractId)}${runId ? `?run_id=${encodeURIComponent(runId)}` : ''}`,
+      signal,
+    ),
   platform: (signal?: AbortSignal) => request<PlatformStatus>('/api/v1/platform', signal),
   importDirectory: (file?: File, token?: string) =>
     request<ImportResult>(

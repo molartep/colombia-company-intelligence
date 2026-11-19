@@ -367,3 +367,7 @@ Capital Markets quote retrieval falls back from BVC to La República and then to
 SFC daily-price report, requiring exact identity evidence at every step. The card reports each
 provider's outcome when unresolved. SFC values are explicitly labeled daily weighted averages,
 with their source date; no last-trade price or ticker is invented. See [quote fallback verification](docs/quote-source-access.md#registered-ordinary-share-fallback-terpel-case).
+
+### Phase 3: SECOP II screening
+
+Company profiles now include a functional **Screening** tab with exact supplier-NIT SECOP II lookup, source evidence, cached summaries, activity charts, searchable/paginated contracts and contract details. Refreshes preserve prior successful evidence on source failure. No matches and inability to check are separate outcomes. See [SECOP screening](docs/secop-screening.md) for the verified source mapping, migration, API, matching rules, test commands and limitations. SECOP values are interpreted as COP by explicit application convention, enabling precise totals, annual values and buyer rankings; the source itself omits a currency field.

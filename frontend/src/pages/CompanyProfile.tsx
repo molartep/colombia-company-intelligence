@@ -1,3 +1,4 @@
+import { Screening } from '../components/Screening'
 import { DataSourceInformation } from '../components/DataSourceInformation'
 import { CapitalMarkets } from '../components/CapitalMarkets'
 import { useState } from 'react'
@@ -14,7 +15,9 @@ export function CompanyProfile() {
   const [params] = useSearchParams()
   const location = useLocation()
   const returnTo = searchReturnPath(location.state)
-  const tab = params.get('tab') === 'capital-markets' ? 'capital-markets' : 'overview'
+  const tab = ['capital-markets', 'screening'].includes(params.get('tab') ?? '')
+    ? params.get('tab')
+    : 'overview'
   const [copyStatus, setCopyStatus] = useState('')
   const client = useQueryClient()
   const refresh = useMutation({
@@ -100,11 +103,17 @@ export function CompanyProfile() {
         <span>
           Corporate events <small>Coming later</small>
         </span>
-        <span>
-          Screening <small>Coming later</small>
-        </span>
+        <Link
+          aria-current={tab === 'screening' ? 'page' : undefined}
+          to="?tab=screening"
+          state={{ returnTo }}
+        >
+          Government Contracts
+        </Link>
       </nav>
-      {tab === 'capital-markets' ? (
+      {tab === 'screening' ? (
+        <Screening key={id} companyId={id} />
+      ) : tab === 'capital-markets' ? (
         <CapitalMarkets companyId={id} />
       ) : (
         <>

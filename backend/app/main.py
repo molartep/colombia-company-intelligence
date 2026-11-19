@@ -37,6 +37,7 @@ from app.integrations.capital_markets.summary_renderer import RnveSummaryRendere
 from app.integrations.capital_markets.types import ListingStatus, MatchStatus, SecurityCategory
 from app.integrations.rues.adapter import RuesDataSource
 from app.integrations.rues.parameters import parameter_catalog
+from app.integrations.secop.adapter import SecopSource
 from app.integrations.socrata import SocrataClient
 from app.models.entities import Company, DataSource
 from app.schemas.api import ErrorResponse, Profile, RecordView, SearchPage, SourceView
@@ -48,6 +49,8 @@ from app.schemas.capital_markets import (
 )
 from app.schemas.filters import CompanySearchRequest, SearchFilters
 from app.schemas.parameters import ParameterCatalog
+from app.schemas.secop import ContractPage, ContractStatus, ContractView, ScreeningView
+from app.services import secop
 from app.services.companies import (
     ensure_source,
     profile,
@@ -72,6 +75,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         follow_redirects=False,
     ) as client:
         app.state.rues = RuesDataSource(
+            SocrataClient(client, settings.socrata_retries, settings.upstream_concurrency)
+        )
+        app.state.secop = SecopSource(
             SocrataClient(client, settings.socrata_retries, settings.upstream_concurrency)
         )
         app.state.rnve_summary = RnveSummaryRenderer(settings.capital_markets_timeout)
@@ -108,7 +114,7 @@ limiter = RequestLimiter(get_settings())
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_settings().cors_origins,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["Accept", "Content-Type"],
 )
 DB = Annotated[AsyncSession, Depends(get_session)]
@@ -123,6 +129,11 @@ def adapter(request: Request) -> RuesDataSource:
 async def constrain_request(request: Request, call_next: RequestResponseEndpoint) -> Response:
     if len(request.scope.get("query_string", b"")) > 8192:
         return error(414, "request_too_large", "Query string is too long.")
+    secop_refresh = (
+        request.method == "POST"
+        and request.url.path.startswith("/api/v1/companies/")
+        and request.url.path.endswith("/screening/secop/refresh")
+    )
     importing = request.method == "POST" and request.url.path == IMPORT_PATH
     if importing:
         try:
@@ -132,7 +143,7 @@ async def constrain_request(request: Request, call_next: RequestResponseEndpoint
         length = request.headers.get("content-length", "0")
         if not length.isdigit() or int(length) > MAX_BYTES:
             return error(413, "import_too_large", "The XLSX limit is 10 MiB.")
-    if request.method not in ("GET", "HEAD", "OPTIONS") and not importing:
+    if request.method not in ("GET", "HEAD", "OPTIONS") and not importing and not secop_refresh:
         return error(405, "method_not_allowed", "This API accepts read requests only.")
     if not importing and (
         request.headers.get("transfer-encoding")
@@ -342,3 +353,74 @@ async def capital_sources(session: DB) -> list[MarketSourceView]:
     result = await capital.source_views(session)
     await session.commit()
     return result
+
+
+@app.get("/api/v1/companies/{company_id}/screening/secop", response_model=ScreeningView)
+async def secop_screening(company_id: UUID, session: DB) -> ScreeningView:
+    return await secop.view(session, await get_company(session, company_id))
+
+
+@app.post("/api/v1/companies/{company_id}/screening/secop/refresh", response_model=ScreeningView)
+async def secop_refresh(company_id: UUID, session: DB, request: Request) -> ScreeningView:
+    origin = request.headers.get("origin")
+    settings = get_settings()
+    allowed = {f"{request.url.scheme}://{request.url.netloc}"}
+    allowed.update(settings.cors_origins)
+    if request.headers.get("sec-fetch-site") == "cross-site" or (origin and origin not in allowed):
+        raise HTTPException(403, "SECOP refresh requires a same-origin request.")
+    return await secop.refresh(
+        session, await get_company(session, company_id), request.app.state.secop
+    )
+
+
+@app.get("/api/v1/companies/{company_id}/screening/secop/contracts", response_model=ContractPage)
+async def secop_contracts(
+    company_id: UUID,
+    session: DB,
+    page: Annotated[int, Query(ge=1, le=10000)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 10,
+    status: ContractStatus | None = None,
+    raw_status: Annotated[str | None, Query(max_length=300)] = None,
+    entity: Annotated[str | None, Query(max_length=1000)] = None,
+    year: Annotated[int | None, Query(ge=1990, le=2100)] = None,
+    modality: Annotated[str | None, Query(max_length=500)] = None,
+    q: Annotated[str, Query(max_length=160)] = "",
+    sort: Literal["date", "value"] = "date",
+    direction: Literal["asc", "desc"] = "desc",
+    run_id: UUID | None = None,
+) -> ContractPage:
+    return await secop.contracts_page(
+        session,
+        await get_company(session, company_id),
+        page,
+        page_size,
+        status,
+        entity,
+        year,
+        modality,
+        q,
+        sort,
+        direction,
+        run_id=run_id,
+        raw_status=raw_status,
+    )
+
+
+@app.get(
+    "/api/v1/companies/{company_id}/screening/secop/contracts/{contract_id}",
+    response_model=ContractView,
+)
+async def secop_contract_detail(
+    company_id: UUID, contract_id: str, session: DB, run_id: UUID | None = None
+) -> ContractView:
+    result = await secop.contracts_page(
+        session,
+        await get_company(session, company_id),
+        1,
+        1,
+        contract_id=contract_id,
+        run_id=run_id,
+    )
+    if not result.items:
+        raise HTTPException(404, "Contract not found in this company's verified screening.")
+    return result.items[0]

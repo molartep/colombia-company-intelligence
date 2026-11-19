@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     capital_markets_max_age_hours: int = Field(default=24, ge=1, le=8760)
     bvc_cache_minutes: int = Field(default=15, ge=1, le=1440)
     bvc_page_urls: dict[str, str] = {}
+    secop_cache_hours: int = Field(default=24, ge=1, le=8760)
+    secop_max_rows: int = Field(default=5000, ge=200, le=10000)
+    secop_run_timeout: float = Field(default=90, ge=10, le=180)
     upstream_concurrency: int = Field(default=4, ge=1, le=20)
 
     @model_validator(mode="after")

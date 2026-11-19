@@ -28,7 +28,12 @@ class SocrataClient:
         self.slots = asyncio.Semaphore(concurrency)
 
     async def get(self, path: str, params: dict[str, str] | None = None) -> Any:
-        if path not in ("/resource/c82u-588k.json", "/api/views/c82u-588k.json"):
+        if path not in (
+            "/resource/c82u-588k.json",
+            "/api/views/c82u-588k.json",
+            "/resource/jbjy-vk9h.json",
+            "/api/views/jbjy-vk9h.json",
+        ):
             raise ValueError("Unsupported source path")
         async with self.slots:
             for attempt in range(self.retries + 1):

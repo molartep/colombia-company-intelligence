@@ -5,7 +5,10 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
 from app.core.config import get_settings
-from app.models import capital_markets  # noqa: F401
+from app.models import (
+    capital_markets,  # noqa: F401
+    secop,  # noqa: F401
+)
 from app.models.entities import Base
 
 

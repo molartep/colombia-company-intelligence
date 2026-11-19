@@ -65,7 +65,8 @@ class RequestLimiter:
             )
             if retry:
                 return retry
-        if request.query_params.get("refresh", "").lower() not in (
+        secop_refresh = request.method == "POST" and path.endswith("/screening/secop/refresh")
+        if not secop_refresh and request.query_params.get("refresh", "").lower() not in (
             "true",
             "1",
             "on",
@@ -75,7 +76,11 @@ class RequestLimiter:
         ):
             return 0
         parts = path.split("/")
-        if len(parts) not in (5, 6) or parts[1:4] != ["api", "v1", "companies"]:
+        if len(parts) not in ((8,) if secop_refresh else (5, 6)) or parts[1:4] != [
+            "api",
+            "v1",
+            "companies",
+        ]:
             return 0
         if len(parts) == 6 and parts[5] != "capital-markets":
             return 0
