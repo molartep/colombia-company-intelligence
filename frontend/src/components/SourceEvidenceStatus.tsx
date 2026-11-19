@@ -1,27 +1,31 @@
+import { uiMessage } from '../i18n/messages'
+import { t, useLanguage } from '../i18n'
 import type { MarketSource } from '../types/capitalMarkets'
 import { sourceErrorDescription } from '../sourceStatus'
 import { dateTime } from '../utils'
 
 export function SourceEvidenceStatus({ source }: { source: MarketSource }) {
+  useLanguage()
+
   const failed =
     source.last_ingestion_status === 'failed' ||
     source.availability === 'failed_to_retrieve' ||
     Boolean(source.last_error)
   return (
     <div className="source-evidence-status">
-      <strong>{source.name}</strong>
+      <strong>{uiMessage(source.name)}</strong>
       <p>
         {failed
-          ? 'La última actualización falló. Se conserva la evidencia anterior cuando está disponible.'
-          : 'Los datos de esta fuente superan el plazo de vigencia configurado.'}
+          ? t('sourceEvidence.laUltimaActualizacionFalloSeConservaLaEvidenciaAnteriorCuando')
+          : t('sourceEvidence.losDatosDeEstaFuenteSuperanElPlazoDeVigencia')}
       </p>
       <dl>
         <div>
-          <dt>Última recuperación exitosa</dt>
+          <dt>{t('sourceEvidence.ultimaRecuperacionExitosa')}</dt>
           <dd>{dateTime(source.last_success_at)}</dd>
         </div>
         <div>
-          <dt>Fecha de los datos en la fuente</dt>
+          <dt>{t('sourceEvidence.fechaDeLosDatosEnLaFuente')}</dt>
           <dd>
             {dateTime(
               source.latest_snapshot?.observed_at ?? source.latest_snapshot?.published_at ?? null,
@@ -29,14 +33,15 @@ export function SourceEvidenceStatus({ source }: { source: MarketSource }) {
           </dd>
         </div>
         <div>
-          <dt>Último intento</dt>
+          <dt>{t('sourceEvidence.ultimoIntento')}</dt>
           <dd>{dateTime(source.last_attempt_at)}</dd>
         </div>
       </dl>
       {failed && (
         <p className="source-error">
-          Último error: {sourceErrorDescription(source.last_error)}{' '}
-          <code>{source.last_error || 'La fuente no registró detalles del error.'}</code>
+          {' '}
+          {t('sourceEvidence.ultimoError')} {sourceErrorDescription(source.last_error)}{' '}
+          <code>{source.last_error || t('sourceEvidence.laFuenteNoRegistroDetallesDelError')}</code>
         </p>
       )}
     </div>

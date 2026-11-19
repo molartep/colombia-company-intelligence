@@ -34,12 +34,12 @@ it.each(['1900-01-01T00:00:00Z', '1900-01-01T04:56:16Z', '1900-01-01T00:00:00-05
 )
 
 it.each([
-  ['198705', 'May, 1987'],
-  ['202612', 'Dec, 2026'],
+  ['198705', 'May 1987'],
+  ['202612', 'Dec 2026'],
   ['001', '001'],
   ['198713', '198713'],
   ['000001', '000001'],
-  [null, 'No informada'],
+  [null, 'Not reported'],
 ])('formats only valid YYYYMM issuance values: %s', async (value, expected) => {
   const { issuanceMonth } = await import('./utils')
   expect(issuanceMonth(value)).toBe(expected)

@@ -104,7 +104,7 @@ function setup(data = profile, instruments = securities, failed = false) {
         status: failed ? 503 : 200,
         json: async () =>
           failed
-            ? { error: { message: 'Capital markets data unavailable.' } }
+            ? { error: { message: 'The request could not be completed. Please try again.' } }
             : url.pathname.endsWith('/capital-markets')
               ? data
               : instruments,
@@ -122,28 +122,26 @@ function setup(data = profile, instruments = securities, failed = false) {
 afterEach(() => vi.unstubAllGlobals())
 
 async function openSecurities() {
-  await userEvent.click(await screen.findByRole('heading', { name: /^Valores registrados/ }))
+  await userEvent.click(await screen.findByRole('heading', { name: /^Registered securities/ }))
 }
 
 async function openAlerts() {
-  await userEvent.click(await screen.findByText(/^Alertas \(/))
+  await userEvent.click(await screen.findByText(/^Alerts \(/))
 }
 
 test('registered debt and SFC BVC dates do not imply listed shares or invented ISINs', async () => {
   setup()
   expect(
-    (await screen.findByRole('heading', { name: /^Valores registrados/ })).closest('details'),
+    (await screen.findByRole('heading', { name: /^Registered securities/ })).closest('details'),
   ).not.toHaveAttribute('open')
   await openSecurities()
   await screen.findByText('BO SYNTHETIC BOND')
-  expect(screen.getByText('Inscrito en RNVE')).toBeVisible()
-  const bvc = screen
-    .getByRole('heading', { name: 'Bolsa de Valores de Colombia' })
-    .closest('article')!
-  expect(within(bvc).getByText('Listado no verificado')).toBeVisible()
+  expect(screen.getByText('Registered in RNVE')).toBeVisible()
+  const bvc = screen.getByRole('heading', { name: 'Colombia Stock Exchange' }).closest('article')!
+  expect(within(bvc).getByText('Listing not verified')).toBeVisible()
   expect(screen.getByText('ANN: CO1234567890')).toBeVisible()
-  expect(screen.getByText('Emisión: May, 1987')).toBeVisible()
-  for (const name of ['Estado', 'Importe', 'Calificación reportada'])
+  expect(screen.getByText('Issue: May 1987')).toBeVisible()
+  for (const name of ['Status', 'Amount', 'Reported rating'])
     expect(screen.getByRole('columnheader', { name })).toBeVisible()
   expect(
     screen.queryByText(
@@ -151,8 +149,8 @@ test('registered debt and SFC BVC dates do not imply listed shares or invented I
     ),
   ).not.toBeInTheDocument()
   expect(screen.queryByText('ISIN: CO1234567890')).not.toBeInTheDocument()
-  expect(screen.getByText('Ticker no informado')).toBeVisible()
-  expect(screen.getByText('COP 1000000.5000')).toBeVisible()
+  expect(screen.getByText('RNVE; exchange not reported')).toBeVisible()
+  expect(screen.getByText('COP 1,000,000.5000')).toBeVisible()
   expect(screen.getByRole('link', { name: 'SFC ↗' })).toHaveAttribute(
     'href',
     securities.items[0]!.source_url,
@@ -167,9 +165,9 @@ test('incomplete or missing evidence stays unknown and potential matches do not 
       'Se identificó una posible coincidencia con un emisor, pendiente de verificación de identidad.',
     issuers: [{ ...profile.issuers[0]!, match_status: 'potential' }],
   })
-  await screen.findByText('Registro no determinado')
+  await screen.findByText('Registration not determined')
   await openAlerts()
-  expect(screen.getByText(/Los instrumentos del candidato no se atribuyen/)).toBeVisible()
+  expect(screen.getByText(/The candidate's instruments are not attributed/)).toBeVisible()
   expect(requests).toHaveLength(1)
   expect(screen.queryByText('BO SYNTHETIC BOND')).not.toBeInTheDocument()
 })
@@ -182,7 +180,7 @@ test('checked absence is qualified and does not claim never registered', async (
     summary:
       'La empresa no fue encontrada en el directorio vigente RNVE. Esto no descarta registros históricos.',
   })
-  await screen.findByText('Sin coincidencia en la fuente consultada')
+  await screen.findByText('No match in the checked source')
   expect(screen.queryByLabelText('Resumen de evidencia')).not.toBeInTheDocument()
   expect(screen.queryByText('BO SYNTHETIC BOND')).not.toBeInTheDocument()
 })
@@ -195,30 +193,34 @@ test('stale evidence is distinct from source failure and absence', async () => {
   await openSecurities()
   await screen.findByText('BO SYNTHETIC BOND')
   await openAlerts()
-  expect(screen.getByText(/Los datos de esta fuente superan/)).toBeVisible()
-  expect(screen.getByText('Observación anterior')).toBeVisible()
-  expect(screen.getByText('Observación anterior')).toBeVisible()
+  expect(
+    screen.getByText(/This source's data is older than the configured freshness period\./),
+  ).toBeVisible()
+  expect(screen.getByText('Earlier observation')).toBeVisible()
+  expect(screen.getByText('Earlier observation')).toBeVisible()
 })
 
 test('securities filters use API parameters and reset pagination', async () => {
   const requests = setup()
   await openSecurities()
   await screen.findByText('BO SYNTHETIC BOND')
-  await userEvent.click(screen.getByRole('button', { name: /Siguiente/ }))
+  await userEvent.click(screen.getByRole('button', { name: /Next →/ }))
   await waitFor(() => expect(requests.at(-1)!.searchParams.get('page')).toBe('2'))
-  await userEvent.selectOptions(screen.getByLabelText('Categoría'), 'corporate_bonds')
+  await userEvent.selectOptions(screen.getByLabelText('Category'), 'corporate_bonds')
   await waitFor(() => expect(requests.at(-1)!.searchParams.get('page')).toBe('1'))
   expect(requests.at(-1)!.searchParams.get('security_category')).toBe('corporate_bonds')
-  await userEvent.selectOptions(screen.getByLabelText('Mercado registrado'), 'BVC')
+  await userEvent.selectOptions(screen.getByLabelText('Reported market'), 'BVC')
   await waitFor(() => expect(requests.at(-1)!.searchParams.get('exchange')).toBe('BVC'))
-  await userEvent.selectOptions(screen.getByLabelText('Estado de listado'), 'unknown')
+  await userEvent.selectOptions(screen.getByLabelText('Listing status'), 'unknown')
   await waitFor(() => expect(requests.at(-1)!.searchParams.get('listing_status')).toBe('unknown'))
 })
 
 test('API errors remain errors instead of negative regulatory findings', async () => {
   setup(profile, securities, true)
-  expect(await screen.findByRole('alert')).toHaveTextContent('Capital markets data unavailable.')
-  expect(screen.queryByText('Sin coincidencia en la fuente consultada')).not.toBeInTheDocument()
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'The request could not be completed. Please try again.',
+  )
+  expect(screen.queryByText('No match in the checked source')).not.toBeInTheDocument()
 })
 
 test('RNVE description, contacts, administration and collapsed provenance', async () => {
@@ -250,7 +252,7 @@ test('RNVE description, contacts, administration and collapsed provenance', asyn
     'href',
     'https://www.example.test/',
   )
-  const administration = screen.getByRole('heading', { name: 'Administración' }).closest('article')!
+  const administration = screen.getByRole('heading', { name: 'Administration' }).closest('article')!
   expect(within(administration).getByText('0')).toBeVisible()
   expect(within(administration).getByText('Missing')).toHaveClass('value-pill--missing')
   expect(screen.queryByText(/Propiedad: no evaluada/)).not.toBeInTheDocument()
@@ -262,11 +264,11 @@ test('RNVE description, contacts, administration and collapsed provenance', asyn
 
 test('missing contact and administration values use red Missing pills', async () => {
   setup()
-  await screen.findByRole('heading', { name: 'Administración' })
-  for (const heading of ['Datos de contacto', 'Administración']) {
+  await screen.findByRole('heading', { name: 'Administration' })
+  for (const heading of ['Contact details', 'Administration']) {
     const panel = screen.getByRole('heading', { name: heading }).closest('article')!
     const missing = within(panel).getAllByText('Missing')
-    expect(missing).toHaveLength(heading === 'Administración' ? 3 : 6)
+    expect(missing).toHaveLength(heading === 'Administration' ? 3 : 6)
     missing.forEach((pill) => expect(pill).toHaveClass('value-pill--missing'))
   }
 })
@@ -290,7 +292,7 @@ test('candidate contacts are not attributed', async () => {
       },
     ],
   })
-  await screen.findByRole('heading', { name: 'Datos de contacto' })
+  await screen.findByRole('heading', { name: 'Contact details' })
   expect(screen.queryByText('candidate@example.test')).not.toBeInTheDocument()
 })
 
@@ -329,8 +331,10 @@ test('failed summary retrieval is unavailable rather than missing source evidenc
       },
     ],
   })
-  await screen.findByText(/No se pudo recuperar el resumen RNVE/)
-  const panel = screen.getByRole('heading', { name: 'Administración' }).closest('article')!
+  await screen.findByText(
+    /The RNVE summary could not be retrieved\. This does not mean the data is absent\./,
+  )
+  const panel = screen.getByRole('heading', { name: 'Administration' }).closest('article')!
   expect(within(panel).getAllByText('Unavailable')).toHaveLength(3)
   expect(within(panel).queryByText('Missing')).not.toBeInTheDocument()
 })
@@ -340,8 +344,8 @@ test('unchecked administration is distinct from fields missing in a checked summ
     ...profile,
     issuers: [{ ...profile.issuers[0]!, details_availability: 'not_yet_checked' }],
   })
-  await screen.findByRole('heading', { name: 'Administración' })
-  const panel = screen.getByRole('heading', { name: 'Administración' }).closest('article')!
+  await screen.findByRole('heading', { name: 'Administration' })
+  const panel = screen.getByRole('heading', { name: 'Administration' }).closest('article')!
   expect(within(panel).getAllByText('Not yet checked')).toHaveLength(3)
   expect(within(panel).queryByText('Missing')).not.toBeInTheDocument()
 })
@@ -364,8 +368,8 @@ test('failed refresh retains cached administration with an explicit stale notice
   })
   await screen.findByText('SYNTHETIC CACHED REPRESENTATIVE')
   await openAlerts()
-  expect(screen.getByText(/Se conservan los últimos datos recuperados/)).toBeVisible()
-  const panel = screen.getByRole('heading', { name: 'Administración' }).closest('article')!
+  expect(screen.getByText(/The last retrieved RNVE data is retained\./)).toBeVisible()
+  const panel = screen.getByRole('heading', { name: 'Administration' }).closest('article')!
   expect(within(panel).getByText('7')).toBeVisible()
 })
 
@@ -390,23 +394,31 @@ test('reopening Capital Markets refreshes a previously cached unchecked securiti
     </QueryClientProvider>
   )
   const first = render(element)
-  await screen.findByText(/Valores aún no consultados/)
+  await screen.findByText(
+    /Securities have not been checked for this issuer\. No instrument query has been performed\./,
+  )
   first.unmount()
   fetched = true
   render(element)
   await openSecurities()
   expect(await screen.findByText('BO SYNTHETIC BOND')).toBeVisible()
-  expect(screen.queryByText(/Valores aún no consultados/)).not.toBeInTheDocument()
+  expect(
+    screen.queryByText(
+      /Securities have not been checked for this issuer\. No instrument query has been performed\./,
+    ),
+  ).not.toBeInTheDocument()
 })
 
 test('failed securities retrieval reports unavailability instead of checked absence', async () => {
   setup(profile, { ...securities, items: [], has_more: false, availability: 'failed_to_retrieve' })
   await openSecurities()
-  await screen.findByText(/Se reintentará al abrir Capital Markets después de 15 minutos/)
+  await screen.findByText(/Capital Markets will retry after 15 minutes/)
+  expect(screen.getByText('No negative finding about instruments is presented.')).toBeVisible()
   expect(
-    screen.getByText('No se presenta una conclusión negativa sobre instrumentos.'),
-  ).toBeVisible()
-  expect(screen.queryByText(/No hay instrumentos en el reporte consultado/)).not.toBeInTheDocument()
+    screen.queryByText(
+      /No instruments in the checked report meet these filters\. This does not rule out historical issues\./,
+    ),
+  ).not.toBeInTheDocument()
 })
 
 test('top alerts navigate to source controls; each control refreshes only its source', async () => {
@@ -451,10 +463,10 @@ test('top alerts navigate to source controls; each control refreshes only its so
   await screen.findByText('SYNTHETIC OLD BOND')
   await openAlerts()
   const alert = screen
-    .getByText(/Los datos de esta fuente superan/)
+    .getByText(/This source's data is older than the configured freshness period\./)
     .closest<HTMLElement>('.refresh-alert')!
   expect(within(alert).getByText(reportSource.name)).toBeVisible()
-  expect(within(alert).getByText('Última recuperación exitosa')).toBeVisible()
+  expect(within(alert).getByText('Last successful retrieval')).toBeVisible()
   await userEvent.click(within(alert).getByRole('button', { name: 'Refresh data' }))
   const card = screen.getByRole('heading', { name: 'Data Source Information' }).closest('details')!
   expect(card).toHaveAttribute('open')
@@ -484,14 +496,14 @@ test('both source cards stay collapsed initially and errors name the affected so
   const title = await screen.findByRole('heading', { name: 'Data Source Information' })
   const card = title.closest('details')!
   expect(card).not.toHaveAttribute('open')
-  expect(screen.getByText(/^Alertas \(/).closest('details')).not.toHaveAttribute('open')
+  expect(screen.getByText(/^Alerts \(/).closest('details')).not.toHaveAttribute('open')
   await openAlerts()
   const alert = screen
-    .getByText(/La última actualización falló/)
+    .getByText(/The last update failed\. Previous evidence is retained when available\./)
     .closest<HTMLElement>('.refresh-alert')!
   expect(within(alert).getByText(reportSource.name)).toBeVisible()
   expect(within(alert).getByText('capital_source_timeout')).toBeVisible()
-  expect(within(alert).getByText('Último intento')).toBeVisible()
+  expect(within(alert).getByText('Last attempt')).toBeVisible()
 })
 
 test('failed source refresh retains instruments and displays the request error by that source', async () => {
@@ -521,7 +533,7 @@ test('failed source refresh retains instruments and displays the request error b
   await userEvent.click(
     within(provider).getByRole('button', { name: `Refresh ${reportSource.name}` }),
   )
-  expect(await within(provider).findByText(/SYNTHETIC refresh unavailable/)).toBeVisible()
+  expect(await within(provider).findByText(/The request could not be completed/)).toBeVisible()
   expect(screen.getByText('BO SYNTHETIC BOND')).toBeVisible()
 })
 
@@ -568,18 +580,18 @@ test('10-record pages show filtered totals, ranges and a stable overall heading 
     </QueryClientProvider>,
   )
   await openSecurities()
-  await screen.findByText('1 - 10 de 12')
-  expect(screen.getByRole('heading', { name: 'Valores registrados (12)' })).toBeVisible()
+  await screen.findByText('1 - 10 of 12')
+  expect(screen.getByRole('heading', { name: 'Registered securities (12)' })).toBeVisible()
   expect(screen.getByText('12 records found')).toBeVisible()
   expect(screen.getAllByRole('row')).toHaveLength(11)
   expect(requests.at(-1)!.searchParams.get('page_size')).toBe('10')
-  await userEvent.click(screen.getByRole('button', { name: /Siguiente/ }))
-  await screen.findByText('11 - 12 de 12')
+  await userEvent.click(screen.getByRole('button', { name: /Next →/ }))
+  await screen.findByText('11 - 12 of 12')
   expect(screen.getAllByRole('row')).toHaveLength(3)
-  await userEvent.selectOptions(screen.getByLabelText('Categoría'), 'corporate_bonds')
-  await screen.findByText('1 - 1 de 1')
+  await userEvent.selectOptions(screen.getByLabelText('Category'), 'corporate_bonds')
+  await screen.findByText('1 - 1 of 1')
   expect(screen.getByText('1 record found')).toBeVisible()
-  expect(screen.getByRole('heading', { name: 'Valores registrados (12)' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Registered securities (12)' })).toBeVisible()
   expect(requests.at(-1)!.searchParams.get('page')).toBe('1')
 })
 
@@ -610,15 +622,13 @@ test('BVC displays only returned exact-code price/ticker observations and proven
     },
   })
   await screen.findByText('SYNTHETIC')
-  const panel = screen
-    .getByRole('heading', { name: 'Bolsa de Valores de Colombia' })
-    .closest('article')!
-  expect(within(panel).getByText('1.234,5')).toBeVisible()
+  const panel = screen.getByRole('heading', { name: 'Colombia Stock Exchange' }).closest('article')!
+  expect(within(panel).getByText('1,234.50')).toBeVisible()
   expect(within(panel).getByText('COSYNTH00001')).toBeVisible()
   expect(
-    within(panel).getByRole('link', { name: 'Fuente: Bolsa de Valores de Colombia ↗' }),
+    within(panel).getByRole('link', { name: 'Source: Bolsa de Valores de Colombia ↗' }),
   ).toHaveAttribute('href', 'https://www.bvc.com.co/renta-variable-mercado-local/synthetic')
-  expect(within(panel).getByText('No informada')).toBeVisible()
+  expect(within(panel).getByText('Not reported')).toBeVisible()
 })
 
 test('blocked BVC page leaves price and ticker explicitly unverified', async () => {
@@ -631,12 +641,10 @@ test('blocked BVC page leaves price and ticker explicitly unverified', async () 
       quotes: [],
     },
   })
-  await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
-  const panel = screen
-    .getByRole('heading', { name: 'Bolsa de Valores de Colombia' })
-    .closest('article')!
+  await screen.findByRole('heading', { name: 'Colombia Stock Exchange' })
+  const panel = screen.getByRole('heading', { name: 'Colombia Stock Exchange' }).closest('article')!
   expect(within(panel).queryByText('2,560.00')).not.toBeInTheDocument()
-  expect(within(panel).getByText('Último precio').parentElement).toHaveTextContent('No verificado')
+  expect(within(panel).getByText('Last price').parentElement).toHaveTextContent('Unverified')
 })
 
 test('secondary quotes show publisher, dated price and exact-name evidence without the old summary', async () => {
@@ -655,7 +663,7 @@ test('secondary quotes show publisher, dated price and exact-name evidence witho
           superfinanciera_code: 'COSYNTH00001',
           ticker: 'SYNTHETIC',
           last_price: '1234',
-          raw_price: '$ 1.234',
+          raw_price: 'COP 1,234.00',
           currency: null,
           isin: null,
           reported_state: 'SÍ',
@@ -672,47 +680,45 @@ test('secondary quotes show publisher, dated price and exact-name evidence witho
       ],
     },
   })
-  await screen.findByText('$ 1.234')
-  expect(screen.getByRole('link', { name: 'Fuente: La República ↗' })).toBeVisible()
-  expect(screen.getByText(/Razón social EXACTA/)).toHaveTextContent('SYNTHETIC LEGAL NAME')
+  await screen.findByText('1,234')
+  expect(screen.getByRole('link', { name: 'Source: La República ↗' })).toBeVisible()
+  expect(screen.getByText(/EXACT legal name/)).toHaveTextContent('SYNTHETIC LEGAL NAME')
   expect(screen.queryByLabelText('Resumen de evidencia')).not.toBeInTheDocument()
-  expect(screen.getByText('↑ +1,19%')).toBeVisible()
-  expect(screen.getByText('$ 35.000.000')).toBeVisible()
+  expect(screen.getByText('↑ +1.19%')).toBeVisible()
+  expect(screen.getByText('35,000,000')).toBeVisible()
   expect(screen.queryByText('Estado reportado por la fuente')).not.toBeInTheDocument()
   expect(screen.queryByText('Listado oficial verificado')).not.toBeInTheDocument()
   expect(screen.queryByText('SYNTHETIC secondary quote.')).not.toBeInTheDocument()
-  expect(screen.getByRole('link', { name: 'Fuente: La República ↗' })).toBeVisible()
+  expect(screen.getByRole('link', { name: 'Source: La República ↗' })).toBeVisible()
 })
 
 test('an unresolved quote has a red alert inside the BVC card', async () => {
   setup()
-  await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
-  const card = screen
-    .getByRole('heading', { name: 'Bolsa de Valores de Colombia' })
-    .closest('article')!
+  await screen.findByRole('heading', { name: 'Colombia Stock Exchange' })
+  const card = screen.getByRole('heading', { name: 'Colombia Stock Exchange' }).closest('article')!
   expect(within(card).getByRole('alert')).toHaveClass('danger')
-  expect(within(card).getByRole('alert')).toHaveTextContent('NIT, ANN o razón social')
+  expect(within(card).getByRole('alert')).toHaveTextContent('NIT, ANN, or legal name')
 })
 
 test('hides the listing pill when any registered common-equity BVC row exists', async () => {
   // The matching row need not be on the current instruments page or satisfy UI filters.
   setup({ ...profile, has_registered_bvc_common_equity: true, instruments: [] })
-  const card = (
-    await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
-  ).closest('article')!
-  expect(within(card).queryByText('Listado no verificado')).not.toBeInTheDocument()
-  expect(within(card).getByText('Registrado')).toHaveClass('value-pill--present')
+  const card = (await screen.findByRole('heading', { name: 'Colombia Stock Exchange' })).closest(
+    'article',
+  )!
+  expect(within(card).queryByText('Listing not verified')).not.toBeInTheDocument()
+  expect(within(card).getByText('Registered')).toHaveClass('value-pill--present')
   expect(
-    within(card).getByRole('button', { name: 'Help: Registro BVC' }),
-  ).toHaveAccessibleDescription(/sin depender de la paginación ni de los filtros/)
+    within(card).getByRole('button', { name: 'Help: BVC registration' }),
+  ).toHaveAccessibleDescription(/independently of pagination and filters/)
 })
 
 test('shows the listing pill when there is no registered common-equity BVC row', async () => {
   setup({ ...profile, has_registered_bvc_common_equity: false })
-  const card = (
-    await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
-  ).closest('article')!
-  expect(within(card).getByText('Listado no verificado')).toBeVisible()
+  const card = (await screen.findByRole('heading', { name: 'Colombia Stock Exchange' })).closest(
+    'article',
+  )!
+  expect(within(card).getByText('Listing not verified')).toBeVisible()
 })
 
 test('multiple ordinary-share records raise a collapsed alert independent of visible instruments', async () => {
@@ -723,9 +729,13 @@ test('multiple ordinary-share records raise a collapsed alert independent of vis
     instruments: [],
   })
   await openAlerts()
-  expect(screen.getByText(/Se encontraron 2 registros de Acciones ordinarias/)).toBeVisible()
-  expect(screen.queryByText(/No se ha establecido una coincidencia exacta/)).not.toBeInTheDocument()
-  expect(screen.getByText('Registrado')).toBeVisible()
+  expect(screen.getByText(/2 ordinary-share records/)).toBeVisible()
+  expect(
+    screen.queryByText(
+      /No exact match by NIT, ANN, or legal name has been established for a quote\. Consult other sources; this does not confirm the absence of shares\./,
+    ),
+  ).not.toBeInTheDocument()
+  expect(screen.getByText('Registered')).toBeVisible()
 })
 
 test('unresolved quotes show each provider outcome and the requested red alert', async () => {
@@ -764,17 +774,21 @@ test('unresolved quotes show each provider outcome and the requested red alert',
       ],
     },
   })
-  const card = (
-    await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
-  ).closest('article')!
+  const card = (await screen.findByRole('heading', { name: 'Colombia Stock Exchange' })).closest(
+    'article',
+  )!
   expect(within(card).getByRole('alert')).toHaveTextContent(
-    'No se ha establecido una coincidencia exacta por NIT, ANN o razón social con una cotización. Consulte otras fuentes; esto no confirma ausencia de acciones.',
+    'No exact match by NIT, ANN, or legal name has been established for a quote. Consult other sources; this does not confirm the absence of shares.',
   )
-  const attempts = within(card).getByText('Fuentes de cotización (3)').closest('details')!
+  const attempts = within(card).getByText('Quote sources (3)').closest('details')!
   expect(attempts).toHaveAttribute('open')
-  expect(within(attempts).getByText('Sin identidad verificable')).toBeVisible()
-  expect(within(attempts).getByText('Sin ruta verificada')).toBeVisible()
-  expect(within(attempts).getByText(/La página contiene un precio/)).toBeVisible()
+  expect(within(attempts).getByText('No verifiable identity')).toBeVisible()
+  expect(within(attempts).getByText('No verified locator')).toBeVisible()
+  expect(
+    within(attempts).getByText(
+      /The page contains a price but no verifiable NIT, ANN, or legal name\./,
+    ),
+  ).toBeVisible()
 })
 
 test('SFC daily averages keep their date and metric label without fabricating a ticker', async () => {
@@ -807,12 +821,12 @@ test('SFC daily averages keep their date and metric label without fabricating a 
       ],
     },
   })
-  const card = (
-    await screen.findByRole('heading', { name: 'Bolsa de Valores de Colombia' })
-  ).closest('article')!
-  expect(within(card).getByText('Precio promedio ponderado diario')).toBeVisible()
-  expect(within(card).queryByText('Último precio')).not.toBeInTheDocument()
-  expect(within(card).queryByText('Nemotécnico (ticker)')).not.toBeInTheDocument()
+  const card = (await screen.findByRole('heading', { name: 'Colombia Stock Exchange' })).closest(
+    'article',
+  )!
+  expect(within(card).getByText('Daily weighted average price')).toBeVisible()
+  expect(within(card).queryByText('Last price')).not.toBeInTheDocument()
+  expect(within(card).queryByText('Ticker')).not.toBeInTheDocument()
   expect(within(card).getByText('SYNTHETIC S.A.')).toBeVisible()
   expect(within(card).getByText('SYNTHETIC source classification differs.')).toBeVisible()
 })

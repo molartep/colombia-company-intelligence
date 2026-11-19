@@ -1,3 +1,7 @@
+import { formatNumber } from '../i18n/format'
+import { uiMessage, errorMessage } from '../i18n/messages'
+import { formatCurrency, formatDecimal } from '../i18n/format'
+import { t, useLanguage } from '../i18n'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api/client'
@@ -17,32 +21,33 @@ import { DirectoryImport } from './DirectoryImport'
 import { FilterHelp } from './AdvancedFilters'
 import { dateTime, registrationDate, issuanceMonth } from '../utils'
 
-const registrationLabels: Record<RegistrationStatus, string> = {
-  registered_active: 'Inscrito en RNVE',
-  registered_cancelled: 'Inscripción cancelada',
-  historical: 'Registro histórico',
-  not_found_in_checked_source: 'Sin coincidencia en la fuente consultada',
-  unknown: 'Registro no determinado',
-}
-const listingLabels: Record<ListingStatus, string> = {
-  verified_listed: 'Listado verificado',
-  verified_delisted: 'Deslistado verificado',
-  not_found_in_checked_source: 'Sin coincidencia en la fuente consultada',
-  unknown: 'Listado no verificado',
-}
-const availability: Record<string, string> = {
-  not_yet_checked:
-    'Valores aún no consultados para este emisor. No se ha ejecutado una consulta de instrumentos.',
-  failed_to_retrieve:
-    'Fuente temporalmente no disponible. La consulta falló; no significa ausencia de valores. Se reintentará al abrir Capital Markets después de 15 minutos.',
-  stale:
-    'Se muestran instrumentos de una observación anterior. Su vigencia requiere actualización.',
+const registrationLabels = (): Record<RegistrationStatus, string> => ({
+  registered_active: t('capitalMarkets.inscritoEnRnve'),
+  registered_cancelled: t('capitalMarkets.inscripcionCancelada'),
+  historical: t('capitalMarkets.registroHistorico'),
+  not_found_in_checked_source: t('capitalMarkets.sinCoincidenciaEnLaFuenteConsultada'),
+  unknown: t('capitalMarkets.registroNoDeterminado'),
+})
+const listingLabels = (): Record<ListingStatus, string> => ({
+  verified_listed: t('capitalMarkets.listadoVerificado'),
+  verified_delisted: t('capitalMarkets.deslistadoVerificado'),
+  not_found_in_checked_source: t('capitalMarkets.sinCoincidenciaEnLaFuenteConsultada'),
+  unknown: t('capitalMarkets.listadoNoVerificado'),
+})
+const availability = (): Record<string, string> => ({
+  not_yet_checked: t('capitalMarkets.valoresAunNoConsultadosParaEsteEmisorNoSeHa'),
+  failed_to_retrieve: t(
+    'capitalMarkets.fuenteTemporalmenteNoDisponibleLaConsultaFalloNoSignificaAusencia',
+  ),
+  stale: t('capitalMarkets.seMuestranInstrumentosDeUnaObservacionAnteriorSuVigenciaRequiere'),
   available: '',
-}
+})
 const date = (value: string | null) =>
-  value ? (registrationDate(value)?.display ?? value) : 'No informado'
+  value ? (registrationDate(value)?.display ?? value) : t('capitalMarkets.noInformado')
 
 function PublicLink({ value }: { value: string | null | undefined }) {
+  useLanguage()
+
   if (!value) return <MissingValue />
   let href: string | undefined
   try {
@@ -73,19 +78,26 @@ function AdministrationValue({
   value?: string | number | null
   issuer?: MarketIssuer
 }) {
-  if (value !== null && value !== undefined && value !== '') return <>{value}</>
+  useLanguage()
+
+  if (value !== null && value !== undefined && value !== '')
+    return <>{typeof value === 'number' ? formatNumber(value) : value}</>
   if (issuer?.details_availability === 'available' || issuer?.details_availability === 'stale')
     return <MissingValue />
   return (
     <span
       className={`badge ${issuer?.details_availability === 'failed_to_retrieve' ? 'value-pill--missing' : 'value-pill--muted'}`}
     >
-      {issuer?.details_availability === 'failed_to_retrieve' ? 'Unavailable' : 'Not yet checked'}
+      {issuer?.details_availability === 'failed_to_retrieve'
+        ? t('capitalMarkets.unavailable')
+        : t('capitalMarkets.notYetChecked')}
     </span>
   )
 }
 
 export function CapitalMarkets({ companyId }: { companyId: string }) {
+  useLanguage()
+
   const client = useQueryClient()
   const refresh = useMutation({
     mutationFn: (source: string) => api.capitalMarkets(companyId, undefined, true, source),
@@ -155,7 +167,8 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
     alerts.unshift(
       <div className="notice warning" role="alert" key="directory-missing">
         <strong>
-          Import the RNVE issuer directory to enable Capital Markets identity matching.
+          {' '}
+          {t('capitalMarkets.importTheRnveIssuerDirectoryToEnableCapitalMarketsIdentity')}
         </strong>
         <DirectoryImport />
       </div>,
@@ -163,26 +176,30 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
   if ((data.common_equity_record_count ?? 0) > 1)
     alerts.push(
       <div className="notice danger" role="alert" key="multiple-common-equity">
-        Se encontraron {data.common_equity_record_count} registros de Acciones ordinarias en Valores
-        registrados. La consulta de cotizaciones está bloqueada hasta resolver la ambigüedad,
-        independientemente del mercado, la paginación o los filtros.
+        {' '}
+        {t('capitalMarkets.seEncontraron')} {data.common_equity_record_count}{' '}
+        {t('capitalMarkets.registrosDeAccionesOrdinariasEnValoresRegistradosLaConsultaDe')}
       </div>,
     )
   if (refresh.isError)
     alerts.push(
       <RefreshAlert key="refresh-error" refresh={refreshData}>
         <strong>
-          {data.sources.find((source) => source.id === refresh.variables)?.name ??
-            refresh.variables}
+          {uiMessage(
+            data.sources.find((source) => source.id === refresh.variables)?.name ??
+              refresh.variables,
+          )}
         </strong>
-        <p>{refresh.error.message} Los datos anteriores se conservan.</p>
+        <p>
+          {errorMessage(refresh.error)} {t('capitalMarkets.losDatosAnterioresSeConservan')}
+        </p>
       </RefreshAlert>,
     )
   if (data.rnve.match_status === 'potential')
     alerts.push(
       <RefreshAlert key="identity" refresh={refreshData}>
-        Posible coincidencia de identidad pendiente de revisión. Los instrumentos del candidato no
-        se atribuyen a esta empresa.
+        {' '}
+        {t('capitalMarkets.posibleCoincidenciaDeIdentidadPendienteDeRevisionLosInstrumentosDel')}
       </RefreshAlert>,
     )
   if (
@@ -192,15 +209,17 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
   )
     alerts.push(
       <RefreshAlert key="summary-details" refresh={refreshData}>
-        <strong>SFC · Datos del emisor RNVE</strong>
+        <strong>{t('capitalMarkets.sfcDatosDelEmisorRnve')}</strong>
         <p>
           {issuer.details_availability === 'failed_to_retrieve'
-            ? 'No se pudo recuperar el resumen RNVE. No significa que los datos estén ausentes.'
-            : 'Se conservan los últimos datos recuperados del RNVE.'}
+            ? t('capitalMarkets.noSePudoRecuperarElResumenRnveNoSignificaQue')
+            : t('capitalMarkets.seConservanLosUltimosDatosRecuperadosDelRnve')}
         </p>
         <p>
-          Última recuperación: {dateTime(issuer.administration_retrieved_at ?? null)} · Último
-          intento: {dateTime(issuer.details_last_attempt_at ?? null)}
+          {' '}
+          {t('capitalMarkets.ultimaRecuperacion')}{' '}
+          {dateTime(issuer.administration_retrieved_at ?? null)} {t('capitalMarkets.ultimoIntento')}{' '}
+          {dateTime(issuer.details_last_attempt_at ?? null)}
         </p>
       </RefreshAlert>,
     )
@@ -212,95 +231,100 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
   )
     alerts.push(
       <RefreshAlert key="securities-status" refresh={refreshData}>
-        <strong>SFC · Valores registrados</strong>
-        <p>{availability[securities.data.availability]}</p>
+        <strong>{t('capitalMarkets.sfcValoresRegistrados')}</strong>
+        <p>{availability()[securities.data.availability]}</p>
       </RefreshAlert>,
     )
   return (
-    <section className="capital-markets" aria-label="Capital Markets">
-      <h2>Capital Markets</h2>
+    <section className="capital-markets" aria-label={t('capitalMarkets.capitalMarkets')}>
+      <h2>{t('capitalMarkets.capitalMarkets')}</h2>
       {markets.isFetching && <Loading />}
       {refresh.isPending && <Loading />}
       {alerts.length > 0 && (
         <details className="panel market-alerts">
-          <summary>Alertas ({alerts.length})</summary>
+          <summary>
+            {' '}
+            {t('capitalMarkets.alertas')}
+            {formatNumber(alerts.length)})
+          </summary>
           {alerts}
         </details>
       )}
       <div className="profile-grid">
         <article className="panel">
-          <h3>Registro Nacional de Valores y Emisores</h3>
+          <h3>{t('capitalMarkets.registroNacionalDeValoresYEmisores')}</h3>
           <span
             className={`badge ${data.rnve.status === 'registered_active' ? 'value-pill--present' : data.rnve.status === 'registered_cancelled' ? 'value-pill--missing' : 'value-pill--muted'}`}
           >
-            {registrationLabels[data.rnve.status]}
+            {registrationLabels()[data.rnve.status]}
           </span>
           {data.issuers.map((issuer) => (
             <div className="market-issuer" key={issuer.id}>
               <h4>{issuer.issuer_name}</h4>
               <dl>
                 <div>
-                  <dt>NIT normalizado</dt>
+                  <dt>{t('capitalMarkets.nitNormalizado')}</dt>
                   <dd>
-                    {issuer.nit ?? 'No informado'}
+                    {issuer.nit ?? t('capitalMarkets.noInformado')}
                     {issuer.verification_digit ? `-${issuer.verification_digit}` : ''}
                   </dd>
                 </div>
                 <div>
-                  <dt>Identificador original SFC</dt>
-                  <dd>{issuer.source_nit ?? 'No informado'}</dd>
+                  <dt>{t('capitalMarkets.identificadorOriginalSfc')}</dt>
+                  <dd>{issuer.source_nit ?? t('capitalMarkets.noInformado')}</dd>
                 </div>
                 <div>
-                  <dt>Tipo de entidad</dt>
+                  <dt>{t('capitalMarkets.tipoDeEntidad')}</dt>
                   <dd>
                     {issuer.regulator_entity_type ?? <MissingValue />} —{' '}
                     {issuer.regulator_entity_type_description ?? <MissingValue />}
                   </dd>
                 </div>
                 <div>
-                  <dt>Código de entidad</dt>
+                  <dt>{t('capitalMarkets.codigoDeEntidad')}</dt>
                   <dd>{issuer.regulator_entity_code ?? <MissingValue />}</dd>
                 </div>
                 <div>
-                  <dt>Verificado</dt>
+                  <dt>{t('capitalMarkets.verificado')}</dt>
                   <dd>{dateTime(issuer.last_verified_at)}</dd>
                 </div>
                 <div>
-                  <dt>Identidad</dt>
+                  <dt>{t('capitalMarkets.identidad')}</dt>
                   <dd>
                     {issuer.match_status === 'verified'
-                      ? 'NIT verificado'
-                      : 'Coincidencia potencial'}
+                      ? t('capitalMarkets.nitVerificado')
+                      : t('capitalMarkets.coincidenciaPotencial')}
                   </dd>
                 </div>
               </dl>
               <a className="text-link" href={issuer.source_url} target="_blank" rel="noreferrer">
-                Fuente oficial RNVE ↗
+                {' '}
+                {t('capitalMarkets.fuenteOficialRnve')}
               </a>
             </div>
           ))}
         </article>
         <article className="panel">
-          <h3>Bolsa de Valores de Colombia</h3>
+          <h3>{t('capitalMarkets.bolsaDeValoresDeColombia')}</h3>
           {data.has_registered_bvc_common_equity ? (
             <div className="bvc-registration">
-              <span className="badge value-pill--present">Registrado</span>
+              <span className="badge value-pill--present">{t('capitalMarkets.registrado')}</span>
               <FilterHelp
-                label="Registro BVC"
-                text="Existe al menos un registro en Valores registrados con categoría Acciones ordinarias y mercado BVC. Se revisan todos los registros, sin depender de la paginación ni de los filtros. No indica negociación actual ni liquidez."
+                label={t('capitalMarkets.registroBvc')}
+                text={t('capitalMarkets.existeAlMenosUnRegistroEnValoresRegistradosConCategoria')}
               />
             </div>
           ) : (
             <span
               className={`badge ${data.exchange_listing.status === 'verified_listed' ? 'value-pill--present' : 'value-pill--muted'}`}
             >
-              {listingLabels[data.exchange_listing.status]}
+              {listingLabels()[data.exchange_listing.status]}
             </span>
           )}
           {!data.exchange_listing.quotes?.length && (data.common_equity_record_count ?? 0) <= 1 && (
             <div className="notice danger" role="alert">
-              No se ha establecido una coincidencia exacta por NIT, ANN o razón social con una
-              cotización. Consulte otras fuentes; esto no confirma ausencia de acciones.
+              {' '}
+              {t('capitalMarkets.noSeHaEstablecidoUnaCoincidenciaExactaPorNitAnn')}
             </div>
           )}
           {(data.exchange_listing.quotes?.length ?? 0) > 0 ? (
@@ -309,24 +333,33 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                 <div className="quote-heading">
                   <h4>
                     <span className="quote-ticker-label">
-                      {quote.ticker ? 'Nemotécnico (ticker)' : 'Emisor'}
+                      {quote.ticker
+                        ? t('capitalMarkets.nemotecnicoTicker')
+                        : t('capitalMarkets.emisor')}
                     </span>
                     {quote.ticker ?? quote.reported_legal_name ?? <MissingValue />}
                   </h4>
                   {quote.stale && (
-                    <span className="badge value-pill--review">Actualización pendiente</span>
+                    <span className="badge value-pill--review">
+                      {' '}
+                      {t('capitalMarkets.actualizacionPendiente')}
+                    </span>
                   )}
                 </div>
                 <div className="quote-highlight">
                   <div>
                     <span className="quote-label">
                       {quote.price_kind === 'daily_weighted_average'
-                        ? 'Precio promedio ponderado diario'
-                        : 'Último precio'}
+                        ? t('capitalMarkets.precioPromedioPonderadoDiario')
+                        : t('capitalMarkets.ultimoPrecio')}
                     </span>
                     <p className="bvc-price">
                       {quote.last_price !== null ? (
-                        `${quote.currency ? `${quote.currency} ` : quote.raw_price?.includes('$') ? '$ ' : ''}${new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 }).format(Number(quote.last_price))}`
+                        quote.currency ? (
+                          formatCurrency(quote.last_price, quote.currency)
+                        ) : (
+                          formatDecimal(quote.last_price)
+                        )
                       ) : (
                         <MissingValue />
                       )}
@@ -336,46 +369,38 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                     <div
                       className={`quote-change ${Number(quote.variation_percent) > 0 ? 'quote-up' : Number(quote.variation_percent) < 0 ? 'quote-down' : ''}`}
                     >
-                      <span className="quote-label">Variación</span>
+                      <span className="quote-label">{t('capitalMarkets.variacion')}</span>
                       <strong>
                         {Number(quote.variation_percent) > 0
                           ? '↑ +'
                           : Number(quote.variation_percent) < 0
                             ? '↓ '
                             : ''}
-                        {new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 }).format(
-                          Number(quote.variation_percent),
-                        )}
-                        %
+                        {formatDecimal(quote.variation_percent)}%
                       </strong>
                     </div>
                   )}
                 </div>
                 <p className="quote-date">
-                  <span>Fecha del precio</span>
+                  <span>{t('capitalMarkets.fechaDelPrecio')}</span>
                   {quote.price_date
                     ? registrationDate(quote.price_date.replaceAll('-', ''))?.display
                     : quote.price_as_of
                       ? dateTime(quote.price_as_of)
-                      : 'No informada'}
+                      : t('capitalMarkets.noInformada')}
                 </p>
                 <dl className="quote-metrics">
                   {quote.volume != null && (
                     <div>
-                      <dt>Volumen</dt>
-                      <dd>
-                        ${' '}
-                        {new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 }).format(
-                          Number(quote.volume),
-                        )}
-                      </dd>
+                      <dt>{t('capitalMarkets.volumen')}</dt>
+                      <dd>{formatDecimal(quote.volume)}</dd>
                     </div>
                   )}
                   <div>
                     <dt>
                       {quote.source_id === 'la_republica_quotes'
-                        ? 'ANN del registro RNVE'
-                        : 'Código Superfinanciera'}
+                        ? t('capitalMarkets.annDelRegistroRnve')
+                        : t('capitalMarkets.codigoSuperfinanciera')}
                     </dt>
                     <dd>{quote.superfinanciera_code}</dd>
                   </div>
@@ -388,41 +413,59 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                 </dl>
                 <div className="quote-provenance">
                   <a className="text-link" href={quote.source_url} target="_blank" rel="noreferrer">
-                    Fuente: {quote.source_name ?? 'Bolsa de Valores de Colombia'} ↗
+                    {' '}
+                    {t('capitalMarkets.fuente')}{' '}
+                    {quote.source_name ?? 'Bolsa de Valores de Colombia'} ↗
                   </a>
                   <p>
-                    Coincidencia:{' '}
+                    {' '}
+                    {t('capitalMarkets.coincidencia')}{' '}
                     {quote.match_type === 'exact_nit'
-                      ? 'NIT exacto'
+                      ? t('capitalMarkets.nitExacto')
                       : quote.match_type === 'exact_legal_name'
-                        ? 'Razón social EXACTA'
-                        : 'ANN exacto'}{' '}
+                        ? t('capitalMarkets.razonSocialExacta')
+                        : t('capitalMarkets.annExacto')}{' '}
                     · {quote.matched_value ?? quote.superfinanciera_code}
                   </p>
-                  <p>Recuperado: {dateTime(quote.retrieved_at)}</p>
-                  {quote.source_note && <p className="quote-source-note">{quote.source_note}</p>}
+                  <p>
+                    {' '}
+                    {t('capitalMarkets.recuperado')} {dateTime(quote.retrieved_at)}
+                  </p>
+                  {quote.source_note && (
+                    <p className="quote-source-note">{uiMessage(quote.source_note)}</p>
+                  )}
                 </div>
               </div>
             ))
           ) : (
             <dl>
               <div>
-                <dt>Último precio</dt>
+                <dt>{t('capitalMarkets.ultimoPrecio')}</dt>
                 <dd>
-                  <span className="badge value-pill--muted">No verificado</span>
+                  <span className="badge value-pill--muted">
+                    {' '}
+                    {t('capitalMarkets.noVerificado')}
+                  </span>
                 </dd>
               </div>
               <div>
-                <dt>Nemotécnico (ticker)</dt>
+                <dt>{t('capitalMarkets.nemotecnicoTicker')}</dt>
                 <dd>
-                  <span className="badge value-pill--muted">No verificado</span>
+                  <span className="badge value-pill--muted">
+                    {' '}
+                    {t('capitalMarkets.noVerificado')}
+                  </span>
                 </dd>
               </div>
             </dl>
           )}
           {(data.exchange_listing.attempts?.length ?? 0) > 0 && (
             <details className="quote-attempts" open={!data.exchange_listing.quotes?.length}>
-              <summary>Fuentes de cotización ({data.exchange_listing.attempts!.length})</summary>
+              <summary>
+                {' '}
+                {t('capitalMarkets.fuentesDeCotizacion')}
+                {formatNumber(data.exchange_listing.attempts!.length)})
+              </summary>
               <ul>
                 {data.exchange_listing.attempts!.map((attempt) => (
                   <li key={attempt.source_id}>
@@ -439,11 +482,11 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                       >
                         {(
                           {
-                            matched: 'Coincidencia exacta',
-                            no_exact_match: 'Sin identidad verificable',
-                            unavailable: 'No disponible',
-                            not_configured: 'Sin ruta verificada',
-                            not_checked: 'No consultada',
+                            matched: t('capitalMarkets.coincidenciaExacta'),
+                            no_exact_match: t('capitalMarkets.sinIdentidadVerificable'),
+                            unavailable: t('capitalMarkets.noDisponible'),
+                            not_configured: t('capitalMarkets.sinRutaVerificada'),
+                            not_checked: t('capitalMarkets.noConsultada'),
                           } as Record<string, string>
                         )[attempt.status] ?? attempt.status}
                       </span>
@@ -452,7 +495,10 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                       <p>{sourceErrorDescription(attempt.detail) ?? attempt.detail}</p>
                     )}
                     {attempt.last_attempt_at && (
-                      <p>Último intento: {dateTime(attempt.last_attempt_at)}</p>
+                      <p>
+                        {' '}
+                        {t('capitalMarkets.ultimoIntento2')} {dateTime(attempt.last_attempt_at)}
+                      </p>
                     )}
                   </li>
                 ))}
@@ -463,14 +509,14 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
       </div>
       <div className="profile-grid">
         <article className="panel market-contact">
-          <h3>Datos de contacto</h3>
+          <h3>{t('capitalMarkets.datosDeContacto')}</h3>
           <dl>
             {(
               [
-                ['Correo institucional', issuer?.contacts?.institutional_email],
-                ['Dirección', issuer?.contacts?.address],
-                ['Ciudad', issuer?.contacts?.city],
-                ['Teléfono', issuer?.contacts?.phone],
+                [t('capitalMarkets.correoInstitucional'), issuer?.contacts?.institutional_email],
+                [t('capitalMarkets.direccion'), issuer?.contacts?.address],
+                [t('capitalMarkets.ciudad'), issuer?.contacts?.city],
+                [t('capitalMarkets.telefono'), issuer?.contacts?.phone],
               ] as const
             ).map(([label, value]) => (
               <div key={label}>
@@ -479,13 +525,13 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
               </div>
             ))}
             <div>
-              <dt>Web</dt>
+              <dt>{t('capitalMarkets.web')}</dt>
               <dd>
                 <PublicLink value={issuer?.contacts?.website} />
               </dd>
             </div>
             <div>
-              <dt>Redes Sociales</dt>
+              <dt>{t('capitalMarkets.redesSociales')}</dt>
               <dd>
                 {issuer?.contacts?.social_networks?.length ? (
                   issuer.contacts.social_networks.map((value) => (
@@ -507,17 +553,18 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                 target="_blank"
                 rel="noreferrer"
               >
-                Fuente RNVE ↗
+                {' '}
+                {t('capitalMarkets.fuenteRnve')}
               </a>{' '}
-              · Obtenido: {dateTime(issuer.contacts_retrieved_at ?? null)}
+              {t('capitalMarkets.obtenido')} {dateTime(issuer.contacts_retrieved_at ?? null)}
             </p>
           )}
         </article>
         <article className="panel market-contact">
-          <h3>Administración</h3>
+          <h3>{t('capitalMarkets.administracion')}</h3>
           <dl>
             <div>
-              <dt>Nro. Miembros Junta Directiva</dt>
+              <dt>{t('capitalMarkets.nroMiembrosJuntaDirectiva')}</dt>
               <dd>
                 <AdministrationValue
                   value={issuer?.administration?.board_members_count}
@@ -526,7 +573,7 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
               </dd>
             </div>
             <div>
-              <dt>Representante Legal principal</dt>
+              <dt>{t('capitalMarkets.representanteLegalPrincipal')}</dt>
               <dd>
                 <AdministrationValue
                   value={issuer?.administration?.legal_representative}
@@ -536,7 +583,10 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
             </div>
             <div>
               <dt>
-                Representante Legal principal responsable de la informacion presentada al RNVE
+                {' '}
+                {t(
+                  'capitalMarkets.representanteLegalPrincipalResponsableDeLaInformacionPresentadaAlRnve',
+                )}
               </dt>
               <dd>
                 <AdministrationValue
@@ -554,28 +604,32 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                 target="_blank"
                 rel="noreferrer"
               >
-                Fuente RNVE ↗
+                {' '}
+                {t('capitalMarkets.fuenteRnve')}
               </a>{' '}
-              · Obtenido: {dateTime(issuer.administration_retrieved_at ?? null)}
+              {t('capitalMarkets.obtenido')} {dateTime(issuer.administration_retrieved_at ?? null)}
             </p>
           )}
         </article>
       </div>
       <SourceInformationCard
-        title={`Valores registrados${securities.data ? ` (${securities.data.unfiltered_total})` : ''}`}
+        title={t('capitalMarkets.valoresRegistradosValue', {
+          value0: securities.data ? ` (${securities.data.unfiltered_total})` : '',
+        })}
         id="registered-securities"
       >
         {!verified ? (
           <p>
             {data.rnve.match_status === 'potential'
-              ? 'Verifique primero la identidad del emisor candidato.'
-              : 'No hay un vínculo de identidad verificado para atribuir instrumentos. Esto no demuestra que la empresa nunca haya emitido valores.'}
+              ? t('capitalMarkets.verifiquePrimeroLaIdentidadDelEmisorCandidato')
+              : t('capitalMarkets.noHayUnVinculoDeIdentidadVerificadoParaAtribuirInstrumentos')}
           </p>
         ) : (
           <>
             <div className="market-filters">
               <label>
-                Categoría
+                {' '}
+                {t('capitalMarkets.categoria')}{' '}
                 <select
                   value={category}
                   onChange={(event) => {
@@ -583,16 +637,18 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                     setPage(1)
                   }}
                 >
-                  <option value="">Todas</option>
+                  <option value="">{t('capitalMarkets.todas')}</option>
                   {Object.entries(categories).map(([key, label]) => (
                     <option key={key} value={key}>
-                      {label}
+                      {' '}
+                      {t(label)}
                     </option>
                   ))}
                 </select>
               </label>
               <label>
-                Mercado registrado
+                {' '}
+                {t('capitalMarkets.mercadoRegistrado')}{' '}
                 <select
                   value={exchange}
                   onChange={(event) => {
@@ -600,12 +656,13 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                     setPage(1)
                   }}
                 >
-                  <option value="">Todos</option>
-                  <option value="BVC">BVC (según SFC)</option>
+                  <option value="">{t('capitalMarkets.todos')}</option>
+                  <option value="BVC">{t('capitalMarkets.bvcSegunSfc')}</option>
                 </select>
               </label>
               <label>
-                Estado de listado
+                {' '}
+                {t('capitalMarkets.estadoDeListado')}{' '}
                 <select
                   value={listingStatus}
                   onChange={(event) => {
@@ -613,10 +670,11 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                     setPage(1)
                   }}
                 >
-                  <option value="">Todos</option>
-                  {Object.entries(listingLabels).map(([key, label]) => (
+                  <option value="">{t('capitalMarkets.todos')}</option>
+                  {Object.entries(listingLabels()).map(([key, label]) => (
                     <option key={key} value={key}>
-                      {label}
+                      {' '}
+                      {t(label)}
                     </option>
                   ))}
                 </select>
@@ -629,22 +687,24 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
             {securities.data && (
               <>
                 <p className="securities-count small muted" role="status">
-                  {securities.data.total}{' '}
-                  {securities.data.total === 1 ? 'record found' : 'records found'}
+                  {formatNumber(securities.data.total)}{' '}
+                  {securities.data.total === 1
+                    ? t('capitalMarkets.recordFound')
+                    : t('capitalMarkets.recordsFound')}
                 </p>
                 {instruments.length ? (
                   <div className="table-wrap">
                     <table className="instruments-table">
                       <thead>
                         <tr>
-                          <th>Instrumento / categoría</th>
-                          <th>Identificadores</th>
-                          <th>Mercado registrado</th>
-                          <th>Fechas de inscripción</th>
-                          <th>Estado</th>
-                          <th>Importe</th>
-                          <th>Calificación reportada</th>
-                          <th>Fuente</th>
+                          <th>{t('capitalMarkets.instrumentoCategoria')}</th>
+                          <th>{t('capitalMarkets.identificadores')}</th>
+                          <th>{t('capitalMarkets.mercadoRegistrado')}</th>
+                          <th>{t('capitalMarkets.fechasDeInscripcion')}</th>
+                          <th>{t('capitalMarkets.estado')}</th>
+                          <th>{t('capitalMarkets.importe')}</th>
+                          <th>{t('capitalMarkets.calificacionReportada')}</th>
+                          <th>{t('capitalMarkets.fuente2')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -652,41 +712,64 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                           <tr key={instrument.id}>
                             <td>
                               <strong>{instrument.security_name}</strong>
-                              <p>{categories[instrument.security_category]}</p>
+                              <p>{t(categories[instrument.security_category])}</p>
                               <span className="muted small">
-                                Emisión: {issuanceMonth(instrument.issuance_number)}
+                                {' '}
+                                {t('capitalMarkets.emision')}{' '}
+                                {issuanceMonth(instrument.issuance_number)}
                               </span>
                             </td>
                             <td>
-                              {instrument.ticker && <p>Ticker: {instrument.ticker}</p>}
+                              {instrument.ticker && (
+                                <p>
+                                  {' '}
+                                  {t('capitalMarkets.ticker')} {instrument.ticker}
+                                </p>
+                              )}
                               {instrument.isin && <p>ISIN: {instrument.isin}</p>}
-                              <p>ANN: {instrument.ann_code ?? 'No informado'}</p>
+                              <p>ANN: {instrument.ann_code ?? t('capitalMarkets.noInformado')}</p>
                               {!instrument.ticker && (
-                                <span className="muted small">Ticker no informado</span>
+                                <span className="muted small">
+                                  {' '}
+                                  {t('capitalMarkets.tickerNoInformado')}
+                                </span>
                               )}
                             </td>
-                            <td>{instrument.exchange ?? 'RNVE; bolsa no informada'}</td>
                             <td>
-                              <p>RNVE: {date(instrument.rnve_registration_date)}</p>
-                              <p>BVC: {date(instrument.bvc_registration_date)}</p>
+                              {instrument.exchange ?? t('capitalMarkets.rnveBolsaNoInformada')}
                             </td>
                             <td>
-                              {listingLabels[instrument.listing_status]}
+                              <p>RNVE: {date(instrument.rnve_registration_date)}</p>
+                              <p>
+                                {' '}
+                                {t('capitalMarkets.bvc')} {date(instrument.bvc_registration_date)}
+                              </p>
+                            </td>
+                            <td>
+                              {listingLabels()[instrument.listing_status]}
                               {instrument.quality_notes?.map((note) => (
                                 <p className="badge value-pill--review" key={note}>
-                                  {note}
+                                  {uiMessage(note)}
                                 </p>
                               ))}
                               {instrument.stale && (
-                                <p className="badge value-pill--review">Observación anterior</p>
+                                <p className="badge value-pill--review">
+                                  {' '}
+                                  {t('capitalMarkets.observacionAnterior')}
+                                </p>
                               )}
                             </td>
                             <td>
                               {instrument.authorized_amount === null
-                                ? 'Importe no informado'
-                                : `${instrument.currency ?? ''} ${instrument.authorized_amount}`}
+                                ? t('capitalMarkets.importeNoInformado')
+                                : instrument.currency
+                                  ? formatCurrency(
+                                      instrument.authorized_amount,
+                                      instrument.currency,
+                                    )
+                                  : formatDecimal(instrument.authorized_amount)}
                             </td>
-                            <td>{instrument.credit_rating || 'No informada'}</td>
+                            <td>{instrument.credit_rating || t('capitalMarkets.noInformada')}</td>
                             <td>
                               <a
                                 className="text-link"
@@ -694,13 +777,16 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                                 target="_blank"
                                 rel="noreferrer"
                               >
-                                SFC ↗
+                                {' '}
+                                {t('capitalMarkets.sfc')}
                               </a>
                               <p className="small muted">
-                                Obtenido: {dateTime(instrument.last_verified_at)}
+                                {' '}
+                                {t('capitalMarkets.obtenido2')}{' '}
+                                {dateTime(instrument.last_verified_at)}
                               </p>
                               <details>
-                                <summary>Valores originales SFC</summary>
+                                <summary>{t('capitalMarkets.valoresOriginalesSfc')}</summary>
                                 <dl>
                                   {Object.entries(instrument.source_values).map(
                                     ([field, value]) => (
@@ -721,23 +807,30 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                 ) : (
                   <p>
                     {securities.data.availability === 'available'
-                      ? 'No hay instrumentos en el reporte consultado que satisfagan estos filtros. No descarta emisiones históricas.'
-                      : 'No se presenta una conclusión negativa sobre instrumentos.'}
+                      ? t('capitalMarkets.noHayInstrumentosEnElReporteConsultadoQueSatisfaganEstos')
+                      : t('capitalMarkets.noSePresentaUnaConclusionNegativaSobreInstrumentos')}
                   </p>
                 )}
-                <nav className="pagination" aria-label="Securities pages">
+                <nav className="pagination" aria-label={t('capitalMarkets.securitiesPages')}>
                   <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                    ← Anterior
+                    {' '}
+                    {t('capitalMarkets.anterior')}
                   </button>
                   <span aria-live="polite">
-                    {instruments.length ? (page - 1) * securities.data.page_size + 1 : 0} -{' '}
-                    {instruments.length
-                      ? (page - 1) * securities.data.page_size + instruments.length
-                      : 0}{' '}
-                    de {securities.data.total}
+                    {formatNumber(
+                      instruments.length ? (page - 1) * securities.data.page_size + 1 : 0,
+                    )}{' '}
+                    -{' '}
+                    {formatNumber(
+                      instruments.length
+                        ? (page - 1) * securities.data.page_size + instruments.length
+                        : 0,
+                    )}{' '}
+                    {t('capitalMarkets.de')} {formatNumber(securities.data.total)}
                   </span>
                   <button disabled={!securities.data.has_more} onClick={() => setPage(page + 1)}>
-                    Siguiente →
+                    {' '}
+                    {t('capitalMarkets.siguiente')}
                   </button>
                 </nav>
               </>

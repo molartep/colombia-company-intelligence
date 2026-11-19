@@ -1,35 +1,44 @@
+import { errorMessage } from '../i18n/messages'
+import { t, useLanguage } from '../i18n'
 import { useEffect, useRef } from 'react'
 import { ApiError } from '../api/client'
 import { DirectoryImport } from './DirectoryImport'
 
 export function Failure({ error, retry }: { error: Error; retry?: () => void }) {
+  useLanguage()
+
   const needsImport = error instanceof ApiError && error.code === 'bvc_directory_unavailable'
   return (
     <div className="notice danger" role="alert">
       <strong>
         {needsImport
-          ? 'The RNVE issuer directory needs importing.'
-          : 'We couldn’t retrieve this information.'}
+          ? t('feedback.theRnveIssuerDirectoryNeedsImporting')
+          : t('feedback.weCouldnTRetrieveThisInformation')}
       </strong>
-      <p>{error.message}</p>
+      <p>{errorMessage(error)}</p>
       {needsImport && <DirectoryImport onImported={retry} />}
       {retry && (
         <button className="text-link" onClick={retry}>
-          Try again
+          {' '}
+          {t('feedback.tryAgain')}
         </button>
       )}
     </div>
   )
 }
 export function Loading() {
+  useLanguage()
+
   return (
     <div role="status" className="notice">
-      <span className="pulse" /> Consulting official records…
+      <span className="pulse" /> {t('feedback.consultingOfficialRecords')}
     </div>
   )
 }
 
 export function SearchLoadingDialog() {
+  useLanguage()
+
   const dialog = useRef<HTMLDialogElement>(null)
   useEffect(() => {
     const element = dialog.current
@@ -55,8 +64,11 @@ export function SearchLoadingDialog() {
         ⌕
       </span>
       <div role="status" aria-live="polite">
-        <h2 id="search-loading-title">Retrieving results</h2>
-        <p id="search-loading-description">Searching official company records. Please wait…</p>
+        <h2 id="search-loading-title">{t('feedback.retrievingResults')}</h2>
+        <p id="search-loading-description">
+          {' '}
+          {t('feedback.searchingOfficialCompanyRecordsPleaseWait')}
+        </p>
       </div>
     </dialog>
   )
@@ -71,6 +83,8 @@ export function RefreshAlert({
   refresh: () => void
   refreshing?: boolean
 }) {
+  useLanguage()
+
   return (
     <div className="notice warning refresh-alert" role="status">
       <div>{children}</div>
@@ -81,7 +95,7 @@ export function RefreshAlert({
         aria-busy={refreshing}
         onClick={refresh}
       >
-        {refreshing ? 'Refreshing…' : 'Refresh data'}
+        {refreshing ? t('feedback.refreshing') : t('feedback.refreshData')}
       </button>
     </div>
   )

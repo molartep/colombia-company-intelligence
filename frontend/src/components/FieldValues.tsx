@@ -1,13 +1,27 @@
+import { t, useLanguage } from '../i18n'
 import { dateTime, registrationDate, requiresTimestampReview } from '../utils'
 
 export function MissingValue({ muted = false }: { muted?: boolean }) {
-  return <span className={`badge value-pill--${muted ? 'muted' : 'missing'}`}>Missing</span>
+  useLanguage()
+
+  return (
+    <span className={`badge value-pill--${muted ? 'muted' : 'missing'}`}>
+      {' '}
+      {t('fields.missing')}
+    </span>
+  )
 }
 
 export function ReviewValue({ value }: { value: string }) {
+  useLanguage()
+
   return (
-    <span className="badge value-pill--review" title={`Source value: ${value}`}>
-      Review
+    <span
+      className="badge value-pill--review"
+      title={t('fields.sourceValueValue', { value0: value })}
+    >
+      {' '}
+      {t('fields.review')}
     </span>
   )
 }
@@ -19,6 +33,8 @@ export function RegistrationDate({
   value: string | null
   blankIfMissing?: boolean
 }) {
+  useLanguage()
+
   if (!value?.trim()) return blankIfMissing ? null : <MissingValue />
   const formatted = registrationDate(value)
   return formatted ? (
@@ -29,6 +45,8 @@ export function RegistrationDate({
 }
 
 export function TimestampValue({ value, rues = false }: { value: string | null; rues?: boolean }) {
+  useLanguage()
+
   if (!value?.trim()) return <MissingValue />
   if (!Number.isFinite(new Date(value).getTime()) || (rues && requiresTimestampReview(value))) {
     return <ReviewValue value={value} />

@@ -1,10 +1,8 @@
-export const dateTime = (value: string | null) =>
-  value
-    ? new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(
-        new Date(value),
-      )
-    : 'Not available'
-export const label = (value: string) => value.replaceAll('_', ' ')
+import { locale, t } from './i18n'
+import { formatDate } from './i18n/format'
+export const dateTime = (value: string | null) => formatDate(value, true)
+export const label = (value: string) =>
+  t(`fields.names.${value}`, { defaultValue: value.replaceAll('_', ' ') })
 
 export function registrationDate(value: string): { iso: string; display: string } | null {
   const raw = value.trim()
@@ -18,7 +16,9 @@ export function registrationDate(value: string): { iso: string; display: string 
   if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== iso) return null
   return {
     iso,
-    display: new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(date),
+    display: new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeZone: 'UTC' }).format(
+      date,
+    ),
   }
 }
 
@@ -42,22 +42,12 @@ export function searchReturnPath(state: unknown): string {
 }
 
 export function issuanceMonth(value: string | null): string {
-  if (!value) return 'No informada'
+  if (!value) return t('format.noInformada')
   const match = /^(\d{4})(0[1-9]|1[0-2])$/.exec(value)
   if (!match || Number(match[1]) === 0) return value
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ]
-  return `${months[Number(match[2]) - 1]}, ${match[1]}`
+  return new Intl.DateTimeFormat(locale(), {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${match[1]}-${match[2]}-01T00:00:00Z`))
 }

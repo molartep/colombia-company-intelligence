@@ -1,8 +1,13 @@
+import { formatNumber } from '../i18n/format'
+import { errorMessage } from '../i18n/messages'
+import { t, useLanguage } from '../i18n'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api/client'
 
 export function DirectoryImport({ onImported }: { onImported?: () => void } = {}) {
+  useLanguage()
+
   const client = useQueryClient()
   const [token, setToken] = useState('')
   const [file, setFile] = useState<File>()
@@ -26,10 +31,7 @@ export function DirectoryImport({ onImported }: { onImported?: () => void } = {}
   })
   return (
     <div className="directory-import">
-      <p className="small">
-        Import the official SFC issuer-only Excel export. Download and validation can take up to 90
-        seconds. Existing evidence is retained if validation fails.
-      </p>
+      <p className="small">{t('common.importTheOfficialSfcIssuerOnlyExcelExportDownloadAnd')}</p>
       <button
         type="button"
         className="refresh-button"
@@ -37,24 +39,27 @@ export function DirectoryImport({ onImported }: { onImported?: () => void } = {}
         aria-busy={task.isPending}
         onClick={() => task.mutate(undefined)}
       >
-        {task.isPending ? 'Importing RNVE directory…' : 'Import RNVE directory'}
+        {task.isPending ? t('common.importingRnveDirectory') : t('common.importRnveDirectory')}
       </button>
       <details className="import-options">
-        <summary>Import a downloaded XLSX / administrator access</summary>
+        <summary>{t('common.importADownloadedXlsxAdministratorAccess')}</summary>
         <p className="small">
-          If automatic download fails, open the{' '}
+          {' '}
+          {t('common.ifAutomaticDownloadFailsOpenThe')}{' '}
           <a
             className="text-link"
             href="https://www.superfinanciera.gov.co/SIMEV2/rnve/emisoresinscritosvigentes"
             target="_blank"
             rel="noreferrer"
           >
-            official RNVE directory ↗
+            {' '}
+            {t('common.officialRnveDirectory')}
           </a>{' '}
-          and select DESCARGAR EMISORES → REPORTE EXCEL. Choose that issuer-only file below.
+          {t('common.andSelectDescargarEmisoresReporteExcelChooseThatIssuerOnly')}
         </p>
         <label>
-          Official issuer XLSX (maximum 10 MiB)
+          {' '}
+          {t('common.officialIssuerXlsxMaximum10Mib')}{' '}
           <input
             type="file"
             accept=".xlsx"
@@ -67,13 +72,14 @@ export function DirectoryImport({ onImported }: { onImported?: () => void } = {}
                 (selected.size > 10 * 1024 * 1024 || !selected.name.toLowerCase().endsWith('.xlsx'))
               ) {
                 setFile(undefined)
-                setFileError('Choose an XLSX file no larger than 10 MiB.')
+                setFileError('common.chooseAnXlsxFileNoLargerThan10Mib')
               } else setFile(selected)
             }}
           />
         </label>
         <label>
-          Administrator import key (required on a deployed server)
+          {' '}
+          {t('common.administratorImportKeyRequiredOnADeployedServer')}{' '}
           <input
             type="password"
             value={token}
@@ -82,25 +88,24 @@ export function DirectoryImport({ onImported }: { onImported?: () => void } = {}
             onChange={(event) => setToken(event.target.value)}
           />
         </label>
-        <p className="small muted">
-          The key stays in this form’s memory and is cleared after import. Local loopback use does
-          not require a key.
-        </p>
+        <p className="small muted">{t('common.theKeyStaysInThisFormSMemoryAndIs')}</p>
         <button
           type="button"
           className="refresh-button"
           disabled={!file || task.isPending}
           onClick={() => task.mutate(file)}
         >
-          Import selected XLSX
+          {' '}
+          {t('common.importSelectedXlsx')}
         </button>
       </details>
-      {fileError && <p role="alert">{fileError}</p>}
-      {task.isError && <p role="alert">{task.error.message}</p>}
+      {fileError && <p role="alert">{t(fileError)}</p>}
+      {task.isError && <p role="alert">{errorMessage(task.error)}</p>}
       {task.isSuccess && (
         <p role="status">
-          Imported {task.data.record_count} issuers. Identity links were reconciled and dependent
-          views refreshed. Coverage remains incomplete unless separately attested by an operator.
+          {' '}
+          {t('common.imported')} {formatNumber(task.data.record_count)}{' '}
+          {t('common.issuersIdentityLinksWereReconciledAndDependentViewsRefreshedCoverage')}
         </p>
       )}
     </div>

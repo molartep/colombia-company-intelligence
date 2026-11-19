@@ -1,3 +1,5 @@
+import { errorMessage } from '../i18n/messages'
+import { t, useLanguage } from '../i18n'
 import { Screening } from '../components/Screening'
 import { DataSourceInformation } from '../components/DataSourceInformation'
 import { CapitalMarkets } from '../components/CapitalMarkets'
@@ -11,6 +13,8 @@ import { RegistrationStatus } from '../components/RegistrationStatus'
 import { MissingValue, RegistrationDate } from '../components/FieldValues'
 
 export function CompanyProfile() {
+  useLanguage()
+
   const { id = '' } = useParams()
   const [params] = useSearchParams()
   const location = useLocation()
@@ -37,7 +41,8 @@ export function CompanyProfile() {
   return (
     <section className="profile">
       <Link className="back-link" to={returnTo}>
-        ← Company search
+        {' '}
+        {t('overview.companySearch')}
       </Link>
       <div className="profile-heading">
         <div>
@@ -57,23 +62,25 @@ export function CompanyProfile() {
             {data.nit && (
               <button
                 className="copy"
-                aria-label="Copy NIT"
+                aria-label={t('overview.copyNit')}
                 onClick={() => {
                   void navigator.clipboard.writeText(data.nit ?? '').then(
-                    () => setCopyStatus('NIT copied'),
-                    () => setCopyStatus('Could not copy NIT'),
+                    () => setCopyStatus('overview.nitCopied'),
+                    () => setCopyStatus('overview.couldNotCopyNit'),
                   )
                 }}
               >
-                Copy
+                {' '}
+                {t('overview.copy')}
               </button>
             )}
             <span role="status" className="small">
-              {copyStatus}
+              {copyStatus ? t(copyStatus) : ''}
             </span>
           </div>
           <div className="profile-status">
-            Status:{' '}
+            {' '}
+            {t('overview.status')}{' '}
             {data.registration_status?.trim() ? (
               <RegistrationStatus status={data.registration_status} />
             ) : (
@@ -82,33 +89,38 @@ export function CompanyProfile() {
           </div>
         </div>
       </div>
-      <nav className="tabs" aria-label="Company sections">
+      <nav className="tabs" aria-label={t('overview.companySections')}>
         <Link
           aria-current={tab === 'overview' ? 'page' : undefined}
           to="?tab=overview"
           state={{ returnTo }}
         >
-          Overview
+          {' '}
+          {t('overview.overview')}
         </Link>
         <Link
           aria-current={tab === 'capital-markets' ? 'page' : undefined}
           to="?tab=capital-markets"
           state={{ returnTo }}
         >
-          Capital Markets
+          {' '}
+          {t('overview.capitalMarkets')}
         </Link>
         <span>
-          Financials <small>Coming later</small>
+          {' '}
+          {t('overview.financials')} <small>{t('overview.comingLater')}</small>
         </span>
         <span>
-          Corporate events <small>Coming later</small>
+          {' '}
+          {t('overview.corporateEvents')} <small>{t('overview.comingLater')}</small>
         </span>
         <Link
           aria-current={tab === 'screening' ? 'page' : undefined}
           to="?tab=screening"
           state={{ returnTo }}
         >
-          Government Contracts
+          {' '}
+          {t('overview.governmentContracts')}
         </Link>
       </nav>
       {tab === 'screening' ? (
@@ -119,13 +131,13 @@ export function CompanyProfile() {
         <>
           <div className="profile-grid">
             <article className="panel">
-              <p className="eyebrow">VERIFIED SOURCE FIELDS</p>
-              <h2>Company identity</h2>
+              <p className="eyebrow">{t('overview.verifiedSourceFields')}</p>
+              <h2>{t('overview.companyIdentity')}</h2>
               <dl>
                 {Object.entries({
-                  'Legal name': data.legal_name,
-                  'Legal organization': data.legal_form,
-                  'Primary CIIU code': data.primary_ciiu,
+                  [t('overview.legalName')]: data.legal_name,
+                  [t('overview.legalOrganization')]: data.legal_form,
+                  [t('overview.primaryCiiuCode')]: data.primary_ciiu,
                 }).map(([key, value]) => (
                   <div key={key}>
                     <dt>{key}</dt>
@@ -135,8 +147,8 @@ export function CompanyProfile() {
               </dl>
             </article>
             <article className="panel">
-              <p className="eyebrow">BUSINESS REGISTRY</p>
-              <h2>Registration details</h2>
+              <p className="eyebrow">{t('overview.businessRegistry')}</p>
+              <h2>{t('overview.registrationDetails')}</h2>
               <dl>
                 {Object.entries(data.registration).map(([key, value]) => (
                   <div key={key}>
@@ -158,13 +170,15 @@ export function CompanyProfile() {
           {(refresh.isError ||
             data.sources.some((source) => source.availability === 'failed_to_retrieve')) && (
             <RefreshAlert refresh={() => refresh.mutate()} refreshing={refresh.isPending}>
-              {refresh.error?.message ??
-                'The source was unavailable at the last check. Previously retrieved data is preserved.'}
+              {refresh.error
+                ? errorMessage(refresh.error)
+                : t('overview.theSourceWasUnavailableAtTheLastCheckPreviouslyRetrieved')}
             </RefreshAlert>
           )}
           {refresh.isSuccess && (
             <p className="small muted" role="status">
-              Registration refreshed from the official source.
+              {' '}
+              {t('overview.registrationRefreshedFromTheOfficialSource')}
             </p>
           )}
           <DataSourceInformation

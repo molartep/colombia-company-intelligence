@@ -373,9 +373,9 @@ test('select all allows excluding a legal organization and clearing the explicit
 test('BVC checkbox applies on submit, resets pagination, and survives navigation', async () => {
   const requests = setup('/?q=TEST&page=2')
   await screen.findByText('SYNTHETIC TEST SAS')
-  expect(screen.getByRole('columnheader', { name: 'Registrado BVC' })).toBeVisible()
-  expect(screen.getByRole('img', { name: 'Registrado BVC' })).toBeVisible()
-  const checkbox = screen.getByRole('checkbox', { name: 'Registrado BVC' })
+  expect(screen.getByRole('columnheader', { name: 'BVC registration' })).toBeVisible()
+  expect(screen.getByRole('img', { name: 'BVC registration' })).toBeVisible()
+  const checkbox = screen.getByRole('checkbox', { name: 'BVC registration' })
   const before = requests.length
   await userEvent.click(checkbox)
   expect(requests).toHaveLength(before)
@@ -397,9 +397,11 @@ test('BVC checkbox applies on submit, resets pagination, and survives navigation
 test('BVC filter restores from URL and Parameters explains positive-only coverage', async () => {
   setup('/?q=TEST&registered_bvc=true')
   await screen.findByText('SYNTHETIC TEST SAS')
-  expect(screen.getByRole('checkbox', { name: 'Registrado BVC' })).toBeChecked()
-  expect(screen.getByRole('button', { name: 'Help: Registrado BVC' })).toHaveAccessibleDescription(
-    /filters live RUES results before pagination/,
+  expect(screen.getByRole('checkbox', { name: 'BVC registration' })).toBeChecked()
+  expect(
+    screen.getByRole('button', { name: 'Help: BVC registration' }),
+  ).toHaveAccessibleDescription(
+    "Finds companies with registered common stocks in Colombia's stock market (BVC).",
   )
   await userEvent.click(screen.getByRole('link', { name: 'Parameters' }))
   await screen.findByRole('heading', { name: 'Open filters' })

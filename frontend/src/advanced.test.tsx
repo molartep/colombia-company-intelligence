@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
@@ -9,7 +9,21 @@ import { DirectoryImport } from './components/DirectoryImport'
 
 const snapshot = {
   checked_at: '2026-11-18T15:00:00Z',
-  counts: { issuers: 0, registrations: 2, snapshots: 0 },
+  counts: {
+    issuers: 0,
+    registrations: 1234567,
+    snapshots: 0,
+    screening_runs: 0,
+    secop_contracts: 0,
+  },
+  secop: {
+    status: 'not_yet_checked',
+    last_attempt_at: null,
+    last_success_at: null,
+    source_updated_at: null,
+    cache_hours: 24,
+    max_rows: 5000,
+  },
   directory_missing: true,
   import_access: 'local',
   parameter_verified_at: '2026-11-14T15:00:00Z',
@@ -85,7 +99,28 @@ test('Advanced shows actual empty dependencies separately from on-demand sources
   expect(screen.getByRole('heading', { name: 'Architecture' })).toBeVisible()
   expect(screen.getByText(/not live upstream probes/)).toBeVisible()
   expect(screen.getByText(/No initial data import/i)).toBeVisible()
-  expect(screen.getByText(/6. Runtime boundaries/)).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Platform References' })).toBeVisible()
+  expect(screen.getByText(/7. Runtime boundaries/)).toBeVisible()
+  expect(screen.getByRole('figure', { name: 'Platform architecture diagram' })).toBeVisible()
+  expect(screen.getByRole('figure', { name: 'Technical workflow diagram' })).toBeVisible()
+  expect(screen.getByText('1,234,567')).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Help: Registrations' })).toHaveAccessibleDescription(
+    'Stored RUES registration records; one company may have several.',
+  )
+  expect(screen.getByRole('button', { name: 'Help: SECOP contracts' })).toHaveAccessibleDescription(
+    'Distinct SECOP contract IDs across stored versions.',
+  )
+  const secopRow = screen
+    .getByRole('link', { name: 'SECOP II · Government contracts ↗' })
+    .closest('tr')!
+  expect(within(secopRow).getByText('Not yet checked')).toBeVisible()
+  expect(secopRow).toHaveTextContent('Row cap: 5,000')
+  expect(screen.queryByText('Scope and limits')).not.toBeInTheDocument()
+  const details = document.querySelectorAll('details.workflow-detail')
+  expect(details).toHaveLength(7)
+  for (const item of details) expect(item).not.toHaveAttribute('open')
+  await userEvent.click(screen.getByText('6. Government Contracts: exact supplier matching'))
+  expect(screen.getByText(/Nine-digit source identifiers match/)).toBeVisible()
 })
 
 test('missing-directory search alert executes import then retries the blocked search', async () => {
@@ -109,7 +144,7 @@ test('missing-directory search alert executes import then retries the blocked se
           {
             error: {
               code: 'bvc_directory_unavailable',
-              message: 'Import the official RNVE issuer directory before using Registrado BVC.',
+              message: 'Import the official RNVE issuer directory before using BVC registration.',
             },
           },
           503,
@@ -146,7 +181,9 @@ test('invalid uploads are rejected locally and failed import preserves the retry
   expect(await screen.findByText('Choose an XLSX file no larger than 10 MiB.')).toBeVisible()
   expect(fetcher).not.toHaveBeenCalled()
   await userEvent.click(screen.getByRole('button', { name: 'Import RNVE directory' }))
-  expect(await screen.findByText('Download failed; upload the official export.')).toBeVisible()
+  expect(
+    await screen.findByText('The request could not be completed. Please try again.'),
+  ).toBeVisible()
   await waitFor(() =>
     expect(screen.getByRole('button', { name: 'Import RNVE directory' })).toBeEnabled(),
   )

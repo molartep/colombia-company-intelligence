@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import type { Contract, ContractPage, SecopScreening } from '../types/secop'
 import type { MarketsProfile, SecuritiesPage } from '../types/capitalMarkets'
 import type { ParameterCatalog, Profile, RecordView, SearchPage } from '../types'
@@ -31,7 +32,7 @@ export async function request<T>(
       'message' in payload.error &&
       typeof payload.error.message === 'string'
         ? payload.error.message
-        : `Request failed (${response.status}). Please try again.`
+        : t('errors.requestFailedValuePleaseTryAgain', { value0: response.status })
     const code =
       payload &&
       typeof payload === 'object' &&

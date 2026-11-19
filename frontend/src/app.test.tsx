@@ -109,7 +109,7 @@ test('renders official result and profile link', async () => {
     'Registration status',
     'Registration date',
     'Renewal date',
-    'Registrado BVC',
+    'BVC registration',
     'Open profile',
   ])
   const legalEntityCell = screen.getByText('SYNTHETIC ANDINA SAS').closest('td')!
@@ -124,7 +124,7 @@ test('renders official result and profile link', async () => {
 test('source failures are visible errors', async () => {
   reply({ error: { message: 'Official source unavailable.' } }, 503)
   wrapper(<Search />, '/?q=SYNTHETIC')
-  expect(await screen.findByRole('alert')).toHaveTextContent('Official source unavailable.')
+  expect(await screen.findByRole('alert')).toHaveTextContent('The request could not be completed.')
   expect(screen.queryByText('No matching registrations')).not.toBeInTheDocument()
 })
 
@@ -171,7 +171,7 @@ test('profile displays available data and unchecked attributes', async () => {
   expect(screen.getByRole('heading', { name: 'Data Source Information' })).toBeVisible()
   await userEvent.click(screen.getByRole('heading', { name: 'Data Source Information' }))
   await userEvent.click(screen.getByText('Attribute availability & provenance'))
-  expect(screen.getByText('not yet checked')).toBeVisible()
+  expect(screen.getByText('Not yet checked')).toBeVisible()
 })
 
 test('results use the requested registration status colors and preserve missing NITs', async () => {
@@ -289,11 +289,11 @@ test('legacy Sources URL shows the combined Overview card, source availability a
   await userEvent.click(await screen.findByRole('heading', { name: 'Data Source Information' }))
   expect(screen.queryByText('AUDITABLE BY DESIGN')).not.toBeInTheDocument()
   expect(
-    screen.getByText('Availability: available').querySelector('.availability-dot--available'),
+    screen.getByText('Availability: Available').querySelector('.availability-dot--available'),
   ).toBeInTheDocument()
   expect(
     screen
-      .getByText('Availability: failed to retrieve')
+      .getByText('Availability: Retrieval failed')
       .querySelector('.availability-dot--unavailable'),
   ).toBeInTheDocument()
   expect(await screen.findByTitle('Source value: 1900-01-01T00:00:00Z')).toHaveClass(
@@ -447,7 +447,7 @@ test('supporting-record failures stay inside the Overview source card', async ()
       status: url.endsWith('/sources') ? 503 : 200,
       json: async () =>
         url.endsWith('/sources')
-          ? { error: { message: 'SYNTHETIC records failure' } }
+          ? { error: { message: 'The request could not be completed. Please try again.' } }
           : profileFixture,
     })),
   )
@@ -458,7 +458,9 @@ test('supporting-record failures stay inside the Overview source card', async ()
     '/companies/synthetic-id',
   )
   await userEvent.click(await screen.findByRole('heading', { name: 'Data Source Information' }))
-  expect(await screen.findByRole('alert')).toHaveTextContent('SYNTHETIC records failure')
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'The request could not be completed. Please try again.',
+  )
   expect(screen.getByRole('heading', { name: 'Company identity' })).toBeVisible()
   const card = screen
     .getByRole('heading', { name: 'Data Source Information' })

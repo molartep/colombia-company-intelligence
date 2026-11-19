@@ -371,3 +371,13 @@ with their source date; no last-trade price or ticker is invented. See [quote fa
 ### Phase 3: SECOP II screening
 
 Company profiles now include a functional **Screening** tab with exact supplier-NIT SECOP II lookup, source evidence, cached summaries, activity charts, searchable/paginated contracts and contract details. Refreshes preserve prior successful evidence on source failure. No matches and inability to check are separate outcomes. See [SECOP screening](docs/secop-screening.md) for the verified source mapping, migration, API, matching rules, test commands and limitations. SECOP values are interpreted as COP by explicit application convention, enabling precise totals, annual values and buyer rankings; the source itself omits a currency field.
+
+### English and Spanish
+
+Use the EN/ES control in the main navigation. The selection persists across visits; browser language is used initially, with Spanish as fallback. Application text and presentation formats localize while original third-party records remain unchanged. See [localization conventions and testing](docs/localization.md).
+
+### Platform References
+
+The former Advanced page now documents architecture, data readiness and technical workflows
+for RUES, Capital Markets and SECOP II. It includes responsive diagrams, metric definitions and
+collapsed workflow details. See [Platform References and technical glossary](docs/platform-references.md).

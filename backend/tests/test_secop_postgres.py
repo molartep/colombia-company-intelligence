@@ -335,3 +335,51 @@ async def test_contract_api_filters_missing_signature_dates(session, record, sec
             ).status_code == 422
     finally:
         app.dependency_overrides.clear()
+
+
+async def test_platform_readiness_tracks_secop_history_without_double_counting(
+    session, record, secop_row
+):
+    company, source = await company_and_source(session, record, [secop_row])
+
+    async def override():
+        yield session
+
+    app.dependency_overrides[get_session] = override
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://localhost"
+        ) as client:
+            initial = await client.get("/api/v1/platform")
+            assert initial.status_code == 200
+            assert initial.json()["secop"]["status"] == "not_yet_checked"
+            assert initial.json()["counts"]["screening_runs"] == 0
+            assert initial.json()["counts"]["secop_contracts"] == 0
+            first = await secop.refresh(session, company, source)
+            await age_run(session, first.run_id)
+            # A changed value persists a new evidence version for the same logical contract.
+            source.fetch.return_value = (
+                [dict(secop_row, valor_del_contrato="100")],
+                datetime.now(UTC),
+            )
+            second = await secop.refresh(session, company, source)
+            ready = (await client.get("/api/v1/platform")).json()
+            assert ready["secop"]["status"] == "completed"
+            assert ready["secop"][
+                "last_success_at"
+            ] == second.last_successful_at.isoformat().replace("+00:00", "Z")
+            assert ready["secop"]["max_rows"] == 5000
+            assert ready["counts"]["screening_runs"] == 2
+            assert ready["counts"]["secop_contracts"] == 1
+            assert await session.scalar(select(func.count()).select_from(SecopContract)) == 2
+            await age_run(session, second.run_id)
+            source.fetch.side_effect = SourceError("source_timeout", "Synthetic")
+            await secop.refresh(session, company, source)
+            failed = (await client.get("/api/v1/platform")).json()
+            assert failed["secop"]["status"] == "failed"
+            assert failed["secop"]["last_success_at"] == ready["secop"]["last_success_at"]
+            assert failed["counts"]["screening_runs"] == 3
+            assert failed["counts"]["secop_contracts"] == 1
+            assert source.fetch.await_count == 3  # Platform reads never query SECOP.
+    finally:
+        app.dependency_overrides.clear()

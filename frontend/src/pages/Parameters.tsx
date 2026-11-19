@@ -1,3 +1,7 @@
+import { formatNumber } from '../i18n/format'
+import { uiMessage } from '../i18n/messages'
+import { formatDate } from '../i18n/format'
+import { t, useLanguage } from '../i18n'
 import { useState } from 'react'
 import type { FixedFilterKey } from '../api/filters'
 import { Link } from 'react-router-dom'
@@ -5,14 +9,16 @@ import { Failure, Loading } from '../components/Feedback'
 import { useParameters } from '../hooks/useParameters'
 
 export function Parameters() {
+  useLanguage()
+
   const parameters = useParameters()
   const [activeGroup, setActiveGroup] = useState<FixedFilterKey>('status')
   return (
     <section className="parameters-page">
-      <h1>Parameters</h1>
+      <h1>{t('parameters.parameters')}</h1>
       <p className="parameters-intro">
-        Codes and descriptions available in the advanced search filters. Source labels are shown
-        verbatim, including distinctions and missing descriptions.
+        {' '}
+        {t('parameters.codesAndDescriptionsAvailableInTheAdvancedSearchFiltersSource')}
       </p>
       {parameters.isPending && <Loading />}
       {parameters.isError && (
@@ -21,41 +27,35 @@ export function Parameters() {
       {parameters.data && (
         <>
           <section className="panel">
-            <h2>Open filters</h2>
+            <h2>{t('parameters.openFilters')}</h2>
             <p>
-              <strong>Registrado BVC:</strong> boolean checkbox; selected means only registrations
-              with verified issuer links and at least one retrieved RNVE record with category{' '}
-              <strong>Acciones ordinarias</strong> and market <strong>BVC</strong>. It finds
-              candidate issuers in the RNVE directory, retrieves their securities records using the
-              existing cache, and restricts live RUES requests by eligible NIT before pagination.
-              Existing table filters and pages do not limit discovery. Unchecked means no BVC
-              restriction.
+              <strong>{t('parameters.registradoBvc')}</strong>{' '}
+              {t('parameters.booleanCheckboxSelectedMeansOnlyRegistrationsWithVerifiedIssuerLinks')}{' '}
+              <strong>Acciones ordinarias</strong> {t('parameters.andMarket')} <strong>BVC</strong>{' '}
+              {t('parameters.itFindsCandidateIssuersInTheRnveDirectoryRetrievesTheir')}
+            </p>
+            <p>{t('parameters.theSearchTableShowsAGreenCheckForEstablishedRegistration')}</p>
+            <p>
+              <strong>CIIU:</strong> {t('parameters.exactFourDigitCodeOrOneToFourDigitPrefix')}
             </p>
             <p>
-              The search table shows a green check for established registration evidence. A blank
-              cell means registration has not been established, not that the company is
-              unregistered. New companies do not need to have been searched or opened before.
-              Coverage depends on the imported RNVE directory and successfully retrieved securities
-              evidence; no current trading, price, liquidity or complete market coverage is implied.
+              <strong>{t('parameters.dates')}</strong>{' '}
+              {t('parameters.inclusiveRangesMissingMalformedImpossibleZeroAndYear9999Placeholders')}
             </p>
             <p>
-              <strong>CIIU:</strong> exact four-digit code or one-to-four-digit prefix; primary
-              activity or any of the four reported activities. No authoritative description lookup
-              is integrated.
-            </p>
-            <p>
-              <strong>Dates:</strong> inclusive ranges. Missing, malformed, impossible, zero and
-              year-9999 placeholders are excluded when a range is used.
-            </p>
-            <p>
-              <strong>Renewed year:</strong> exactly the selected year or that year and later. This
-              uses the reported last renewed year independently of renewal dates.
+              <strong>{t('parameters.renewedYear')}</strong>{' '}
+              {t('parameters.exactlyTheSelectedYearOrThatYearAndLaterThis')}
             </p>
             <Link className="text-link" to="/">
-              Return to Search →
+              {' '}
+              {t('parameters.returnToSearch')}
             </Link>
           </section>
-          <div className="parameter-tabs" role="tablist" aria-label="Parameter groups">
+          <div
+            className="parameter-tabs"
+            role="tablist"
+            aria-label={t('parameters.parameterGroups')}
+          >
             {parameters.data.groups.map((group, index) => (
               <button
                 key={group.key}
@@ -85,7 +85,7 @@ export function Parameters() {
                   tabs?.[next]?.focus()
                 }}
               >
-                {group.title} ({group.options.length})
+                {uiMessage(group.title)} ({formatNumber(group.options.length)})
               </button>
             ))}
           </div>
@@ -99,30 +99,34 @@ export function Parameters() {
               hidden={activeGroup !== group.key}
               tabIndex={0}
             >
-              <h2>{group.title}</h2>
-              <p>{group.description}</p>
+              <h2>{uiMessage(group.title)}</h2>
+              <p>{uiMessage(group.description)}</p>
               <p className="small muted">
-                Source fields: <code>{group.code_field}</code> / <code>{group.label_field}</code>.
-                The description is the reported meaning of the code; no additional legal
-                interpretation is implied.
+                {' '}
+                {t('parameters.sourceFields')} <code>{group.code_field}</code> /{' '}
+                <code>{group.label_field}</code>{' '}
+                {t('parameters.theDescriptionIsTheReportedMeaningOfTheCodeNo')}
               </p>
               <div className="table-wrap">
                 <table className="parameter-table">
                   <thead>
                     <tr>
-                      <th scope="col">Code</th>
-                      <th scope="col">Source description / meaning</th>
+                      <th scope="col">{t('parameters.code')}</th>
+                      <th scope="col">{t('parameters.sourceDescriptionMeaning')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {group.options.map((option) => (
                       <tr key={option.value}>
                         <td>
-                          <code>{option.code ?? 'Missing'}</code>
+                          <code>{option.code ?? t('parameters.missing')}</code>
                         </td>
                         <td>
                           {option.label ?? (
-                            <span className="muted">Description missing from source</span>
+                            <span className="muted">
+                              {' '}
+                              {t('parameters.descriptionMissingFromSource')}
+                            </span>
                           )}
                         </td>
                       </tr>
@@ -133,13 +137,17 @@ export function Parameters() {
             </section>
           ))}
           <div className="notice">
-            <p>{parameters.data.note}</p>
-            <p>Verified: {new Date(parameters.data.verified_at).toLocaleString()}</p>
+            <p>{uiMessage(parameters.data.note)}</p>
             <p>
-              Dataset updated:{' '}
+              {' '}
+              {t('parameters.verified')} {formatDate(parameters.data.verified_at, true)}
+            </p>
+            <p>
+              {' '}
+              {t('parameters.datasetUpdated')}{' '}
               {parameters.data.dataset_updated_at
-                ? new Date(parameters.data.dataset_updated_at).toLocaleString()
-                : 'Not available'}
+                ? formatDate(parameters.data.dataset_updated_at, true)
+                : t('parameters.notAvailable')}
             </p>
             <a
               className="text-link"
@@ -147,7 +155,8 @@ export function Parameters() {
               target="_blank"
               rel="noreferrer"
             >
-              RUES / Confecámaras source ↗
+              {' '}
+              {t('parameters.ruesConfecamarasSource')}
             </a>
           </div>
         </>

@@ -1,34 +1,40 @@
+import { LanguageSwitcher } from './LanguageSwitcher'
+import { t, useLanguage } from '../i18n'
 import { Link, NavLink } from 'react-router-dom'
 
 export function SiteHeader() {
+  useLanguage()
+
   return (
     <header className="header">
-      <Link to="/" className="brand" aria-label="Colombia Company Intelligence home">
+      <Link to="/" className="brand" aria-label={t('navigation.colombiaCompanyIntelligenceHome')}>
         <img
           className="brand-logo"
           src="/colombia-network-logo.png"
-          alt="Colombia outline made of connected yellow, blue and red dots"
+          alt={t('navigation.colombiaOutlineMadeOfConnectedYellowBlueAndRedDots')}
           width="128"
           height="144"
         />
         <span>
-          COLOMBIA<span className="brand-sub">COMPANY INTELLIGENCE</span>
+          COLOMBIA<span className="brand-sub">{t('navigation.companyIntelligence')}</span>
         </span>
       </Link>
-      <nav className="header-tabs" aria-label="Main navigation">
+      <nav className="header-tabs" aria-label={t('navigation.mainNavigation')}>
         <NavLink to="/" end>
-          Search
+          {' '}
+          {t('navigation.search')}
         </NavLink>
-        <NavLink to="/parameters">Parameters</NavLink>
-        <NavLink to="/advanced">Advanced</NavLink>
+        <NavLink to="/parameters">{t('navigation.parameters')}</NavLink>
+        <NavLink to="/references">{t('navigation.advanced')}</NavLink>
+        <LanguageSwitcher />
       </nav>
-      <nav className="social-links" aria-label="Social media">
+      <nav className="social-links" aria-label={t('navigation.socialMedia')}>
         <a
           className="social-button"
           href="https://github.com/molartep"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Martin Olarte on GitHub"
+          aria-label={t('navigation.martinOlarteOnGithub')}
           title="GitHub"
         >
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
@@ -40,7 +46,7 @@ export function SiteHeader() {
           href="https://www.linkedin.com/in/martin-olarte-pallares/"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Martin Olarte on LinkedIn"
+          aria-label={t('navigation.martinOlarteOnLinkedin')}
           title="LinkedIn"
         >
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">

@@ -1,3 +1,4 @@
+import { useLanguage } from '../i18n'
 import type { ReactNode } from 'react'
 
 export function SourceInformationCard({
@@ -9,6 +10,8 @@ export function SourceInformationCard({
   id: string
   children: ReactNode
 }) {
+  useLanguage()
+
   return (
     <details className="panel data-source-information" id={id} tabIndex={-1}>
       <summary className="source-card-heading">

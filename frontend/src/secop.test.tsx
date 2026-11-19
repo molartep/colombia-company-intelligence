@@ -111,46 +111,48 @@ beforeEach(() => vi.resetAllMocks())
 
 test('initial state does not fabricate KPI zeros or call refresh', async () => {
   show()
-  expect(await screen.findByRole('button', { name: 'Consultar SECOP' })).toBeEnabled()
-  expect(screen.queryByRole('heading', { name: 'Total contratos' })).not.toBeInTheDocument()
+  expect(await screen.findByRole('button', { name: 'Query SECOP' })).toBeEnabled()
+  expect(screen.queryByRole('heading', { name: 'Total contracts' })).not.toBeInTheDocument()
   expect(api.refreshSecop).not.toHaveBeenCalled()
 })
 test('refresh calls real API workflow and renders verified metrics and official links', async () => {
   vi.mocked(api.refreshSecop).mockResolvedValue(completed)
   show()
-  await userEvent.click(await screen.findByRole('button', { name: 'Consultar SECOP' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Query SECOP' }))
   expect(
-    await screen.findByRole('complementary', { name: 'Resumen de la consulta SECOP' }),
-  ).toHaveTextContent(/Total contratos\s*12/)
+    await screen.findByRole('complementary', { name: 'SECOP query summary' }),
+  ).toHaveTextContent(/Total contracts\s*12/)
   expect(api.refreshSecop).toHaveBeenCalledWith('company')
   expect(screen.getByRole('meter', { name: '2025: 999999999999999999.12 COP' })).toBeInTheDocument()
-  expect(screen.getAllByText('999.999.999.999.999.999,12 COP').length).toBeGreaterThan(0)
-  expect(screen.getAllByRole('link', { name: 'Conjunto de datos oficial ↗' })[0]).toHaveAttribute(
+  expect(screen.getAllByText('COP 999,999,999,999,999,999.12').length).toBeGreaterThan(0)
+  expect(screen.getAllByRole('link', { name: 'Official dataset ↗' })[0]).toHaveAttribute(
     'href',
     initial.source_url,
   )
   expect(
-    screen.getByRole('heading', { name: 'Valor contractual total' }).parentElement,
-  ).toHaveTextContent('999.999.999.999.999.999,12 COP')
+    screen.getByRole('heading', { name: 'Total contract value' }).parentElement,
+  ).toHaveTextContent('COP 999,999,999,999,999,999.12')
 })
 test('loading refresh disables duplicate clicks', async () => {
   vi.mocked(api.refreshSecop).mockReturnValue(new Promise(() => {}))
   show()
-  const button = await screen.findByRole('button', { name: 'Consultar SECOP' })
+  const button = await screen.findByRole('button', { name: 'Query SECOP' })
   await userEvent.click(button)
   expect(button).toBeDisabled()
-  expect(screen.getByRole('status')).toHaveTextContent('Consultando SECOP II')
+  expect(screen.getByRole('status')).toHaveTextContent('Querying SECOP II')
 })
 test('refresh error does not become empty result', async () => {
   vi.mocked(api.refreshSecop).mockRejectedValue(new Error('SECOP unavailable'))
   show()
-  await userEvent.click(await screen.findByRole('button', { name: 'Consultar SECOP' }))
-  expect(await screen.findByRole('alert')).toHaveTextContent('SECOP unavailable')
-  expect(screen.queryByRole('heading', { name: 'Total contratos' })).not.toBeInTheDocument()
+  await userEvent.click(await screen.findByRole('button', { name: 'Query SECOP' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'The request could not be completed. Please try again.',
+  )
+  expect(screen.queryByRole('heading', { name: 'Total contracts' })).not.toBeInTheDocument()
 })
 test('pagination and detail preserve screening snapshot and source evidence', async () => {
   show(completed)
-  await userEvent.click(await screen.findByRole('button', { name: 'Siguiente →' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Next →' }))
   await waitFor(() =>
     expect(api.secopContracts).toHaveBeenLastCalledWith(
       'company',
@@ -164,32 +166,32 @@ test('pagination and detail preserve screening snapshot and source evidence', as
   expect(params.get('run_id')).toBe('run')
   await userEvent.click(await screen.findByRole('button', { name: 'CONTRACT-1' }))
   expect(
-    await screen.findByRole('heading', { name: 'Detalle del contrato CONTRACT-1' }),
+    await screen.findByRole('heading', { name: 'Contract details CONTRACT-1' }),
   ).toBeInTheDocument()
-  expect(await screen.findByText('exact_supplier_nit / verified')).toBeInTheDocument()
+  expect(await screen.findByText('Exact supplier NIT / Verified')).toBeInTheDocument()
   expect(api.secopContract).toHaveBeenCalledWith(
     'company',
     'CONTRACT-1',
     expect.any(AbortSignal),
     'run',
   )
-  await userEvent.click(screen.getByRole('button', { name: 'Cerrar detalle' }))
-  expect(screen.queryByRole('region', { name: 'Detalle del contrato' })).not.toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Close details' }))
+  expect(screen.queryByRole('region', { name: 'Contract details' })).not.toBeInTheDocument()
 })
 test('stale successful results remain visible with warning', async () => {
   show({ ...completed, outcome: 'stale', error_code: 'source_timeout' })
   await waitFor(() =>
     expect(
-      screen.getAllByRole('status').some((el) => el.textContent?.includes('Datos anteriores')),
+      screen.getAllByRole('status').some((el) => el.textContent?.includes('Previous data')),
     ).toBe(true),
   )
-  expect(
-    screen.getByRole('complementary', { name: 'Resumen de la consulta SECOP' }),
-  ).toHaveTextContent(/Total contratos\s*12/)
+  expect(screen.getByRole('complementary', { name: 'SECOP query summary' })).toHaveTextContent(
+    /Total contracts\s*12/,
+  )
 })
 test('missing NIT disables screening', async () => {
   show({ ...initial, nit: null, outcome: 'missing_nit' })
-  expect(await screen.findByRole('button', { name: 'Consultar SECOP' })).toBeDisabled()
+  expect(await screen.findByRole('button', { name: 'Query SECOP' })).toBeDisabled()
 })
 test('completed zero matches states dataset scope', async () => {
   vi.mocked(api.secopContracts).mockResolvedValue({
@@ -216,48 +218,50 @@ test('completed zero matches states dataset scope', async () => {
     },
   })
   expect(
-    await screen.findByText(/Esto no significa que la empresa nunca haya contratado con el Estado/),
+    await screen.findByText(
+      /This does not mean the company has never contracted with the government/,
+    ),
   ).toBeInTheDocument()
 })
 test('upstream unavailable is distinct from no matches', async () => {
   show({ ...initial, outcome: 'source_unavailable' })
-  expect(await screen.findByText(/No se pudo comprobar/)).toBeInTheDocument()
-  expect(screen.queryByRole('heading', { name: 'Total contratos' })).not.toBeInTheDocument()
+  expect(await screen.findByText(/Contract participation could not be checked/)).toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: 'Total contracts' })).not.toBeInTheDocument()
 })
 
 test('portfolio above 5000 shows explicit alert without false zero-match metrics', async () => {
   show({ ...initial, outcome: 'failed', error_code: 'secop_limit_exceeded' })
   const alert = await screen.findByRole('alert')
-  expect(alert).toHaveTextContent('La consulta supera el límite de 5.000 registros')
-  expect(alert).toHaveTextContent('no se presentan totales parciales')
-  expect(alert).toHaveTextContent('Esto no significa ausencia de contratos')
-  expect(screen.queryByRole('heading', { name: 'Total contratos' })).not.toBeInTheDocument()
+  expect(alert).toHaveTextContent('The query exceeds the 5,000-record limit')
+  expect(alert).toHaveTextContent('no partial totals are presented')
+  expect(alert).toHaveTextContent('This does not mean there are no contracts')
+  expect(screen.queryByRole('heading', { name: 'Total contracts' })).not.toBeInTheDocument()
 })
 
 test('portfolio cap alert identifies retained previous successful results', async () => {
   show({ ...completed, outcome: 'stale', error_code: 'secop_limit_exceeded' })
   const alert = await screen.findByRole('alert')
-  expect(alert).toHaveTextContent('Se conservan los resultados de la última consulta exitosa')
+  expect(alert).toHaveTextContent('Results from the last successful query are retained')
   expect(
-    await screen.findByRole('complementary', { name: 'Resumen de la consulta SECOP' }),
-  ).toHaveTextContent(/Total contratos\s*12/)
+    await screen.findByRole('complementary', { name: 'SECOP query summary' }),
+  ).toHaveTextContent(/Total contracts\s*12/)
 })
 
 test('summary contains four metric cards and no synthesized paragraph', async () => {
   show(completed)
-  const summary = await screen.findByRole('complementary', { name: 'Resumen de la consulta SECOP' })
+  const summary = await screen.findByRole('complementary', { name: 'SECOP query summary' })
   expect(within(summary).getAllByRole('article')).toHaveLength(4)
   for (const title of [
-    'Total contratos',
-    'Valor contractual total',
-    'Entidades contratantes',
-    'Firma más reciente',
+    'Total contracts',
+    'Total contract value',
+    'Contracting entities',
+    'Most recent signature',
   ]) {
     expect(within(summary).getByRole('heading', { name: title, level: 4 })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { name: title })).toHaveLength(1)
   }
   expect(summary).not.toHaveTextContent('Se identificaron')
-  expect(within(summary).getByText('999.999.999.999.999.999,12 COP')).toBeInTheDocument()
+  expect(within(summary).getByText('COP 999,999,999,999,999,999.12')).toBeInTheDocument()
   expect(
     screen.queryByRole('heading', { name: 'Actividad anual por fecha de firma' }),
   ).not.toBeInTheDocument()
@@ -265,21 +269,21 @@ test('summary contains four metric cards and no synthesized paragraph', async ()
 
 test('sort direction button toggles direction and resets pagination', async () => {
   show(completed)
-  await userEvent.click(await screen.findByRole('button', { name: 'Siguiente →' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Next →' }))
   const toggle = await screen.findByRole('button', {
-    name: 'Orden descendente. Cambiar a ascendente',
+    name: 'Descending order. Switch to ascending',
   })
   expect(toggle).toHaveTextContent('↓')
   await userEvent.click(toggle)
-  await screen.findByRole('button', { name: 'Orden ascendente. Cambiar a descendente' })
+  await screen.findByRole('button', { name: 'Ascending order. Switch to descending' })
   await waitFor(() => {
     const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]
     expect(params.get('direction')).toBe('asc')
     expect(params.get('page')).toBe('1')
     expect(params.get('page_size')).toBe('5')
   })
-  expect(screen.queryByLabelText('Dirección')).not.toBeInTheDocument()
-  await userEvent.selectOptions(screen.getByLabelText('Ordenar por'), 'value')
+  expect(screen.queryByLabelText('Address')).not.toBeInTheDocument()
+  await userEvent.selectOptions(screen.getByLabelText('Sort by'), 'value')
   await waitFor(() =>
     expect(vi.mocked(api.secopContracts).mock.calls.at(-1)![1].get('sort')).toBe('value'),
   )
@@ -291,10 +295,10 @@ test('contract pagination displays the same range structure as Capital Markets',
     contract_id: `CONTRACT-${i + 1}`,
   }))
   show(completed, items, 7)
-  const pagination = await screen.findByRole('navigation', { name: 'Páginas de contratos' })
-  expect(pagination).toHaveTextContent('1 - 5 de 7')
-  expect(screen.getByText('7 contratos encontrados')).toBeInTheDocument()
-  expect(within(pagination).getByRole('button', { name: '← Anterior' })).toBeDisabled()
+  const pagination = await screen.findByRole('navigation', { name: 'Contract pages' })
+  expect(pagination).toHaveTextContent('1 - 5 of 7')
+  expect(screen.getByText('7 contracts found')).toBeInTheDocument()
+  expect(within(pagination).getByRole('button', { name: '← Previous' })).toBeDisabled()
   vi.mocked(api.secopContracts).mockResolvedValue({
     items: items.slice(0, 2),
     page: 2,
@@ -303,10 +307,10 @@ test('contract pagination displays the same range structure as Capital Markets',
     has_more: false,
     run_id: 'run',
   })
-  await userEvent.click(within(pagination).getByRole('button', { name: 'Siguiente →' }))
-  const lastPage = await screen.findByRole('navigation', { name: 'Páginas de contratos' })
-  expect(lastPage).toHaveTextContent('6 - 7 de 7')
-  expect(within(lastPage).getByRole('button', { name: 'Siguiente →' })).toBeDisabled()
+  await userEvent.click(within(pagination).getByRole('button', { name: 'Next →' }))
+  const lastPage = await screen.findByRole('navigation', { name: 'Contract pages' })
+  expect(lastPage).toHaveTextContent('6 - 7 of 7')
+  expect(within(lastPage).getByRole('button', { name: 'Next →' })).toBeDisabled()
 })
 
 test('status chart displays all source statuses and filters by the exact reported status', async () => {
@@ -323,29 +327,25 @@ test('status chart displays all source statuses and filters by the exact reporte
     },
     [{ ...contract, buyer: 'Entidad Mixta', modality: 'Contratación directa' }],
   )
-  await screen.findByRole('heading', { name: 'Contratos por estado' })
+  await screen.findByRole('heading', { name: 'Contracts by status' })
   for (const name of names) {
-    expect(
-      screen.getByRole('meter', { name: `${name.toLocaleUpperCase('es-CO')}: 1 contratos` }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('option', { name: name.toLocaleUpperCase('es-CO') }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('meter', { name: `${name}: 1 contract` })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name })).toBeInTheDocument()
   }
   expect(screen.queryByText('Otro / no informado')).not.toBeInTheDocument()
-  expect(await screen.findByRole('cell', { name: 'ENTIDAD MIXTA' })).toBeInTheDocument()
-  expect(screen.getByRole('cell', { name: 'CONTRATACIÓN DIRECTA' })).toBeInTheDocument()
-  expect(screen.getByRole('option', { name: 'CONTRATACIÓN DIRECTA' })).toHaveValue(
+  expect(await screen.findByRole('cell', { name: 'Entidad Mixta' })).toBeInTheDocument()
+  expect(screen.getByRole('cell', { name: 'Contratación directa' })).toBeInTheDocument()
+  expect(screen.getByRole('option', { name: 'Contratación directa' })).toHaveValue(
     'Contratación directa',
   )
-  await userEvent.selectOptions(screen.getByLabelText('Estado'), 'En aprobación')
+  await userEvent.selectOptions(screen.getByLabelText('Status'), 'En aprobación')
   await waitFor(() => {
     const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]
     expect(params.get('raw_status')).toBe('En aprobación')
     expect(params.has('status')).toBe(false)
   })
-  await userEvent.selectOptions(screen.getByLabelText('Modalidad'), 'Contratación directa')
-  await userEvent.type(screen.getByLabelText('Entidad (nombre exacto)'), 'ENTIDAD MIXTA')
+  await userEvent.selectOptions(screen.getByLabelText('Procurement method'), 'Contratación directa')
+  await userEvent.type(screen.getByLabelText('Entity (exact name)'), 'Entidad Mixta')
   await waitFor(() => {
     const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]
     expect(params.get('modality')).toBe('Contratación directa')
@@ -355,8 +355,8 @@ test('status chart displays all source statuses and filters by the exact reporte
 
 test('missing-signature-date option comes first and sends a missing-date filter', async () => {
   show(completed)
-  const year = await screen.findByLabelText('Año de firma')
-  expect(within(year).getAllByRole('option')[0]).toHaveTextContent('Sin fecha de firma')
+  const year = await screen.findByLabelText('Signature year')
+  expect(within(year).getAllByRole('option')[0]).toHaveTextContent('No signature date')
   await userEvent.selectOptions(year, 'missing')
   await waitFor(() => {
     const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]

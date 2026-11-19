@@ -1,3 +1,6 @@
+import { formatNumber } from '../i18n/format'
+import { uiMessage } from '../i18n/messages'
+import { t, useLanguage } from '../i18n'
 import { useState } from 'react'
 import { AdvancedFilters, FilterHelp } from '../components/AdvancedFilters'
 import { readFilters, filterParams, searchKey } from '../api/filters'
@@ -10,6 +13,8 @@ import { SearchForm } from '../components/SearchForm'
 import { RegistrationDate } from '../components/FieldValues'
 
 export function Search() {
+  useLanguage()
+
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const queryClient = useQueryClient()
@@ -34,7 +39,7 @@ export function Search() {
   return (
     <>
       <section className="hero">
-        <h1 className="sr-only">Company search</h1>
+        <h1 className="sr-only">{t('search.companySearch')}</h1>
         <SearchForm
           initial={q}
           disabled={results.isFetching}
@@ -63,12 +68,12 @@ export function Search() {
                     registered_bvc: event.target.checked ? 'true' : '',
                   })
                 }
-              />
-              Registrado BVC
+              />{' '}
+              {t('search.registradoBvc')}
             </label>
             <FilterHelp
-              label="Registrado BVC"
-              text="Finds matching issuers in the RNVE directory, retrieves their securities evidence, then filters live RUES results before pagination. Requires Acciones ordinarias and market BVC. Current trading and liquidity are not verified."
+              label={t('search.registradoBvc')}
+              text={t('search.findsMatchingIssuersInTheRnveDirectoryRetrievesTheirSecurities')}
             />
           </div>
           <AdvancedFilters
@@ -78,23 +83,24 @@ export function Search() {
           />
         </SearchForm>
         <div className="source-line">
-          <span className="mini-icon">✓</span> Powered by RUES / Confecámaras{' '}
-          <span>via datos.gov.co</span>
+          <span className="mini-icon">✓</span> {t('search.poweredByRuesConfecamaras')}{' '}
+          <span>{t('search.viaDatosGovCo')}</span>
         </div>
       </section>
       {q.length >= 2 ? (
-        <section className="results" aria-label="Search results">
+        <section className="results" aria-label={t('search.searchResults')}>
           <div className="section-heading">
             <div>
-              <p className="eyebrow">COMPANY DIRECTORY</p>
-              <h2>Search results</h2>
+              <p className="eyebrow">{t('search.companyDirectory')}</p>
+              <h2>{t('search.searchResults')}</h2>
             </div>
             {results.data && (
               <span className="muted" aria-live="polite">
-                {results.data.items.length}
-                {results.data.has_more ? '+' : ''}{' '}
-                {results.data.items.length === 1 && !results.data.has_more ? 'record' : 'records'}{' '}
-                found
+                {' '}
+                {t('common.records', {
+                  count: results.data.items.length,
+                  more: results.data.has_more ? '+' : '',
+                })}
               </span>
             )}
           </div>
@@ -106,7 +112,7 @@ export function Search() {
             <>
               {results.data.warning && !results.data.stale && (
                 <p className="notice" role="status">
-                  {results.data.warning}
+                  {uiMessage(results.data.warning)}
                 </p>
               )}
               {results.data.stale && (
@@ -114,17 +120,19 @@ export function Search() {
                   refresh={() => void results.refetch()}
                   refreshing={results.isFetching}
                 >
-                  {results.data.warning}
+                  {uiMessage(results.data.warning)}
                 </RefreshAlert>
               )}
               {results.data.items.length === 0 ? (
                 <div className="empty">
                   <span aria-hidden="true">⌕</span>
-                  <h3>No matching registrations</h3>
+                  <h3>{t('search.noMatchingRegistrations')}</h3>
                   <p>
                     {params.get('registered_bvc') === 'true'
-                      ? 'No verified BVC registrations match this search. RNVE registration evidence and a verified company identity are required.'
-                      : 'Try a shorter part of the legal name or check the NIT. This is a bounded search of one public dataset, not proof a company does not exist.'}
+                      ? t(
+                          'search.noVerifiedBvcRegistrationsMatchThisSearchRnveRegistrationEvidence',
+                        )
+                      : t('search.tryAShorterPartOfTheLegalNameOrCheck')}
                   </p>
                 </div>
               ) : (
@@ -132,7 +140,7 @@ export function Search() {
                   <div
                     className="table-wrap search-table-wrap"
                     role="region"
-                    aria-label="Company search results table"
+                    aria-label={t('search.companySearchResultsTable')}
                     tabIndex={0}
                   >
                     <table className="search-table">
@@ -147,14 +155,14 @@ export function Search() {
                       </colgroup>
                       <thead>
                         <tr>
-                          <th scope="col">Legal entity</th>
+                          <th scope="col">{t('search.legalEntity')}</th>
                           <th scope="col">NIT</th>
-                          <th scope="col">Registration status</th>
-                          <th scope="col">Registration date</th>
-                          <th scope="col">Renewal date</th>
-                          <th scope="col">Registrado BVC</th>
+                          <th scope="col">{t('search.registrationStatus')}</th>
+                          <th scope="col">{t('search.registrationDate')}</th>
+                          <th scope="col">{t('search.renewalDate')}</th>
+                          <th scope="col">{t('search.registradoBvc')}</th>
                           <th>
-                            <span className="sr-only">Open profile</span>
+                            <span className="sr-only">{t('search.openProfile')}</span>
                           </th>
                         </tr>
                       </thead>
@@ -170,8 +178,9 @@ export function Search() {
                                 {company.legal_name}
                               </Link>
                               <div className="muted small mt-1">
-                                {company.chamber ?? 'Chamber missing'} · Matrícula{' '}
-                                {company.registration_number ?? 'missing'}
+                                {company.chamber ?? t('search.chamberMissing')}{' '}
+                                {t('search.matricula')}{' '}
+                                {company.registration_number ?? t('fields.missing')}
                               </div>
                               {company.legal_form && (
                                 <div className="muted small mt-1">{company.legal_form}</div>
@@ -197,8 +206,8 @@ export function Search() {
                                 <span
                                   className="bvc-check"
                                   role="img"
-                                  aria-label="Registrado BVC"
-                                  title="Acciones ordinarias · BVC"
+                                  aria-label={t('search.registradoBvc')}
+                                  title={t('search.accionesOrdinariasBvc')}
                                 >
                                   ✓
                                 </span>
@@ -206,7 +215,7 @@ export function Search() {
                             </td>
                             <td>
                               <Link
-                                aria-label={`View ${company.legal_name}`}
+                                aria-label={t('search.viewValue', { value0: company.legal_name })}
                                 to={`/companies/${company.id}`}
                                 state={navigationState}
                               >
@@ -220,7 +229,7 @@ export function Search() {
                   </div>
                 </>
               )}
-              <nav className="pagination" aria-label="Result pages">
+              <nav className="pagination" aria-label={t('search.resultPages')}>
                 <button
                   disabled={page <= 1}
                   onClick={() => {
@@ -229,9 +238,13 @@ export function Search() {
                     setParams(next)
                   }}
                 >
-                  ← Previous
+                  {' '}
+                  {t('search.previous')}
                 </button>
-                <span>Page {page}</span>
+                <span>
+                  {' '}
+                  {t('search.page')} {formatNumber(page)}
+                </span>
                 <button
                   disabled={!results.data.has_more || page >= 100}
                   onClick={() => {
@@ -240,7 +253,8 @@ export function Search() {
                     setParams(next)
                   }}
                 >
-                  Next →
+                  {' '}
+                  {t('search.next')}
                 </button>
               </nav>
             </>

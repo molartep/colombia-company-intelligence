@@ -21,6 +21,7 @@ from app.integrations.capital_markets.parsers import MAX_BYTES
 from app.integrations.capital_markets.service import source_views
 from app.integrations.capital_markets.types import DIRECTORY_URL, ISSUER_SOURCE, MatchStatus
 from app.integrations.rues.parameters import parameter_catalog
+from app.integrations.secop.adapter import SOURCE_ID as SECOP_SOURCE
 from app.models.capital_markets import (
     CapitalMarketsSourceSnapshot,
     IssuerCompanyMatch,
@@ -28,6 +29,7 @@ from app.models.capital_markets import (
     SecurityInstrument,
 )
 from app.models.entities import Company, SourceRecord
+from app.models.secop import ScreeningRun, SecopContract
 from app.schemas.api import SourceView
 from app.schemas.capital_markets import MarketSourceView
 from app.services.companies import ensure_source
@@ -73,6 +75,15 @@ def authorize_import(request: Request) -> None:
         )
 
 
+class SecopReadiness(BaseModel):
+    status: Literal["not_yet_checked", "pending", "running", "completed", "failed"]
+    last_attempt_at: datetime | None
+    last_success_at: datetime | None
+    source_updated_at: datetime | None
+    cache_hours: int
+    max_rows: int
+
+
 class PlatformStatus(BaseModel):
     checked_at: datetime
     counts: dict[str, int]
@@ -82,6 +93,7 @@ class PlatformStatus(BaseModel):
     import_access: Literal["local", "admin_key", "disabled"]
     parameter_verified_at: str
     parameter_options: int
+    secop: SecopReadiness
 
 
 class ImportResult(BaseModel):
@@ -113,10 +125,44 @@ async def platform_status(request: Request, session: DB) -> PlatformStatus:
         )
         or 0
     )
+    counts["screening_runs"] = int(
+        await session.scalar(
+            select(func.count())
+            .select_from(ScreeningRun)
+            .where(ScreeningRun.source_id == SECOP_SOURCE)
+        )
+        or 0
+    )
+    # Evidence versions may repeat an ID. This is a global historical count, not a portfolio total.
+    counts["secop_contracts"] = int(
+        await session.scalar(select(func.count(func.distinct(SecopContract.contract_id)))) or 0
+    )
+    latest_run = await session.scalar(
+        select(ScreeningRun)
+        .where(ScreeningRun.source_id == SECOP_SOURCE)
+        .order_by(ScreeningRun.started_at.desc(), ScreeningRun.id.desc())
+        .limit(1)
+    )
+    last_success = await session.scalar(
+        select(ScreeningRun)
+        .where(ScreeningRun.source_id == SECOP_SOURCE, ScreeningRun.status == "completed")
+        .order_by(ScreeningRun.completed_at.desc(), ScreeningRun.id.desc())
+        .limit(1)
+    )
+    settings = get_settings()
+    readiness = SecopReadiness(
+        status=latest_run.status if latest_run else "not_yet_checked",
+        last_attempt_at=latest_run.started_at if latest_run else None,
+        last_success_at=last_success.completed_at if last_success else None,
+        source_updated_at=last_success.source_updated_at if last_success else None,
+        cache_hours=settings.secop_cache_hours,
+        max_rows=settings.secop_max_rows,
+    )
     catalog = parameter_catalog()
     result = PlatformStatus(
         checked_at=datetime.now(UTC),
         counts=counts,
+        secop=readiness,
         rues=SourceView.model_validate(rues),
         sources=sources,
         directory_missing=counts["issuers"] == 0,

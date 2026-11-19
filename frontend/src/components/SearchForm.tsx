@@ -1,3 +1,4 @@
+import { t, useLanguage } from '../i18n'
 import { SearchButton } from './SearchButton'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
@@ -12,6 +13,8 @@ export function SearchForm({
   onSearch: (value: string) => void
   disabled?: boolean
 }) {
+  useLanguage()
+
   const [value, setValue] = useState(initial)
   const previous = useRef(initial)
   useEffect(() => {
@@ -32,7 +35,7 @@ export function SearchForm({
         }
       }}
     >
-      <label htmlFor="company-search">Company name or NIT</label>
+      <label htmlFor="company-search">{t('search.companyNameOrNit')}</label>
       <div className="search-control">
         <span aria-hidden="true">⌕</span>
         <input
@@ -41,7 +44,7 @@ export function SearchForm({
           type="search"
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="Enter a legal name or NIT"
+          placeholder={t('search.enterALegalNameOrNit')}
           minLength={2}
           maxLength={160}
           autoComplete="off"

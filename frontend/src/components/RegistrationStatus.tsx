@@ -1,4 +1,7 @@
+import { t, useLanguage } from '../i18n'
 export function RegistrationStatus({ status }: { status: string | null }) {
+  useLanguage()
+
   const normalized = status?.trim().toUpperCase().replace(/\s+/g, ' ')
   const tone =
     normalized === 'ACTIVA'
@@ -11,7 +14,7 @@ export function RegistrationStatus({ status }: { status: string | null }) {
 
   return (
     <span className={`badge registration-status registration-status--${tone}`}>
-      {status?.trim() || 'Missing from record'}
+      {status || t('registration.missingFromRecord')}
     </span>
   )
 }

@@ -7,15 +7,15 @@ export type RegistrationStatus =
 export type ListingStatus =
   'verified_listed' | 'verified_delisted' | 'not_found_in_checked_source' | 'unknown'
 export const categories = {
-  common_equity: 'Acciones ordinarias',
-  preferred_equity: 'Acciones preferenciales',
-  other_equity: 'Otras acciones',
-  corporate_bonds: 'Bonos corporativos',
-  commercial_paper: 'Papeles comerciales',
-  securitized_instruments: 'Titularizaciones',
-  collective_investment_instruments: 'Inversión colectiva',
-  other_debt: 'Otros valores de deuda',
-  other_or_unknown: 'Otro / sin clasificación verificada',
+  common_equity: 'securityCategories.accionesOrdinarias',
+  preferred_equity: 'securityCategories.accionesPreferenciales',
+  other_equity: 'securityCategories.otrasAcciones',
+  corporate_bonds: 'securityCategories.bonosCorporativos',
+  commercial_paper: 'securityCategories.papelesComerciales',
+  securitized_instruments: 'securityCategories.titularizaciones',
+  collective_investment_instruments: 'securityCategories.inversionColectiva',
+  other_debt: 'securityCategories.otrosValoresDeDeuda',
+  other_or_unknown: 'securityCategories.otroSinClasificacionVerificada',
 } as const
 export interface MarketIssuer {
   id: string

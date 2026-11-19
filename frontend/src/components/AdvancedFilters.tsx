@@ -1,3 +1,6 @@
+import { formatNumber } from '../i18n/format'
+import { uiMessage } from '../i18n/messages'
+import { t, useLanguage } from '../i18n'
 import { useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -11,10 +14,16 @@ import type { ParameterOption } from '../types'
 import { SearchButton } from './SearchButton'
 
 export function FilterHelp({ text, label }: { text: string; label: string }) {
+  useLanguage()
+
   const id = useId()
   return (
     <span className="filter-help">
-      <button type="button" aria-label={`Help: ${label}`} aria-describedby={id}>
+      <button
+        type="button"
+        aria-label={t('filters.helpValue', { value0: label })}
+        aria-describedby={id}
+      >
         <svg
           viewBox="0 0 24 24"
           fill="none"
@@ -34,7 +43,7 @@ export function FilterHelp({ text, label }: { text: string; label: string }) {
   )
 }
 function optionLabel(option: ParameterOption) {
-  return `${option.code ?? 'Missing code'} · ${option.label ?? 'Description missing from source'}`
+  return `${option.code ?? t('filters.missingCode')} · ${option.label ?? t('filters.descriptionMissingFromSource')}`
 }
 export function AdvancedFilters({
   values,
@@ -45,6 +54,8 @@ export function AdvancedFilters({
   onChange: (values: FilterValues) => void
   disabled: boolean
 }) {
+  useLanguage()
+
   const [open, setOpen] = useState(false)
   const parameters = useParameters(open)
   const count =
@@ -61,20 +72,30 @@ export function AdvancedFilters({
   return (
     <details className="advanced-filters" onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary>
-        Advanced filters {count > 0 && <span className="filter-count">{count} selected</span>}
+        {' '}
+        {t('filters.advancedFilters')}{' '}
+        {count > 0 && (
+          <span className="filter-count">
+            {formatNumber(count)} {t('filters.selected')}
+          </span>
+        )}
       </summary>
       <div className="advanced-filters-body">
         <p className="filter-intro">
-          <Link to="/parameters">View parameters ↗</Link>
+          <Link to="/parameters">{t('filters.viewParameters')}</Link>
         </p>
         <fieldset disabled={disabled}>
-          <legend className="sr-only">Advanced search filters</legend>
-          {parameters.isPending && <p role="status">Loading available filter options…</p>}
+          <legend className="sr-only">{t('filters.advancedSearchFilters')}</legend>
+          {parameters.isPending && (
+            <p role="status">{t('filters.loadingAvailableFilterOptions')}</p>
+          )}
           {parameters.isError && (
             <p role="alert">
-              Filter options could not be loaded.{' '}
+              {' '}
+              {t('filters.filterOptionsCouldNotBeLoaded')}{' '}
               <button type="button" onClick={() => void parameters.refetch()}>
-                Retry
+                {' '}
+                {t('filters.retry')}
               </button>
             </p>
           )}
@@ -82,17 +103,19 @@ export function AdvancedFilters({
             {parameters.data?.groups?.map((group) => (
               <div className="filter-field" key={group.key}>
                 <div className="filter-label">
-                  <span id={`label-${group.key}`}>{group.title}</span>
+                  <span id={`label-${group.key}`}>{uiMessage(group.title)}</span>
                   <FilterHelp
-                    label={group.title}
-                    text={`${group.description} Choose any number; no selection means all values.`}
+                    label={uiMessage(group.title)}
+                    text={t('filters.valueChooseAnyNumberNoSelectionMeansAllValues', {
+                      value0: uiMessage(group.description),
+                    })}
                   />
                 </div>
                 <details className="multi-select">
                   <summary aria-labelledby={`label-${group.key}`}>
                     {values[group.key].length
-                      ? `${values[group.key].length} selected`
-                      : 'All values'}
+                      ? t('filters.valueSelected', { value0: values[group.key].length })
+                      : t('filters.allValues')}
                   </summary>
                   <div
                     className="multi-select-options"
@@ -125,7 +148,7 @@ export function AdvancedFilters({
                           })
                         }
                       />
-                      <span>Select all</span>
+                      <span>{t('filters.selectAll')}</span>
                     </label>
                     {group.options.map((option) => (
                       <label key={option.value}>
@@ -152,10 +175,10 @@ export function AdvancedFilters({
             ))}
             <div className="filter-field">
               <div className="filter-label">
-                <label htmlFor="filter-ciiu">Economic activity / CIIU</label>
+                <label htmlFor="filter-ciiu">{t('filters.economicActivityCiiu')}</label>
                 <FilterHelp
-                  label="Economic activity / CIIU"
-                  text="Enter an official code, keeping leading zeroes. Exact requires four digits; prefix accepts one to four. Any activity checks primary, secondary, third and fourth codes. Descriptions have not been verified."
+                  label={t('filters.economicActivityCiiu')}
+                  text={t('filters.enterAnOfficialCodeKeepingLeadingZeroesExactRequiresFour')}
                 />
               </div>
               <input
@@ -164,38 +187,40 @@ export function AdvancedFilters({
                 value={values.ciiu}
                 maxLength={4}
                 pattern={values.ciiu_match === 'exact' ? '[0-9]{4}' : '[0-9]{1,4}'}
-                placeholder="e.g. 6201"
+                placeholder={t('filters.eG6201')}
                 onChange={(event) => update('ciiu', event.target.value)}
               />
               <div className="filter-pair">
                 <label>
-                  Code matching
+                  {' '}
+                  {t('filters.codeMatching')}{' '}
                   <select
                     value={values.ciiu_match}
                     onChange={(event) => update('ciiu_match', event.target.value)}
                   >
-                    <option value="exact">Exact code</option>
-                    <option value="prefix">Code prefix</option>
+                    <option value="exact">{t('filters.exactCode')}</option>
+                    <option value="prefix">{t('filters.codePrefix')}</option>
                   </select>
                 </label>
                 <label>
-                  Activity scope
+                  {' '}
+                  {t('filters.activityScope')}{' '}
                   <select
                     value={values.ciiu_scope}
                     onChange={(event) => update('ciiu_scope', event.target.value)}
                   >
-                    <option value="primary">Primary only</option>
-                    <option value="any">Any reported activity</option>
+                    <option value="primary">{t('filters.primaryOnly')}</option>
+                    <option value="any">{t('filters.anyReportedActivity')}</option>
                   </select>
                 </label>
               </div>
             </div>
             <div className="filter-field">
               <div className="filter-label">
-                <label htmlFor="filter-year">Last renewed year</label>
+                <label htmlFor="filter-year">{t('filters.lastRenewedYear')}</label>
                 <FilterHelp
-                  label="Last renewed year"
-                  text="Filter the reported last renewed year, not the renewal date. Blank means all years; malformed and placeholder years are excluded when this filter is applied."
+                  label={t('filters.lastRenewedYear')}
+                  text={t('filters.filterTheReportedLastRenewedYearNotTheRenewalDate')}
                 />
               </div>
               <input
@@ -205,35 +230,46 @@ export function AdvancedFilters({
                 max="9998"
                 step="1"
                 value={values.renewed_year}
-                placeholder="All years"
+                placeholder={t('filters.allYears')}
                 onChange={(event) => update('renewed_year', event.target.value)}
               />
               <label>
-                Year matching
+                {' '}
+                {t('filters.yearMatching')}{' '}
                 <select
                   value={values.renewed_year_mode}
                   onChange={(event) => update('renewed_year_mode', event.target.value)}
                 >
-                  <option value="exact">Exactly this year</option>
-                  <option value="minimum">This year or later</option>
+                  <option value="exact">{t('filters.exactlyThisYear')}</option>
+                  <option value="minimum">{t('filters.thisYearOrLater')}</option>
                 </select>
               </label>
             </div>
             {(['registration', 'renewal'] as const).map((kind) => (
               <div className="filter-field" key={kind}>
                 <div className="filter-label">
-                  <span>{kind === 'registration' ? 'Registration dates' : 'Renewal dates'}</span>
+                  <span>
+                    {kind === 'registration'
+                      ? t('filters.registrationDates')
+                      : t('filters.renewalDates')}
+                  </span>
                   <FilterHelp
-                    label={`${kind} dates`}
-                    text="Inclusive calendar-date range. Blank endpoints are unrestricted. When a range is used, missing, malformed, impossible, zero and year-9999 placeholder dates are excluded rather than interpreted as events."
+                    label={t('filters.valueDates', { value0: kind })}
+                    text={t('filters.inclusiveCalendarDateRangeBlankEndpointsAreUnrestrictedWhenA')}
                   />
                 </div>
                 <div className="filter-pair">
                   <label htmlFor={`${kind}-from`}>
-                    From
+                    {' '}
+                    {t('filters.from')}{' '}
                     <input
                       id={`${kind}-from`}
-                      aria-label={`${kind === 'registration' ? 'Registration' : 'Renewal'} date from`}
+                      aria-label={t('filters.valueDateFrom', {
+                        value0:
+                          kind === 'registration'
+                            ? t('filters.registration')
+                            : t('filters.renewal'),
+                      })}
                       type="date"
                       min="0001-01-01"
                       max={values[`${kind}_to`] || '9998-12-31'}
@@ -242,10 +278,16 @@ export function AdvancedFilters({
                     />
                   </label>
                   <label htmlFor={`${kind}-to`}>
-                    To
+                    {' '}
+                    {t('filters.to')}{' '}
                     <input
                       id={`${kind}-to`}
-                      aria-label={`${kind === 'registration' ? 'Registration' : 'Renewal'} date to`}
+                      aria-label={t('filters.valueDateTo', {
+                        value0:
+                          kind === 'registration'
+                            ? t('filters.registration')
+                            : t('filters.renewal'),
+                      })}
                       type="date"
                       min={values[`${kind}_from`] || '0001-01-01'}
                       max="9998-12-31"
@@ -263,7 +305,8 @@ export function AdvancedFilters({
               type="button"
               onClick={() => onChange({ ...emptyFilters })}
             >
-              Clear filters
+              {' '}
+              {t('filters.clearFilters')}
             </button>
             <SearchButton disabled={disabled} />
           </div>
