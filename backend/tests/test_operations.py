@@ -82,3 +82,45 @@ async def test_import_size_rejected_before_downloading(monkeypatch):
         )
     assert response.status_code == 413
     download.assert_not_awaited()
+
+
+@pytest.mark.parametrize("first_download_time", [0.0, 10.0, 59.0, 1000.0])
+async def test_download_cooldown_allows_first_import_at_any_clock_origin(
+    monkeypatch, first_download_time
+):
+    import asyncio
+    from datetime import UTC, datetime
+    from types import SimpleNamespace
+    from uuid import uuid4
+
+    now = [first_download_time]
+    monkeypatch.setattr(operations, "get_settings", lambda: Settings(_env_file=None))
+    monkeypatch.setattr(operations, "time", SimpleNamespace(monotonic=lambda: now[0]))
+    monkeypatch.setattr(operations, "_last_download", None)
+    monkeypatch.setattr(operations, "_import_lock", asyncio.Lock())
+    download = AsyncMock(return_value=b"synthetic XLSX")
+    ingest = AsyncMock(
+        return_value=SimpleNamespace(
+            id=uuid4(),
+            record_count=1,
+            retrieved_at=datetime.now(UTC),
+            content_hash="synthetic-hash",
+        )
+    )
+    monkeypatch.setattr(operations, "download_directory", download)
+    monkeypatch.setattr(operations, "ingest_issuers", ingest)
+    session = AsyncMock()
+    assert (await operations.import_directory(operator_request(), session)).record_count == 1
+    assert operations._last_download == first_download_time
+    assert download.await_count == 1
+
+    for offset in (0.0, 59.999):
+        now[0] = first_download_time + offset
+        with pytest.raises(SourceError) as exc:
+            await operations.import_directory(operator_request(), session)
+        assert exc.value.code == "import_cooldown" and exc.value.status == 429
+    assert download.await_count == 1
+
+    now[0] = first_download_time + 60
+    assert (await operations.import_directory(operator_request(), session)).record_count == 1
+    assert download.await_count == 2 and ingest.await_count == 2

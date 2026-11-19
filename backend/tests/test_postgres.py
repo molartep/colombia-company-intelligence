@@ -22,6 +22,8 @@ pytestmark = pytest.mark.postgres
 
 
 async def test_directory_cta_import_and_platform_status(session, monkeypatch, tmp_path):
+    from types import SimpleNamespace
+
     from capital_fixtures import issuer_xlsx
 
     from app.api import operations
@@ -31,7 +33,8 @@ async def test_directory_cta_import_and_platform_status(session, monkeypatch, tm
     monkeypatch.setattr(get_settings(), "capital_markets_storage_dir", tmp_path)
     download = AsyncMock(return_value=issuer_xlsx())
     monkeypatch.setattr(operations, "download_directory", download)
-    monkeypatch.setattr(operations, "_last_download", 0.0)
+    monkeypatch.setattr(operations, "_last_download", None)
+    monkeypatch.setattr(operations, "time", SimpleNamespace(monotonic=lambda: 10.0))
 
     async def local_session():
         yield session

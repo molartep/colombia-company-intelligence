@@ -36,7 +36,7 @@ IMPORT_PATH = "/api/v1/admin/imports/rnve"
 router = APIRouter(prefix="/api/v1")
 DB = Annotated[AsyncSession, Depends(get_session)]
 _import_lock = asyncio.Lock()
-_last_download = 0.0
+_last_download: float | None = None
 
 
 def local_operator(request: Request) -> bool:
@@ -144,11 +144,12 @@ async def import_directory(
         )
     async with _import_lock:
         if method == "download":
-            if time.monotonic() - _last_download < 60:
+            now = time.monotonic()
+            if _last_download is not None and now - _last_download < 60:
                 raise SourceError(
                     "import_cooldown", "Wait one minute before downloading again.", 429
                 )
-            _last_download = time.monotonic()
+            _last_download = now
             try:
                 content = await download_directory()
             except SourceError as exc:
