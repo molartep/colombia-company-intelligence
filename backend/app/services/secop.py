@@ -261,6 +261,7 @@ async def contracts_page(
     contract_id: str | None = None,
     run_id: UUID | None = None,
     raw_status: str | None = None,
+    missing_signature_date: bool = False,
 ) -> ContractPage:
     _, run = await runs(session, company)
     if not company.nit or len(company.nit) != 9 or ":hash:" in company.identity_key:
@@ -294,7 +295,9 @@ async def contracts_page(
         query = query.where(reported_status == raw_status)
     if entity:
         query = query.where(SecopContract.buyer == entity)
-    if year:
+    if missing_signature_date:
+        query = query.where(SecopContract.signature_date.is_(None))
+    elif year:
         query = query.where(extract("year", SecopContract.signature_date) == year)
     if modality:
         query = query.where(SecopContract.modality == modality)

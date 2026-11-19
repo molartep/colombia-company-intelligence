@@ -383,12 +383,15 @@ async def secop_contracts(
     raw_status: Annotated[str | None, Query(max_length=300)] = None,
     entity: Annotated[str | None, Query(max_length=1000)] = None,
     year: Annotated[int | None, Query(ge=1990, le=2100)] = None,
+    missing_signature_date: bool = False,
     modality: Annotated[str | None, Query(max_length=500)] = None,
     q: Annotated[str, Query(max_length=160)] = "",
     sort: Literal["date", "value"] = "date",
     direction: Literal["asc", "desc"] = "desc",
     run_id: UUID | None = None,
 ) -> ContractPage:
+    if year is not None and missing_signature_date:
+        raise HTTPException(422, "Choose a signature year or missing signature dates, not both.")
     return await secop.contracts_page(
         session,
         await get_company(session, company_id),
@@ -403,6 +406,7 @@ async def secop_contracts(
         direction,
         run_id=run_id,
         raw_status=raw_status,
+        missing_signature_date=missing_signature_date,
     )
 
 

@@ -352,3 +352,23 @@ test('status chart displays all source statuses and filters by the exact reporte
     expect(params.get('entity')).toBe('Entidad Mixta')
   })
 })
+
+test('missing-signature-date option comes first and sends a missing-date filter', async () => {
+  show(completed)
+  const year = await screen.findByLabelText('Año de firma')
+  expect(within(year).getAllByRole('option')[0]).toHaveTextContent('Sin fecha de firma')
+  await userEvent.selectOptions(year, 'missing')
+  await waitFor(() => {
+    const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]
+    expect(params.get('missing_signature_date')).toBe('true')
+    expect(params.has('year')).toBe(false)
+  })
+  await userEvent.selectOptions(year, '2025')
+  await waitFor(() => {
+    const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]
+    expect(params.get('year')).toBe('2025')
+    expect(params.has('missing_signature_date')).toBe(false)
+  })
+  expect(screen.queryByText(/0 sin moneda/)).not.toBeInTheDocument()
+  expect(screen.queryByText(/0 sin valor válido/)).not.toBeInTheDocument()
+})

@@ -1772,3 +1772,18 @@ details dl {
     padding: 12px;
   }
 }
+
+.secop-module .market-filters select {
+  appearance: none;
+  padding: 11px 44px 11px 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23637670' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 14px;
+}
+@media (forced-colors: active) {
+  .secop-module .market-filters select {
+    appearance: auto;
+    background-image: none;
+  }
+}

@@ -206,7 +206,11 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
     run_id: screening.run_id ?? '',
   })
   Object.entries(filters).forEach(([key, value]) => {
-    if (value) params.set(key === 'status' ? 'raw_status' : key, value)
+    if (key === 'year' && value === 'missing') {
+      params.set('missing_signature_date', 'true')
+    } else if (value) {
+      params.set(key === 'status' ? 'raw_status' : key, value)
+    }
   })
   const query = useQuery({
     queryKey: ['secop-contracts', companyId, params.toString()],
@@ -273,6 +277,7 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
           <label key={key}>
             {label}
             <select value={filters[key]} onChange={(e) => change(key, e.target.value)}>
+              {key === 'year' && <option value="missing">Sin fecha de firma</option>}
               <option value="">Todos</option>
               {options.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -491,8 +496,13 @@ export function Screening({ companyId }: { companyId: string }) {
         <>
           <p className="small muted">
             {summary.monetary_contracts} contratos incluidos en sumas ·{' '}
-            {summary.unknown_currency_contracts} sin moneda · {summary.missing_or_invalid_values}{' '}
-            sin valor válido · {summary.zero_value_contracts} con valor cero.
+            {summary.unknown_currency_contracts > 0 && (
+              <>{summary.unknown_currency_contracts} sin moneda · </>
+            )}
+            {summary.missing_or_invalid_values > 0 && (
+              <>{summary.missing_or_invalid_values} sin valor válido · </>
+            )}
+            {summary.zero_value_contracts} con valor cero.
           </p>
           <div className="profile-grid">
             <Activity title="Contratos por estado" groups={summary.statuses} uppercaseLabels />

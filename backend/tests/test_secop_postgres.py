@@ -298,3 +298,40 @@ async def test_raw_status_groups_rebuild_old_cache_and_filter_each_status(
     for name in names:
         page = await secop.contracts_page(session, company, 1, 5, raw_status=name or "No informado")
         assert page.total == 1 and page.items[0].raw_status == name
+
+
+async def test_contract_api_filters_missing_signature_dates(session, record, secop_row):
+    rows = [
+        dict(
+            secop_row,
+            id_contrato=f"CONTRACT-{i}",
+            source_row_id=f"row-{i}",
+            fecha_de_firma=date,
+            fecha_de_inicio_del_contrato="2024-01-01T00:00:00",
+        )
+        for i, date in enumerate(["2025-03-01T00:00:00", None, "invalid-date"])
+    ]
+    company, source = await company_and_source(session, record, rows)
+    await secop.refresh(session, company, source)
+
+    async def override():
+        yield session
+
+    app.dependency_overrides[get_session] = override
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            url = f"/api/v1/companies/{company.id}/screening/secop/contracts"
+            missing = await client.get(
+                url, params={"missing_signature_date": "true", "page_size": 5}
+            )
+            assert missing.status_code == 200 and missing.json()["total"] == 2
+            assert all(c["signature_date"] is None for c in missing.json()["items"])
+            dated = await client.get(url, params={"year": 2025})
+            assert dated.status_code == 200 and dated.json()["total"] == 1
+            assert (
+                await client.get(url, params={"year": 2025, "missing_signature_date": "true"})
+            ).status_code == 422
+    finally:
+        app.dependency_overrides.clear()
