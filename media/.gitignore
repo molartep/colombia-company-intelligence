@@ -4,3 +4,6 @@ __pycache__/
 *.pyc
 exports/.work/
 audio/*.wav
+remotion/node_modules/
+remotion/.remotion/
+remotion/build/

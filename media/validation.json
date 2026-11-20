@@ -1,9 +1,11 @@
 {
   "evidence": {
-    "company_id": "b02c94b3-d93f-4d9f-8ab9-f0ff51d97052",
     "nit": "899999068",
     "unique_contracts": 7,
-    "reconciled_cop": "8137440199"
+    "reconciled_cop": "8137440199",
+    "distinct_buyers": 5,
+    "registered_securities": 5,
+    "logo_matches_original": true
   },
   "promo": {
     "duration": "30.000000",
@@ -11,19 +13,19 @@
       "codec_name": "h264",
       "width": 1920,
       "height": 1080,
-      "avg_frame_rate": "30/1",
-      "nb_frames": "900"
+      "avg_frame_rate": "60/1",
+      "nb_frames": "1800"
     },
-    "audio": {
-      "codec_name": "aac",
-      "sample_rate": "48000",
-      "channels": 2
-    },
-    "loudness_lufs": "-16.73",
-    "true_peak_dbtp": "-1.50",
-    "captions": 6,
-    "bytes": 2994508,
-    "fully_decoded": true
+    "audio_tracks": 0,
+    "captions": 5,
+    "bytes": 3359166,
+    "fully_decoded": true,
+    "motion": {
+      "samples": 300,
+      "moving_sample_intervals": 109,
+      "largest_mean_frame_difference": 49.966,
+      "longest_near_static_read_hold_seconds": 2.6
+    }
   },
   "walkthrough": {
     "duration": "60.000000",
@@ -31,31 +33,53 @@
       "codec_name": "h264",
       "width": 1920,
       "height": 1080,
-      "avg_frame_rate": "30/1",
-      "nb_frames": "1800"
+      "avg_frame_rate": "60/1",
+      "nb_frames": "3600"
     },
-    "audio": {
-      "codec_name": "aac",
-      "sample_rate": "48000",
-      "channels": 2
-    },
-    "loudness_lufs": "-16.56",
-    "true_peak_dbtp": "-1.49",
-    "captions": 11,
-    "bytes": 6273169,
-    "fully_decoded": true
+    "audio_tracks": 0,
+    "captions": 8,
+    "bytes": 5343638,
+    "fully_decoded": true,
+    "motion": {
+      "samples": 600,
+      "moving_sample_intervals": 192,
+      "largest_mean_frame_difference": 50.082,
+      "longest_near_static_read_hold_seconds": 4.0
+    }
   },
   "gif": {
     "size": [
       1000,
-      620
+      490
     ],
-    "frames": 180,
+    "frames": 240,
     "duration_ms": 12000,
     "loop": 0,
-    "bytes": 2390740,
-    "first_last_mean_difference": 0.102
+    "bytes": 2837306,
+    "visibly_changed_frames": 161,
+    "first_last_mean_difference": 0.123,
+    "logo_color_pixels": {
+      "yellow": 54,
+      "blue": 36,
+      "red": 31
+    }
   },
+  "silent_loop": {
+    "duration": "12.000000",
+    "motion": {
+      "samples": 120,
+      "moving_sample_intervals": 70,
+      "largest_mean_frame_difference": 5.001,
+      "longest_near_static_read_hold_seconds": 1.2
+    }
+  },
+  "silent_videos": [
+    "captures/review-v2/promo-half-speed-review.mp4",
+    "captures/review-v2/walkthrough-half-speed-review.mp4",
+    "exports/colombia-company-intelligence-demo-loop.mp4",
+    "exports/colombia-company-intelligence-promo-30s.mp4",
+    "exports/colombia-company-intelligence-walkthrough-60s.mp4"
+  ],
   "poster": {
     "size": [
       1920,
@@ -63,17 +87,10 @@
     ]
   },
   "sha256": {
-    "promo-review-28.png": "6439b286daa7875a86d8d271cef704ce77ca7fb2da4c7cea49a56c345170a655",
-    "walkthrough-review-2.png": "d9a0504049612c4a64aedddb6cec3262ac59684fa22834827de4a9da95788b4e",
-    "promo-review-17.png": "3c4d7dcfc0b8f4975e93e9bad98b22a4ecb2364c2379c283349b0cd940a9c933",
-    "promo-review-12.png": "9fd91b696b7b788566bf2c8681d1a5087e6f47a466eba5eb96c41310f29589f0",
-    "promo-review-2.png": "bd248289a04932da01c5f6fc5195fec875468aed2ffac533f54d6efab6dee52f",
-    "walkthrough-review-12.png": "5a5f0674463461e04fd8410fd82f353808168481303e4978557da36664d9e9b3",
-    "walkthrough-review-17.png": "66d825d83d1d63285fd1afaac676fdb4c26bb89b36291b96aa379b404d2e8899",
-    "walkthrough-review-28.png": "b25088e2a4830027c7a2f6ec72f16654b0644f72dd2fae8dd84eb4c15d918455",
-    "colombia-company-intelligence-poster.png": "3c4d7dcfc0b8f4975e93e9bad98b22a4ecb2364c2379c283349b0cd940a9c933",
-    "colombia-company-intelligence-walkthrough-60s.mp4": "17688c5dc8ed4b035f531706dba90af79912ab1dab1236f9c3d7f787fc75e20c",
-    "colombia-company-intelligence-demo.gif": "60300b58f37a2c23b12b824cb731a5e363fb4dcd13b527d36caacba9e2c5745b",
-    "colombia-company-intelligence-promo-30s.mp4": "2abeb4574d6b6706c88274f1b3dd2d8712ae6f7db428d9a63fff47289fa1c2aa"
+    "colombia-company-intelligence-demo-loop.mp4": "3503e60b42dcfc92215d6d00a29e6ba532a552b89e367be387c52bbf3627abc0",
+    "colombia-company-intelligence-poster.png": "5d50000cf9bf9eba7fe3709363599ffa73485b2aadbea61429f05dd66a79501e",
+    "colombia-company-intelligence-walkthrough-60s.mp4": "8799b1f88d8cb3e9dd9289729c411075dd2d524f17de8f28579b34a39d85a87e",
+    "colombia-company-intelligence-demo.gif": "1d6e762258eb6c2cd29b34e3164c112a206dbc1a0eea21cda6aa23a9408510c9",
+    "colombia-company-intelligence-promo-30s.mp4": "f6044d8523002b3abd804a11da3b9146331346cb251fa3fc9f6dbef5cdb30330"
   }
 }

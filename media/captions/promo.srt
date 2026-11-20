@@ -1,23 +1,19 @@
 1
-00:00:00,180 --> 00:00:04,191
-Investigar una empresa en Colombia no debería exigir tantas fuentes.
+00:00:00,200 --> 00:00:05,080
+Colombia Company Intelligence reúne los datos clave de una empresa en segundos.
 
 2
-00:00:05,180 --> 00:00:08,785
-Una búsqueda reúne información pública en una sola experiencia.
+00:00:07,900 --> 00:00:13,201
+Busca por nombre o NIT. Explora acciones y títulos de deuda.
 
 3
-00:00:10,180 --> 00:00:14,276
-Busca por NIT. Consulta su identidad y sus valores registrados.
+00:00:15,300 --> 00:00:19,922
+Consulta contratos del Gobierno, sus montos y entidades.
 
 4
-00:00:15,180 --> 00:00:19,127
-Explora contratos del Gobierno, con cifras y evidencia verificable.
+00:00:22,600 --> 00:00:24,200
+Todo con fuentes oficiales.
 
 5
-00:00:20,680 --> 00:00:24,648
-Menos tiempo reuniendo datos. Más contexto para tu investigación.
-
-6
-00:00:26,180 --> 00:00:28,463
-Datos públicos, con fuentes a la vista.
+00:00:25,200 --> 00:00:29,643
+Datos públicos. Información que importa.

@@ -1,43 +1,31 @@
 1
-00:00:00,180 --> 00:00:04,105
-Así puedes investigar Ecopetrol con información pública de Colombia.
+00:00:00,200 --> 00:00:05,080
+Colombia Company Intelligence reúne los datos clave de una empresa en segundos.
 
 2
-00:00:05,180 --> 00:00:07,740
-Escribe el nombre. Compara las coincidencias.
+00:00:07,250 --> 00:00:16,634
+Busca Ecopetrol por nombre o NIT. Compara las coincidencias y selecciona la entidad correcta.
 
 3
-00:00:09,180 --> 00:00:14,087
-Abre la entidad correcta. Su identidad conserva la matrícula y la fuente del registro.
+00:00:17,200 --> 00:00:22,762
+Su perfil reúne identidad, matrícula y actividad económica, con fuentes para profundizar.
 
 4
-00:00:15,180 --> 00:00:19,233
-Revisa la razón social, la actividad económica y los datos de matrícula.
+00:00:27,200 --> 00:00:31,136
+Explora su registro de emisor y sus valores inscritos.
 
 5
-00:00:21,180 --> 00:00:24,103
-Cada fuente conserva sus propias fechas y límites.
+00:00:33,300 --> 00:00:37,666
+Consulta acciones y títulos de deuda en las fuentes oficiales.
 
 6
-00:00:25,180 --> 00:00:29,852
-En Mercado de capitales, consulta el registro de emisor y su identidad verificada.
+00:00:40,200 --> 00:00:45,774
+En Contratos con el Gobierno, consulta montos y entidades contratantes.
 
 7
-00:00:31,180 --> 00:00:36,940
-Explora los valores inscritos. El registro por sí solo no demuestra negociación vigente en bolsa.
+00:00:47,200 --> 00:00:52,596
+Explora la actividad histórica y profundiza en cada contrato.
 
 8
-00:00:38,180 --> 00:00:42,639
-SECOP dos consulta el NIT del proveedor: contratos, valores y entidades.
-
-9
-00:00:44,180 --> 00:00:47,636
-Consulta la actividad histórica y las entidades contratantes.
-
-10
-00:00:49,180 --> 00:00:53,084
-Abre el contrato. Participar no es por sí solo un hallazgo adverso.
-
-11
-00:00:54,180 --> 00:00:58,447
-Información organizada, con sus límites a la vista. Explora el proyecto.
+00:00:53,500 --> 00:00:59,707
+Colombia Company Intelligence. Más contexto para investigar empresas.

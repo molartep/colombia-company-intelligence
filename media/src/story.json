@@ -1,56 +1,72 @@
 {
-  "language": "es-419",
-  "voice": "ef_dora",
+  "version": 2,
+  "language": "Spanish",
+  "voice": "Designed neutral Latin American Spanish female voice",
   "promo": {
     "duration": 30,
     "scenes": [
       {
         "start": 0,
-        "end": 5,
-        "kind": "problem",
-        "title": "Una empresa.\nMúltiples fuentes.",
-        "kicker": "INVESTIGAR NO DEBERÍA SER RECOPILAR",
-        "narration": "Investigar una empresa en Colombia no debería exigir tantas fuentes."
+        "end": 3,
+        "layout": "hero",
+        "title": "Conoce una empresa\nen segundos."
       },
       {
-        "start": 5,
-        "end": 10,
-        "capture": "search",
-        "title": "Una búsqueda. Más contexto.",
-        "kicker": "COLOMBIA COMPANY INTELLIGENCE",
-        "narration": "Una búsqueda reúne información pública en una sola experiencia."
+        "start": 3,
+        "end": 9,
+        "layout": "identity",
+        "title": "Empieza por la\nempresa correcta."
       },
       {
-        "start": 10,
-        "end": 15,
-        "capture": "overview",
-        "title": "Empieza por la identidad correcta.",
-        "kicker": "RUES · IDENTIDAD Y REGISTRO",
-        "narration": "Busca por NIT. Consulta su identidad y sus valores registrados."
+        "start": 9,
+        "end": 16,
+        "layout": "markets",
+        "title": "De acciones a bonos.\nCon fuentes oficiales."
       },
       {
-        "start": 15,
-        "end": 20.5,
-        "capture": "secop",
-        "title": "La contratación pública, en contexto.",
-        "kicker": "SECOP II · NIT DEL PROVEEDOR",
-        "narration": "Explora contratos del Gobierno, con cifras y evidencia verificable."
+        "start": 16,
+        "end": 23,
+        "layout": "contracts",
+        "title": "Su contratación pública,\nen perspectiva."
       },
       {
-        "start": 20.5,
-        "end": 26,
-        "capture": "evidence",
-        "title": "Cada hallazgo conserva su fuente.",
-        "kicker": "MENOS RECOPILACIÓN. MÁS INVESTIGACIÓN.",
-        "narration": "Menos tiempo reuniendo datos. Más contexto para tu investigación."
+        "start": 23,
+        "end": 26.5,
+        "layout": "unified",
+        "title": "Menos búsquedas.\nMás contexto."
       },
       {
-        "start": 26,
+        "start": 26.5,
         "end": 30,
-        "kind": "closing",
-        "title": "Datos públicos.\nFuentes a la vista.",
-        "kicker": "OPEN SOURCE · ENGLISH / ESPAÑOL",
-        "narration": "Datos públicos, con fuentes a la vista."
+        "layout": "closing",
+        "title": "Datos públicos.\nInformación que importa."
+      }
+    ],
+    "narration": [
+      {
+        "start": 0.2,
+        "end": 7.7,
+        "text": "Colombia Company Intelligence reúne los datos clave de una empresa en segundos."
+      },
+      {
+        "start": 7.9,
+        "end": 15.0,
+        "text": "Busca por nombre o NIT. Explora acciones y títulos de deuda."
+      },
+      {
+        "start": 15.3,
+        "end": 22.4,
+        "text": "Consulta contratos del Gobierno, sus montos y entidades."
+      },
+      {
+        "start": 22.6,
+        "end": 26.2,
+        "text": "Todo con fuentes oficiales."
+      },
+      {
+        "start": 25.2,
+        "end": 29.9,
+        "text": "Datos públicos. Información que importa."
       }
     ]
   },
@@ -59,92 +75,87 @@
     "scenes": [
       {
         "start": 0,
-        "end": 5,
-        "kind": "intro",
-        "capture": "identity",
-        "title": "Investiga Ecopetrol, paso a paso.",
-        "kicker": "UN RECORRIDO REAL POR EL PRODUCTO",
-        "narration": "Así puedes investigar Ecopetrol con información pública de Colombia."
+        "end": 7,
+        "layout": "hero",
+        "title": "Investiga Ecopetrol.\nConecta el contexto."
       },
       {
-        "start": 5,
-        "end": 9,
-        "capture": "typing",
-        "title": "01 · Busca por nombre o NIT.",
-        "kicker": "BÚSQUEDA DE EMPRESAS",
-        "narration": "Escribe el nombre. Compara las coincidencias."
+        "start": 7,
+        "end": 17,
+        "layout": "search",
+        "title": "Encuentra la entidad correcta."
       },
       {
-        "start": 9,
-        "end": 15,
-        "capture": "search",
-        "title": "Selecciona la entidad correcta.",
-        "kicker": "ECOPETROL S A · NIT 899999068-1",
-        "narration": "Abre la entidad correcta. Su identidad conserva la matrícula y la fuente del registro."
+        "start": 17,
+        "end": 27,
+        "layout": "identity",
+        "title": "Entiende su identidad empresarial."
       },
       {
-        "start": 15,
-        "end": 21,
-        "capture": "overview",
-        "title": "02 · Entiende el registro empresarial.",
-        "kicker": "RAZÓN SOCIAL · ACTIVIDAD · MATRÍCULA",
-        "narration": "Revisa la razón social, la actividad económica y los datos de matrícula."
+        "start": 27,
+        "end": 40,
+        "layout": "markets",
+        "title": "Explora sus valores registrados."
       },
       {
-        "start": 21,
-        "end": 25,
-        "capture": "rues-source",
-        "title": "Consulta el origen y las fechas.",
-        "kicker": "EVIDENCIA PÚBLICA · RECUPERACIÓN REGISTRADA",
-        "narration": "Cada fuente conserva sus propias fechas y límites."
+        "start": 40,
+        "end": 47,
+        "layout": "contracts",
+        "title": "Conoce sus contratos con el Gobierno."
       },
       {
-        "start": 25,
-        "end": 31,
-        "capture": "issuer",
-        "title": "03 · Consulta el registro de emisor.",
-        "kicker": "SUPERINTENDENCIA FINANCIERA · RNVE",
-        "narration": "En Mercado de capitales, consulta el registro de emisor y su identidad verificada."
-      },
-      {
-        "start": 31,
-        "end": 38,
-        "capture": "securities",
-        "title": "Inscripción no significa negociación vigente.",
-        "kicker": "VALORES INSCRITOS · FUENTE SFC",
-        "narration": "Explora los valores inscritos. El registro por sí solo no demuestra negociación vigente en bolsa."
-      },
-      {
-        "start": 38,
-        "end": 44,
-        "capture": "secop",
-        "title": "04 · Revisa contratos con el Gobierno.",
-        "kicker": "SECOP II · COINCIDENCIA EXACTA DEL NIT",
-        "narration": "SECOP dos consulta el NIT del proveedor: contratos, valores y entidades."
-      },
-      {
-        "start": 44,
-        "end": 49,
-        "capture": "activity",
-        "title": "Observa la actividad registrada.",
-        "kicker": "VALORES REPORTADOS · NO PAGOS NI INGRESOS",
-        "narration": "Consulta la actividad histórica y las entidades contratantes."
-      },
-      {
-        "start": 49,
+        "start": 47,
         "end": 54,
-        "capture": "evidence",
-        "title": "Inspecciona el contrato y su fuente.",
-        "kicker": "PARTICIPAR NO ES UNA SEÑAL ADVERSA",
-        "narration": "Abre el contrato. Participar no es por sí solo un hallazgo adverso."
+        "layout": "evidence",
+        "title": "Del panorama al contrato."
       },
       {
         "start": 54,
         "end": 60,
-        "kind": "closing",
-        "title": "Investiga con contexto.\nVerifica la fuente.",
-        "kicker": "EXPLORA EL PROYECTO EN GITHUB",
-        "narration": "Información organizada, con sus límites a la vista. Explora el proyecto."
+        "layout": "closing",
+        "title": "Más contexto.\nMejores herramientas."
+      }
+    ],
+    "narration": [
+      {
+        "start": 0.2,
+        "end": 6.8,
+        "text": "Colombia Company Intelligence reúne los datos clave de una empresa en segundos."
+      },
+      {
+        "start": 7.25,
+        "end": 16.6,
+        "text": "Busca Ecopetrol por nombre o NIT. Compara las coincidencias y selecciona la entidad correcta."
+      },
+      {
+        "start": 17.2,
+        "end": 26.6,
+        "text": "Su perfil reúne identidad, matrícula y actividad económica, con fuentes para profundizar."
+      },
+      {
+        "start": 27.2,
+        "end": 33.0,
+        "text": "Explora su registro de emisor y sus valores inscritos."
+      },
+      {
+        "start": 33.3,
+        "end": 39.7,
+        "text": "Consulta acciones y títulos de deuda en las fuentes oficiales."
+      },
+      {
+        "start": 40.2,
+        "end": 46.7,
+        "text": "En Contratos con el Gobierno, consulta montos y entidades contratantes."
+      },
+      {
+        "start": 47.2,
+        "end": 53.7,
+        "text": "Explora la actividad histórica y profundiza en cada contrato."
+      },
+      {
+        "start": 53.5,
+        "end": 59.9,
+        "text": "Colombia Company Intelligence. Más contexto para investigar empresas."
       }
     ]
   },
@@ -153,39 +164,33 @@
     "scenes": [
       {
         "start": 0,
-        "end": 2.3,
-        "capture": "typing-gif",
-        "title": "Busca una empresa"
+        "end": 2.5,
+        "layout": "hero",
+        "title": "Busca una empresa."
       },
       {
-        "start": 2.3,
-        "end": 4.4,
-        "capture": "result-gif",
-        "title": "Elige la identidad correcta"
+        "start": 2.5,
+        "end": 4.8,
+        "layout": "identity",
+        "title": "Identifica la empresa."
       },
       {
-        "start": 4.4,
-        "end": 6.5,
-        "capture": "identity-gif",
-        "title": "Consulta su registro"
+        "start": 4.8,
+        "end": 7.1,
+        "layout": "markets",
+        "title": "Explora sus valores."
       },
       {
-        "start": 6.5,
-        "end": 8.6,
-        "capture": "issuer-gif",
-        "title": "Explora Mercado de capitales"
+        "start": 7.1,
+        "end": 10.0,
+        "layout": "contracts",
+        "title": "Conoce sus contratos."
       },
       {
-        "start": 8.6,
-        "end": 11.3,
-        "capture": "secop-gif",
-        "title": "Revisa contratos del Gobierno"
-      },
-      {
-        "start": 11.3,
+        "start": 10.0,
         "end": 12,
-        "capture": "typing-gif",
-        "title": "Busca una empresa"
+        "layout": "hero",
+        "title": "Busca una empresa."
       }
     ]
   }

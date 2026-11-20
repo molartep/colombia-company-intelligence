@@ -4,11 +4,11 @@ An open-source, evidence-backed starting point for researching Colombian busines
 Search by NIT or legal name, compare official registration candidates, and inspect a company profile
 with source records, mappings, and separate retrieval/update timestamps.
 
-![Colombia Company Intelligence — búsqueda, registro, valores inscritos y contratos del Gobierno](media/exports/colombia-company-intelligence-demo.gif)
+![Colombia Company Intelligence — búsqueda, registro, valores inscritos y contratos del Gobierno](media/exports/colombia-company-intelligence-demo.gif?v=2)
 
-[30-second introduction](media/exports/colombia-company-intelligence-promo-30s.mp4) · [60-second walkthrough](media/exports/colombia-company-intelligence-walkthrough-60s.mp4) · [Static poster](media/exports/colombia-company-intelligence-poster.png)
+[30-second introduction](media/exports/colombia-company-intelligence-promo-30s.mp4) · [60-second walkthrough](media/exports/colombia-company-intelligence-walkthrough-60s.mp4) · [Silent animated loop](media/exports/colombia-company-intelligence-demo-loop.mp4) · [Static poster](media/exports/colombia-company-intelligence-poster.png)
 
-*Spanish narration and captions. Recorded public-source evidence for Ecopetrol; source dates vary. [Media provenance and reproduction](media/README.md).*
+*Silent videos with Spanish captions. Animated 12-second GIF; use the silent MP4 if your viewer pauses GIF playback. Recorded public-source evidence for Ecopetrol; source dates vary. [Media provenance and reproduction](media/README.md).*
 
 **Phase 1 is implemented:** live server-side RUES/Confecámaras queries, conservative identity
 resolution, PostgreSQL caching and raw audit records, a FastAPI API, and a responsive React UI.
