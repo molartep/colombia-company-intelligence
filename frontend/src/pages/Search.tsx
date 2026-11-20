@@ -83,8 +83,10 @@ export function Search() {
           />
         </SearchForm>
         <div className="source-line">
-          <span className="mini-icon">✓</span> {t('search.poweredByRuesConfecamaras')}{' '}
-          <span>{t('search.viaDatosGovCo')}</span>
+          <span className="mini-icon" aria-hidden="true">
+            ✓
+          </span>{' '}
+          {t('search.poweredByRuesConfecamaras')} <span>{t('search.viaDatosGovCo')}</span>
         </div>
       </section>
       {q.length >= 2 ? (
