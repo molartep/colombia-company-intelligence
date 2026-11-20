@@ -1,48 +1,58 @@
 # Colombia Company Intelligence
 
-An open-source, evidence-backed starting point for researching Colombian business identities.
-Search by NIT or legal name, compare official registration candidates, and inspect a company profile
-with source records, mappings, and separate retrieval/update timestamps.
+An open-source platform for researching Colombian companies through their legal identity, registered
+securities and government contracts. Search by name or NIT, uncover contracting patterns and counterparties,
+and trace findings to official sources—turning fragmented public records into useful context for
+business research.
 
 ![Colombia Company Intelligence — búsqueda, registro, valores inscritos y contratos del Gobierno](media/exports/colombia-company-intelligence-demo.gif?v=2)
 
-[30-second introduction](media/exports/colombia-company-intelligence-promo-30s.mp4) · [60-second walkthrough](media/exports/colombia-company-intelligence-walkthrough-60s.mp4) · [Silent animated loop](media/exports/colombia-company-intelligence-demo-loop.mp4) · [Static poster](media/exports/colombia-company-intelligence-poster.png)
+## Implemented phases
 
-*Silent videos with Spanish captions. Animated 12-second GIF; use the silent MP4 if your viewer pauses GIF playback. Recorded public-source evidence for Ecopetrol; source dates vary. [Media provenance and reproduction](media/README.md).*
+**Phase 1 — Company identity:** search official RUES/Confecámaras records by NIT or legal name,
+compare registration candidates, and inspect company identities, CIIU codes and registration dates.
+Conservative identity matching, PostgreSQL caching and versioned source evidence preserve the
+connection between each profile and its original record. See [company sources and schema](docs/sources.md).
 
-**Phase 1 is implemented:** live server-side RUES/Confecámaras queries, conservative identity
-resolution, PostgreSQL caching and raw audit records, a FastAPI API, and a responsive React UI.
-There is no production demo data. Tests use clearly synthetic companies.
+**Phase 2 — Capital Markets:** connect verified company identities to SFC/RNVE issuer records,
+registered securities, issuer details and source snapshots. Quote retrieval supports BVC,
+La República and official SFC daily-price reports, with provider-specific identity checks,
+source dates and fallback handling. See [Capital Markets operations](docs/capital-markets.md)
+and [quote sources and verification](docs/quote-source-access.md).
 
-**Phase 2 is implemented:** official SFC issuer XLSX import, bounded public SFC securities-report
-refreshes, RNVE profiles with automatically retrieved summary details, conservative NIT matching, snapshots, and a Capital Markets tab.
-Issuer exports are downloaded through the public portal and imported administratively. BVC stock-page retrieval is implemented for configured common-equity pages. Live BVC access
-currently returns HTTP 403 here, so listing and quote fields remain unverified on retrieval failure.
-See [capital-markets operations](docs/capital-markets.md) and [verified sources and limitations](docs/capital-markets-sources.md).
-
-The application does **not** determine ownership, financial condition, acquisitions,
-fiscal responsibility, or AI summaries. RUES legal form, RNVE registration, and BVC listing are
-separate concepts. A missing result is not evidence that an entity has never registered or issued securities.
+**Phase 3 — Government Contracts:** query SECOP II electronic contracts by the company's verified
+supplier NIT. The company profile includes contract totals and reported values in COP, contracting
+entities, annual activity, all reported statuses, filters, sorting, five-contract pagination and
+individual evidence with official source links. Successful results are cached for 24 hours;
+explicit refreshes retain previous evidence when a source fails. Queries above the default
+5,000-row cap show an alert without publishing partial totals. See [SECOP methodology, APIs and
+source mapping](docs/secop-screening.md).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Browser[React + TypeScript\nTanStack Query / Router] --> API[FastAPI v1]
-    API --> Markets[Local RNVE / securities profiles]
-    Reports[SFC official XLSX / public reports] --> Admin[Administrative import and refresh]
-    Admin --> DB
+    Browser[React + TypeScript · EN / ES] --> API[FastAPI v1]
+    API --> Identity[Company identity and registration]
+    API --> Markets[Capital Markets]
+    API --> Contracts[Government Contracts · SECOP II]
+    API --> References[References · local data readiness]
+    Identity --> RUESAdapter[RUES adapter]
+    Contracts --> SECOPAdapter[SECOP adapter · supplier NIT matching]
+    RUESAdapter --> Client[Server-side HTTPX / Socrata]
+    SECOPAdapter --> Client
+    Client --> RUES[datos.gov.co · c82u-588k]
+    Client --> SECOP[datos.gov.co · jbjy-vk9h]
+    Markets --> MarketSources[SFC / RNVE · BVC · La República]
+    Identity --> DB[(PostgreSQL)]
     Markets --> DB
-    API --> Service[Normalization + deterministic resolution]
-    Service --> DB[(PostgreSQL 16\nCompanies / aliases / raw records)]
-    Service --> Adapter[RUES adapter]
-    Adapter --> Client[HTTPX SocrataClient]
-    Client --> RUES[datos.gov.co\nc82u-588k / SODA 2.x]
+    Contracts --> DB
+    References --> DB
 ```
 
 Backend: Python 3.12+, FastAPI/Pydantic v2, SQLAlchemy 2 async sessions, asyncpg, Alembic, HTTPX,
 pytest/pytest-asyncio, Ruff, strict mypy. Frontend: React/strict TypeScript, Vite, Tailwind CSS,
-TanStack Query, React Router, Vitest/Testing Library. Infrastructure: PostgreSQL 16, Docker Compose,
+TanStack Query, React Router, react-i18next, Vitest/Testing Library. Infrastructure: PostgreSQL 16, Docker Compose,
 Make, and GitHub Actions. No paid services, Redis, Celery, or distributed infrastructure.
 
 The canonical company UUID is **registration-scoped** in Phase 1. NIT is indexed but never a primary
@@ -132,9 +142,12 @@ The frontend never calls Socrata directly.
 | `CAPITAL_MARKETS_STORAGE_DIR` | Private regulatory report storage; defaults to `var/capital-markets` |
 | `CAPITAL_MARKETS_MAX_AGE_HOURS` | Snapshot freshness threshold, default 24 hours; not a publishing-frequency guarantee |
 | `CAPITAL_MARKETS_TIMEOUT`, `CAPITAL_MARKETS_RETRIES` | 30-second report/summary deadline; 2 HTTP report retries. Both sources use a 15-minute failure cooldown. |
+| `SECOP_CACHE_HOURS` | Successful Government Contracts cache TTL, default 24 hours |
+| `SECOP_MAX_ROWS` | Supplier-query row cap, default 5,000; larger portfolios show an alert without partial totals |
+| `SECOP_RUN_TIMEOUT` | SECOP retrieval and persistence deadline, default 90 seconds |
 | `TEST_DATABASE_URL` | Separate disposable database used only by PostgreSQL tests |
 
-Never commit `.env`, tokens, database files, or real source-record fixtures. Do not prefix source
+Never commit `.env`, tokens, database files, or unreviewed raw source-record fixtures. Do not prefix source
 tokens with `VITE_`. Short controlled queries, fixed upstream hosts, parameterized SQL, request limits,
 sanitized errors, private raw records, and allowlisted public fields reduce accidental disclosure.
 Launch the API with `--no-access-log` as in Make/Compose; reverse proxies must also avoid query logging.
@@ -153,8 +166,9 @@ cd backend
 ```
 
 Migrations create companies, aliases, data sources, source records, UUID keys, JSONB storage, foreign
-keys, version uniqueness constraints, NIT/name indexes, and prefix search indexes. API startup does
-not silently create schema. The source is registered lazily on its first search or `/sources` call.
+keys, version uniqueness constraints, NIT/name indexes, and prefix search indexes. Phase 3 adds
+screening runs, normalized SECOP contract evidence and run-to-contract snapshot membership.
+API startup does not silently create schema. The source is registered lazily on its first search or `/sources` call.
 
 ## API
 
@@ -165,6 +179,11 @@ not silently create schema. The source is registered lazily on its first search 
 | `GET /api/v1/companies/{UUID}/sources` | Allowlisted source versions, source row ID, hashes, timestamps, mappings |
 | `GET /api/v1/companies/{UUID}/capital-markets` | Local RNVE findings, independent BVC/ownership states, summary and provenance |
 | `GET /api/v1/companies/{UUID}/securities` | Paginated registered instruments with category/venue/listing-status filters |
+| `GET /api/v1/companies/{UUID}/screening/secop` | Cached Government Contracts outcome, verified summary, source metadata and freshness |
+| `POST /api/v1/companies/{UUID}/screening/secop/refresh` | Explicit SECOP refresh with concurrency protection and rate controls |
+| `GET /api/v1/companies/{UUID}/screening/secop/contracts` | Verified contracts with bounded pagination, search, status/entity/year/modality filters and date/value sorting |
+| `GET /api/v1/companies/{UUID}/screening/secop/contracts/{contract_id}` | Company-scoped contract evidence and its official source link |
+| `GET /api/v1/platform` | Local data readiness and recorded source activity for the References page |
 | `GET /api/v1/capital-markets/issuers` | Local issuer directory search by NIT/name |
 | `GET /api/v1/capital-markets/sources` | Ingestion availability, attempts/successes, snapshots and freshness |
 | `GET /api/v1/parameters` | Verified fixed-filter codes, descriptions, and catalog provenance |
@@ -179,7 +198,8 @@ curl --get http://127.0.0.1:8000/api/v1/companies --data-urlencode 'q=URBANIZADO
 curl http://127.0.0.1:8000/api/v1/companies/REPLACE_WITH_RETURNED_UUID
 ```
 
-Query length is 2–160 characters; page size 1–50; page 1–100. Source requests use stable row ordering
+For company search, query length is 2–160 characters, page size is 1–50 and page is 1–100.
+Source requests use stable row ordering
 and a one-row lookahead, not a costly total count. Live results are ranked by RUES across all
 matching source records before LIMIT/OFFSET pagination; the API preserves that order. Name ordering
 prioritizes exact full names, equivalent normalized full names, whole-word phrases at the beginning,
@@ -198,17 +218,37 @@ Profiles are cached evidence: they do not silently refresh against RUES when ope
 
 ## Frontend
 
-The home page provides a submit-only, keyboard-accessible NIT/name search, loading/error/empty states,
-a responsive candidate table, and pagination. Search results include registration and renewal dates;
-missing NITs and dates display as blank cells. Selecting a UUID opens Overview and Sources sections.
-Profile navigation preserves the originating search query and page through Overview and Sources.
-The back link restores cached search results without an automatic request; inactive search pages
-are cached in memory for 30 minutes. Submitting Search explicitly fetches fresh results.
-Overview includes identity, CIIU code, formatted registration dates, a copy-NIT button, freshness,
-and attribute availability. Missing profile fields, including NIT, use red pills, while placeholder
-or invalid dates use orange Review pills. Sources includes official links, safe public fields, source row IDs, mappings in the
-API, and payload hashes. Future sections are marked coming later. No financial or screening results
-are fabricated. The UI is in English; official company names and labels retain their source spelling.
+The home page provides keyboard-accessible NIT/name search, advanced filters, loading/error/empty
+states, a responsive results table and pagination. Registration and renewal dates appear in results;
+missing values retain their explicit presentation. Selecting a company opens its **Overview**,
+**Capital Markets** and **Government Contracts** tabs. Navigation preserves the originating query and
+page; the back link restores cached results. Search pages remain cached in memory for 30 minutes,
+and submitting Search explicitly requests fresh results.
+
+Overview presents legal identity, CIIU code, registration dates, a copy-NIT action and source evidence.
+Capital Markets presents issuer registration, securities and available quotes with source-specific
+refresh controls. Government Contracts presents SECOP summary cards, activity charts, a searchable
+contract table and contract details. Source-information cards and methodology details start
+collapsed. Financial Information and Corporate Events remain marked as coming later.
+
+### English and Spanish
+
+The EN/ES control in the main navigation switches application text and date, number and currency
+presentation. The selection persists across visits; browser preference is used initially, with
+Spanish as fallback. Original third-party names, descriptions and source values are preserved.
+See [localization conventions and testing](docs/localization.md).
+
+### Platform References
+
+The **Platform References** page at `/references` explains architecture, data readiness and technical
+workflows for RUES, Capital Markets and SECOP II. It includes responsive diagrams, metric definitions
+and collapsed workflow details. See [References and the technical glossary](docs/platform-references.md).
+
+### Design system and visual review
+
+Frontend development follows the [brand and UI guidelines](docs/design/BRAND_AND_UI_GUIDELINES.md)
+and shared [design tokens](frontend/src/design-tokens.css). See the [prioritized UI/UX audit](docs/design/ui-ux-audit.md)
+and [actual before/after screenshots and reproduction steps](docs/design/assets/README.md).
 
 ## Tests and validation
 
@@ -241,11 +281,13 @@ intentionally excluded from CI. See [validation notes](docs/validation.md) for e
 
 ## Official data limitations and privacy
 
-Source discovery verified 36 text columns. Available: legal name, nullable NIT/DV, chamber code/name,
+**RUES/Confecámaras:** source discovery verified 36 text columns. Available: legal name, nullable NIT/DV, chamber code/name,
 matrícula, legal organization, status, primary/secondary/other CIIU codes, and registration/renewal/
 cancellation/update dates. **Municipality and department do not exist in the verified schema.**
-Chamber location is not used as a company address. There are no verified CIIU descriptions or
-capital-markets/financial/screening fields. Read the [full schema and limitations](docs/sources.md).
+Chamber location is not used as a company address. This dataset has no verified CIIU descriptions,
+capital-market fields or government-contract fields; SFC and SECOP provide the latter two through
+independent connectors. Read the [RUES schema](docs/sources.md), [Capital Markets sources](docs/capital-markets-sources.md)
+and [SECOP source mapping](docs/secop-screening.md).
 
 Some rows are natural persons or cancelled registrations; NIT and dates can be missing, stale, or
 malformed. Registration dates remain source strings in the API and audit records; the UI formats
@@ -283,17 +325,17 @@ verified negative finding. Nothing here substitutes for an authoritative registr
 
 ## Roadmap, license, and contributions
 
-See [the roadmap](docs/roadmap.md) for capital markets, financials, selectable screening, and grounded
-briefings. Next priorities are source contract monitoring, reviewed multi-registration reconciliation,
-and deployment/privacy/browser-test hardening. Financials, screening, and AI briefings remain future work;
-Phase 2 coverage and access limits are documented separately.
+Company identity, Capital Markets and SECOP II Government Contracts are implemented. Next
+engineering priorities include source contract monitoring, reviewed multi-registration reconciliation,
+and deployment/privacy/browser-test hardening. Future work includes financial statements,
+additional independently selectable screening sources and grounded briefings; see [the roadmap](docs/roadmap.md).
 
 Code is [MIT licensed](LICENSE). Official data is separately attributed to Confecámaras under the
 metadata's CC BY-SA 4.0 license; software permission does not relicense third-party data.
 Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 
-Advanced search now supports multi-select registration statuses, chambers, legal organizations,
+Advanced search supports multi-select registration statuses, chambers, legal organizations,
 and registration categories, plus exact/prefix CIIU, registration/renewal date ranges, and exact/minimum
 last renewed year. Expand **Advanced filters** and submit Search to apply. **Parameters** in the
 header documents observed fixed codes and source meanings. All filters apply before source
@@ -339,7 +381,7 @@ collapsed **Data Source Information** section; only the buttons inside each sour
 refresh. They call `?refresh=true&refresh_source=sfc_rnve_issuer_details` or
 `?refresh=true&refresh_source=sfc_rnve_securities`. A selected refresh never calls the other
 connector. RNVE directory controls execute the guarded public-export import, with an official XLSX
-upload fallback; see [import controls and Advanced diagnostics](docs/capital-markets.md#migrate-and-import).
+upload fallback; see [import controls and References diagnostics](docs/capital-markets.md#migrate-and-import).
 Alerts identify the affected source, last successful retrieval, source observation date, latest
 attempt and recorded error. Summary/securities timestamps and errors are scoped to the current
 issuer; the source-catalog endpoint continues to show global connector health.
@@ -373,23 +415,3 @@ Capital Markets quote retrieval falls back from BVC to La República and then to
 SFC daily-price report, requiring exact identity evidence at every step. The card reports each
 provider's outcome when unresolved. SFC values are explicitly labeled daily weighted averages,
 with their source date; no last-trade price or ticker is invented. See [quote fallback verification](docs/quote-source-access.md#registered-ordinary-share-fallback-terpel-case).
-
-### Phase 3: SECOP II screening
-
-Company profiles now include a functional **Screening** tab with exact supplier-NIT SECOP II lookup, source evidence, cached summaries, activity charts, searchable/paginated contracts and contract details. Refreshes preserve prior successful evidence on source failure. No matches and inability to check are separate outcomes. See [SECOP screening](docs/secop-screening.md) for the verified source mapping, migration, API, matching rules, test commands and limitations. SECOP values are interpreted as COP by explicit application convention, enabling precise totals, annual values and buyer rankings; the source itself omits a currency field.
-
-### English and Spanish
-
-Use the EN/ES control in the main navigation. The selection persists across visits; browser language is used initially, with Spanish as fallback. Application text and presentation formats localize while original third-party records remain unchanged. See [localization conventions and testing](docs/localization.md).
-
-### Platform References
-
-The former Advanced page now documents architecture, data readiness and technical workflows
-for RUES, Capital Markets and SECOP II. It includes responsive diagrams, metric definitions and
-collapsed workflow details. See [Platform References and technical glossary](docs/platform-references.md).
-
-### Design system and visual review
-
-Frontend development follows the [brand and UI guidelines](docs/design/BRAND_AND_UI_GUIDELINES.md)
-and shared [design tokens](frontend/src/design-tokens.css). See the [prioritized UI/UX audit](docs/design/ui-ux-audit.md)
-and [actual before/after screenshots and reproduction steps](docs/design/assets/README.md).
