@@ -1,3 +1,4 @@
+import { Presentation } from '../components/Presentation'
 import { errorMessage } from '../i18n/messages'
 import { t, useLanguage } from '../i18n'
 import { Screening } from '../components/Screening'
@@ -44,150 +45,157 @@ export function CompanyProfile() {
         {' '}
         {t('overview.companySearch')}
       </Link>
-      <div className="profile-heading">
-        <div>
-          <h1>{data.legal_name}</h1>
-          <div className="identity-line">
-            <span className="profile-nit">
-              NIT:{' '}
-              {data.nit ? (
-                <span>
-                  {data.nit}
-                  {data.verification_digit ? `-${data.verification_digit}` : ''}
+      <Presentation
+        key={id}
+        companyId={id}
+        companyInformation={
+          <div className="profile-heading">
+            <div>
+              <h1>{data.legal_name}</h1>
+              <div className="identity-line">
+                <span className="profile-nit">
+                  NIT:{' '}
+                  {data.nit ? (
+                    <span>
+                      {data.nit}
+                      {data.verification_digit ? `-${data.verification_digit}` : ''}
+                    </span>
+                  ) : (
+                    <MissingValue />
+                  )}
                 </span>
-              ) : (
-                <MissingValue />
-              )}
-            </span>
-            {data.nit && (
-              <button
-                className="copy"
-                aria-label={t('overview.copyNit')}
-                onClick={() => {
-                  void navigator.clipboard.writeText(data.nit ?? '').then(
-                    () => setCopyStatus('overview.nitCopied'),
-                    () => setCopyStatus('overview.couldNotCopyNit'),
-                  )
-                }}
-              >
+                {data.nit && (
+                  <button
+                    className="copy"
+                    aria-label={t('overview.copyNit')}
+                    onClick={() => {
+                      void navigator.clipboard.writeText(data.nit ?? '').then(
+                        () => setCopyStatus('overview.nitCopied'),
+                        () => setCopyStatus('overview.couldNotCopyNit'),
+                      )
+                    }}
+                  >
+                    {' '}
+                    {t('overview.copy')}
+                  </button>
+                )}
+                <span role="status" className="small">
+                  {copyStatus ? t(copyStatus) : ''}
+                </span>
+              </div>
+              <div className="profile-status">
                 {' '}
-                {t('overview.copy')}
-              </button>
-            )}
-            <span role="status" className="small">
-              {copyStatus ? t(copyStatus) : ''}
-            </span>
+                {t('overview.status')}{' '}
+                {data.registration_status?.trim() ? (
+                  <RegistrationStatus status={data.registration_status} />
+                ) : (
+                  <MissingValue />
+                )}
+              </div>
+            </div>
           </div>
-          <div className="profile-status">
+        }
+      >
+        <nav className="tabs" aria-label={t('overview.companySections')}>
+          <Link
+            aria-current={tab === 'overview' ? 'page' : undefined}
+            to="?tab=overview"
+            state={{ returnTo }}
+          >
             {' '}
-            {t('overview.status')}{' '}
-            {data.registration_status?.trim() ? (
-              <RegistrationStatus status={data.registration_status} />
-            ) : (
-              <MissingValue />
+            {t('overview.overview')}
+          </Link>
+          <Link
+            aria-current={tab === 'capital-markets' ? 'page' : undefined}
+            to="?tab=capital-markets"
+            state={{ returnTo }}
+          >
+            {' '}
+            {t('overview.capitalMarkets')}
+          </Link>
+          <span>
+            {' '}
+            {t('overview.financials')} <small>{t('overview.comingLater')}</small>
+          </span>
+          <span>
+            {' '}
+            {t('overview.corporateEvents')} <small>{t('overview.comingLater')}</small>
+          </span>
+          <Link
+            aria-current={tab === 'screening' ? 'page' : undefined}
+            to="?tab=screening"
+            state={{ returnTo }}
+          >
+            {' '}
+            {t('overview.governmentContracts')}
+          </Link>
+        </nav>
+        {tab === 'screening' ? (
+          <Screening key={id} companyId={id} />
+        ) : tab === 'capital-markets' ? (
+          <CapitalMarkets companyId={id} />
+        ) : (
+          <>
+            <div className="profile-grid">
+              <article className="panel">
+                <p className="eyebrow">{t('overview.verifiedSourceFields')}</p>
+                <h2>{t('overview.companyIdentity')}</h2>
+                <dl>
+                  {Object.entries({
+                    [t('overview.legalName')]: data.legal_name,
+                    [t('overview.legalOrganization')]: data.legal_form,
+                    [t('overview.primaryCiiuCode')]: data.primary_ciiu,
+                  }).map(([key, value]) => (
+                    <div key={key}>
+                      <dt>{key}</dt>
+                      <dd>{value?.trim() ? value : <MissingValue />}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </article>
+              <article className="panel">
+                <p className="eyebrow">{t('overview.businessRegistry')}</p>
+                <h2>{t('overview.registrationDetails')}</h2>
+                <dl>
+                  {Object.entries(data.registration).map(([key, value]) => (
+                    <div key={key}>
+                      <dt>{label(key)}</dt>
+                      <dd>
+                        {key.endsWith('_date') ? (
+                          <RegistrationDate value={value} />
+                        ) : value?.trim() ? (
+                          value
+                        ) : (
+                          <MissingValue />
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </article>
+            </div>
+            {(refresh.isError ||
+              data.sources.some((source) => source.availability === 'failed_to_retrieve')) && (
+              <RefreshAlert refresh={() => refresh.mutate()} refreshing={refresh.isPending}>
+                {refresh.error
+                  ? errorMessage(refresh.error)
+                  : t('overview.theSourceWasUnavailableAtTheLastCheckPreviouslyRetrieved')}
+              </RefreshAlert>
             )}
-          </div>
-        </div>
-      </div>
-      <nav className="tabs" aria-label={t('overview.companySections')}>
-        <Link
-          aria-current={tab === 'overview' ? 'page' : undefined}
-          to="?tab=overview"
-          state={{ returnTo }}
-        >
-          {' '}
-          {t('overview.overview')}
-        </Link>
-        <Link
-          aria-current={tab === 'capital-markets' ? 'page' : undefined}
-          to="?tab=capital-markets"
-          state={{ returnTo }}
-        >
-          {' '}
-          {t('overview.capitalMarkets')}
-        </Link>
-        <span>
-          {' '}
-          {t('overview.financials')} <small>{t('overview.comingLater')}</small>
-        </span>
-        <span>
-          {' '}
-          {t('overview.corporateEvents')} <small>{t('overview.comingLater')}</small>
-        </span>
-        <Link
-          aria-current={tab === 'screening' ? 'page' : undefined}
-          to="?tab=screening"
-          state={{ returnTo }}
-        >
-          {' '}
-          {t('overview.governmentContracts')}
-        </Link>
-      </nav>
-      {tab === 'screening' ? (
-        <Screening key={id} companyId={id} />
-      ) : tab === 'capital-markets' ? (
-        <CapitalMarkets companyId={id} />
-      ) : (
-        <>
-          <div className="profile-grid">
-            <article className="panel">
-              <p className="eyebrow">{t('overview.verifiedSourceFields')}</p>
-              <h2>{t('overview.companyIdentity')}</h2>
-              <dl>
-                {Object.entries({
-                  [t('overview.legalName')]: data.legal_name,
-                  [t('overview.legalOrganization')]: data.legal_form,
-                  [t('overview.primaryCiiuCode')]: data.primary_ciiu,
-                }).map(([key, value]) => (
-                  <div key={key}>
-                    <dt>{key}</dt>
-                    <dd>{value?.trim() ? value : <MissingValue />}</dd>
-                  </div>
-                ))}
-              </dl>
-            </article>
-            <article className="panel">
-              <p className="eyebrow">{t('overview.businessRegistry')}</p>
-              <h2>{t('overview.registrationDetails')}</h2>
-              <dl>
-                {Object.entries(data.registration).map(([key, value]) => (
-                  <div key={key}>
-                    <dt>{label(key)}</dt>
-                    <dd>
-                      {key.endsWith('_date') ? (
-                        <RegistrationDate value={value} />
-                      ) : value?.trim() ? (
-                        value
-                      ) : (
-                        <MissingValue />
-                      )}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </article>
-          </div>
-          {(refresh.isError ||
-            data.sources.some((source) => source.availability === 'failed_to_retrieve')) && (
-            <RefreshAlert refresh={() => refresh.mutate()} refreshing={refresh.isPending}>
-              {refresh.error
-                ? errorMessage(refresh.error)
-                : t('overview.theSourceWasUnavailableAtTheLastCheckPreviouslyRetrieved')}
-            </RefreshAlert>
-          )}
-          {refresh.isSuccess && (
-            <p className="small muted" role="status">
-              {' '}
-              {t('overview.registrationRefreshedFromTheOfficialSource')}
-            </p>
-          )}
-          <DataSourceInformation
-            company={data}
-            refresh={() => refresh.mutate()}
-            refreshing={refresh.isPending}
-          />
-        </>
-      )}
+            {refresh.isSuccess && (
+              <p className="small muted" role="status">
+                {' '}
+                {t('overview.registrationRefreshedFromTheOfficialSource')}
+              </p>
+            )}
+            <DataSourceInformation
+              company={data}
+              refresh={() => refresh.mutate()}
+              refreshing={refresh.isPending}
+            />
+          </>
+        )}
+      </Presentation>
     </section>
   )
 }

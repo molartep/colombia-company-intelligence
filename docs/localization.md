@@ -95,3 +95,7 @@ third-party availability.
 Use the English terms **snapshot, cache, fallback, parser and runtime** in Spanish technical
 copy. See the [Platform References glossary](platform-references.md#spanish-technical-glossary)
 for their meanings and the distinction between fallback, backups and supporting evidence.
+
+Custom dropdown labels/options use the same centralized translation keys as the former native
+selects. Their stored values, URL/API parameters and source classifications remain original.
+The shared combobox supports accent-tolerant keyboard type-ahead without rewriting source labels.

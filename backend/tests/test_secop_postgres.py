@@ -383,3 +383,74 @@ async def test_platform_readiness_tracks_secop_history_without_double_counting(
             assert source.fetch.await_count == 3  # Platform reads never query SECOP.
     finally:
         app.dependency_overrides.clear()
+
+
+async def test_public_exports_filter_precision_privacy_and_stale_snapshot(
+    session, record, secop_row, monkeypatch
+):
+    from app.services.currency import ReferenceRates
+
+    rows = [
+        dict(
+            secop_row,
+            source_row_id="export-a",
+            id_contrato="EXPORT-A",
+            valor_del_contrato="999999999999999999.123456",
+            estado_contrato="En ejecución",
+        ),
+        dict(
+            secop_row,
+            source_row_id="export-b",
+            id_contrato="EXPORT-B",
+            valor_del_contrato="12.10",
+            estado_contrato="Terminado",
+        ),
+    ]
+    company, source = await company_and_source(session, record, rows)
+    result = await secop.refresh(session, company, source)
+    monkeypatch.setattr(app.state, "reference_rates", ReferenceRates(AsyncMock()), raising=False)
+
+    async def local_session():
+        yield session
+
+    app.dependency_overrides[get_session] = local_session
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://localhost"
+        ) as client:
+            base = f"/api/v1/companies/{company.id}/exports/"
+            exported = await client.get(
+                base + "contracts",
+                params={
+                    "format": "json",
+                    "run_id": str(result.run_id),
+                    "raw_status": "En ejecución",
+                    "fx_mode": "manual",
+                    "manual_rate": "4000",
+                    "rate_date": "2026-11-24",
+                },
+            )
+            assert exported.status_code == 200, exported.text
+            document = exported.json()
+            assert document["filtered_total"] == 1
+            assert document["rows"][0]["contract_id"] == "EXPORT-A"
+            assert document["rows"][0]["value"] == "999999999999999999.123456"
+            assert document["rows"][0]["currency_basis"] == "application_policy"
+            assert document["rows"][0]["presentation_usd"] == "250000000000000.00"
+            assert document["presentation_rate"]["manual"] is True
+            research = await client.get(base + "research")
+            assert research.status_code == 200, research.text
+            assert "SYNTHETIC-PRIVATE-ID" not in research.text
+            assert "SYNTHETIC PRIVATE PERSON" not in research.text
+            assert "raw_payload" not in research.text
+            assert research.json()["rows"][0]["record_type"] == "registration"
+            await age_run(session, result.run_id)
+            source.fetch.side_effect = SourceError("secop_limit_exceeded", "Synthetic cap")
+            await secop.refresh(session, company, source)
+            stale = await client.get(base + "contracts")
+            assert stale.status_code == 200
+            assert stale.json()["screening"]["outcome"] == "stale"
+            assert stale.json()["screening"]["error_code"] == "secop_limit_exceeded"
+            assert stale.json()["snapshot_run_id"] == str(result.run_id)
+    finally:
+        app.dependency_overrides.clear()

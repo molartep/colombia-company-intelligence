@@ -17,6 +17,7 @@ from starlette.middleware.base import RequestResponseEndpoint
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import Response
 
+from app.api.exports import router as exports_router
 from app.api.operations import IMPORT_PATH, authorize_import
 from app.api.operations import router as operations_router
 from app.core.config import get_settings
@@ -59,6 +60,7 @@ from app.services.companies import (
     search_companies,
     serialize_record,
 )
+from app.services.currency import Rate, ReferenceRates
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +76,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         limits=httpx.Limits(max_connections=settings.upstream_concurrency),
         follow_redirects=False,
     ) as client:
+        app.state.reference_rates = ReferenceRates(SocrataClient(client, retries=0))
         app.state.rues = RuesDataSource(
             SocrataClient(client, settings.socrata_retries, settings.upstream_concurrency)
         )
@@ -119,6 +122,7 @@ app.add_middleware(
 )
 DB = Annotated[AsyncSession, Depends(get_session)]
 app.include_router(operations_router)
+app.include_router(exports_router)
 
 
 def adapter(request: Request) -> RuesDataSource:
@@ -428,3 +432,8 @@ async def secop_contract_detail(
     if not result.items:
         raise HTTPException(404, "Contract not found in this company's verified screening.")
     return result.items[0]
+
+
+@app.get("/api/v1/presentation/usd-rate", response_model=Rate)
+async def reference_rate(request: Request) -> Rate:
+    return await cast(ReferenceRates, request.app.state.reference_rates).get()

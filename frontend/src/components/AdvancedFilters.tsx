@@ -1,3 +1,4 @@
+import { Dropdown } from './Dropdown'
 import { formatNumber } from '../i18n/format'
 import { uiMessage } from '../i18n/messages'
 import { t, useLanguage } from '../i18n'
@@ -122,11 +123,32 @@ export function AdvancedFilters({
                     })}
                   />
                 </div>
-                <details className="multi-select">
+                <details
+                  className="multi-select"
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                      event.currentTarget.open = false
+                      event.currentTarget.querySelector('summary')?.focus()
+                    }
+                  }}
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget))
+                      event.currentTarget.open = false
+                  }}
+                >
                   <summary aria-labelledby={`label-${group.key}`}>
                     {values[group.key].length
                       ? t('filters.valueSelected', { value0: values[group.key].length })
                       : t('filters.allValues')}
+                    <svg
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      aria-hidden="true"
+                    >
+                      <path d="m4 6 4 4 4-4" />
+                    </svg>
                   </summary>
                   <div
                     className="multi-select-options"
@@ -205,24 +227,30 @@ export function AdvancedFilters({
                 <label>
                   {' '}
                   {t('filters.codeMatching')}{' '}
-                  <select
+                  <Dropdown
+                    aria-label={t('filters.codeMatching')}
                     value={values.ciiu_match}
-                    onChange={(event) => update('ciiu_match', event.target.value)}
-                  >
-                    <option value="exact">{t('filters.exactCode')}</option>
-                    <option value="prefix">{t('filters.codePrefix')}</option>
-                  </select>
+                    disabled={disabled}
+                    onChange={(value) => update('ciiu_match', value)}
+                    options={[
+                      { value: 'exact', label: t('filters.exactCode') },
+                      { value: 'prefix', label: t('filters.codePrefix') },
+                    ]}
+                  />
                 </label>
                 <label>
                   {' '}
                   {t('filters.activityScope')}{' '}
-                  <select
+                  <Dropdown
+                    aria-label={t('filters.activityScope')}
                     value={values.ciiu_scope}
-                    onChange={(event) => update('ciiu_scope', event.target.value)}
-                  >
-                    <option value="primary">{t('filters.primaryOnly')}</option>
-                    <option value="any">{t('filters.anyReportedActivity')}</option>
-                  </select>
+                    disabled={disabled}
+                    onChange={(value) => update('ciiu_scope', value)}
+                    options={[
+                      { value: 'primary', label: t('filters.primaryOnly') },
+                      { value: 'any', label: t('filters.anyReportedActivity') },
+                    ]}
+                  />
                 </label>
               </div>
             </div>
@@ -247,13 +275,16 @@ export function AdvancedFilters({
               <label>
                 {' '}
                 {t('filters.yearMatching')}{' '}
-                <select
+                <Dropdown
+                  aria-label={t('filters.yearMatching')}
                   value={values.renewed_year_mode}
-                  onChange={(event) => update('renewed_year_mode', event.target.value)}
-                >
-                  <option value="exact">{t('filters.exactlyThisYear')}</option>
-                  <option value="minimum">{t('filters.thisYearOrLater')}</option>
-                </select>
+                  disabled={disabled}
+                  onChange={(value) => update('renewed_year_mode', value)}
+                  options={[
+                    { value: 'exact', label: t('filters.exactlyThisYear') },
+                    { value: 'minimum', label: t('filters.thisYearOrLater') },
+                  ]}
+                />
               </label>
             </div>
             {(['registration', 'renewal'] as const).map((kind) => (

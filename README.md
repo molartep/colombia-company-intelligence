@@ -323,6 +323,24 @@ verified negative finding. Nothing here substitutes for an authoritative registr
   Restore matching settings or intentionally recreate a disposable volume; do not delete valuable data.
 - **Browser fetch error:** use the Vite proxy or configure an expected CORS origin. Tokens stay backend-only.
 
+## Current capabilities, presentation and exports
+
+See the [capability matrix](docs/capabilities.md) for implemented, partial, experimental and planned
+features, source coverage and limitations. Government Contracts is implemented SECOP II research;
+it is not comprehensive screening. The default portfolio cap is 5,000 source rows, with no partial
+new totals above the cap. SECOP currency is an explicit COP application convention.
+
+Profiles offer [optional USD presentation](docs/currency-presentation.md) with a published effective
+SFC TRM or an editable manual COP-per-USD rate in the top-right Currency card. USD replaces COP
+on screen with `≈` estimates and matching currency labels; source amounts remain unchanged and are
+retained in exports. USD estimates are not historical conversions. [CSV/JSON exports](docs/exports.md) include public
+company research or all filtered contracts in a pinned snapshot, provenance, retrieval dates and
+completeness warnings. Exports reject more than 1,000 rows or 5 MiB; stale evidence stays labeled.
+
+New API: `GET /api/v1/presentation/usd-rate`,
+`GET /api/v1/companies/{UUID}/exports/research` and
+`GET /api/v1/companies/{UUID}/exports/contracts` (`format=csv|json`).
+
 ## Roadmap, license, and contributions
 
 Company identity, Capital Markets and SECOP II Government Contracts are implemented. Next

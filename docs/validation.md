@@ -218,3 +218,75 @@ See [source discovery](capital-markets-sources.md) and [run/import/smoke command
 Security-rename regression also passed: stable ANN/issuance/venue/date identifiers preserve the
 instrument UUID while original names remain in source-record history. The real 15-instrument
 report was refreshed after the identity refinement without duplicating instruments.
+
+## Documentation, USD presentation and exports — 2026-11-24
+
+Reviewed the repository against README, roadmap, References and feature documentation. Current
+scope is in [the capability matrix](capabilities.md); earlier dated validation sections remain
+historical evidence, not claims about current upstream availability.
+
+Executed locally for this change:
+
+- Backend Ruff lint/format and strict mypy; full pytest suite: 249 passed, 66 skipped. Skips include
+  PostgreSQL-dependent tests (no disposable test database configured) and optional browser tests.
+  Added a PostgreSQL export regression for actual filtering, precision, privacy and stale cap fallback;
+  it is included in CI's database suite but was not executed locally.
+- Frontend ESLint, TypeScript, Prettier, Vitest (133 passed) and production build; backend wheel
+  packaging also passed. Build retains the existing
+  large-bundle advisory; no new dependency was added.
+- Exact division/half-even boundaries, invalid/expired/missing provider data, cache/cooldown,
+  published validity intervals spanning days, failure behavior, explicit manual mode, CSV injection,
+  quoting/newlines/Unicode, large decimals, export limits, snapshot/filter forwarding and safe projections.
+- [Synthetic browser inspection](design/assets/currency-exports/README.md), EN/ES at
+  320/390/768/1440px, manual USD and provider unavailable states, long company names, local scrolling,
+  focus outline and References capability matrix. This is not a formal assistive-technology audit.
+- A single bounded live call through the implemented TRM adapter returned `3505.92` COP per USD,
+  effective 2026-11-24, with no stale/failure flag. No live company/source records were changed.
+
+Source financial records, identity matching, existing migrations and original filter semantics were
+not changed. Exported USD is optional presentation at the selected rate, never historical FX.
+
+### Simplified Currency card — 2026-11-24
+
+Replaced the disclosure with an always-visible top-right header card and COP/USD choices. USD
+uses the editable effective TRM by default; edits are explicitly manual and an accessible refresh
+arrow restores the reference. Removed the manual date field, moved calculation/provenance copy
+into existing information tooltips, and replaced displayed COP amounts with ≈ USD in their original
+elements/typography. Summary/chart/table currency labels now follow the displayed unit. Original
+records, filters and export fields are unchanged.
+
+Frontend lint, TypeScript, Prettier, production build and all 137 tests pass. Integration tests cover
+summaries, charts, table, contract detail, quotes and authorized amounts, manual overrides/refresh,
+failure/stale fallback, tooltips, mixed currencies and original filter/amount preservation. The
+updated browser harness passed EN/ES at 320/390/768/1440px, checking no page overflow, USD replacement,
+dynamic labels, visible focus and tooltip bounds/Escape dismissal. Screenshots are in the existing
+[visual evidence directory](design/assets/currency-exports/README.md).
+
+### Single export bar — 2026-11-24
+
+Moved both research and filtered-contract exports into one pale-green bar above the company title.
+The bar remains one line, with a scope selector and one Export button opening CSV/JSON choices;
+limits and scope warnings remain in an information tooltip. Contract exports register the current
+snapshot and filters with the header and remain disabled while table results update.
+
+All 139 frontend tests, ESLint, TypeScript, Prettier and production build passed. Added coverage for
+scope switching, current filtered requests, CSV/JSON choices, outside dismissal and Escape/focus
+return. The EN/ES browser harness passed at 320/390/768/1440px, including bar placement, a single
+control row, popup choices, tooltip bounds and no page-level overflow. Updated desktop/mobile
+[visual references](design/assets/currency-exports/README.md) include the open export dropdown.
+
+### Consistent custom dropdowns — 2026-11-24
+
+Replaced every native select with the shared `Dropdown` combobox: currency, export scope,
+Government Contracts filters/sort, Capital Markets filters and advanced-search modes. Replaced the
+buyer's native datalist with the editable variant, preserving arbitrary input and exact original
+suggestion values. Existing checkbox multi-selects now use matching popover styling and chevrons.
+No backend/API, source identifiers, filter payloads or financial calculations changed.
+
+All 144 frontend tests, ESLint, TypeScript, Prettier and the production build passed. New tests
+cover keyboard navigation/commit/cancel, accented type-ahead, disabled options, focus, outside/Tab
+dismissal, Unicode/raw values, editable suggestions and rendering outside clipping parents.
+Existing filter, localization and currency regressions use real custom-dropdown interactions.
+EN/ES browser checks passed at 320/390/768/1440px for currency, scope, contracts, Capital Markets and
+advanced search, including no native selects/datalists, bounded popups and no page overflow.
+Updated [visual references](design/assets/currency-exports/README.md) show expanded custom choices.

@@ -32,6 +32,7 @@ class SocrataClient:
             "/resource/c82u-588k.json",
             "/api/views/c82u-588k.json",
             "/resource/jbjy-vk9h.json",
+            "/resource/32sa-8pi3.json",
             "/api/views/jbjy-vk9h.json",
         ):
             raise ValueError("Unsupported source path")

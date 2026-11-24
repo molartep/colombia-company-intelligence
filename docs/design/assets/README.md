@@ -73,3 +73,6 @@ the historical baseline; running `--phase before` after a UI change does not rec
 Manual limitations: no real-user research, screen reader certification, broad publisher access
 testing or browser-engine parity claim. The browser matrix isolates UI behavior. Full integration
 and arithmetic correctness remain covered by the existing backend tests.
+
+2026-11-24: [Currency presentation, bounded exports and capability matrix references](currency-exports/README.md)
+include EN/ES desktop/mobile evidence and a reproducible synthetic browser check.

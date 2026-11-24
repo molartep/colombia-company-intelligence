@@ -7,7 +7,7 @@ verification are independent. This is not an investment-analysis or ownership-cl
 ## Migrate and import
 
 The browser now provides **Import RNVE directory** in the missing-directory search alert,
-Capital Markets source information and the **Advanced** tab. The action opens a fresh server-side
+Capital Markets source information and the **Platform References** page. The action opens a fresh server-side
 Chromium context and uses the documented public **DESCARGAR EMISORES → REPORTE EXCEL** controls,
 then runs the same validated importer and identity reconciliation as the CLI. If that public
 download fails, expand the action's options and upload the official issuer-only XLSX (10 MiB max).
@@ -31,7 +31,7 @@ The only mandatory imported dataset is this directory. RUES records are fetched 
 filter parameters are bundled. Issuer details, securities and quote sources retrieve evidence
 on demand once identity and connector-specific conditions are met. Missing page locators,
 ambiguous identity, source outages and unsupported features are not fixed by inventing an import.
-The Advanced page documents these dependencies and reads actual server counts and source attempts
+The Platform References page documents these dependencies and reads actual server counts and source attempts
 from `GET /api/v1/platform`; that endpoint does not probe publishers or expose private payloads.
 
 Apply the additive migration before starting the new backend:
@@ -207,9 +207,12 @@ backend/.venv/bin/python scripts/capital_markets_smoke.py \
 It validates the file and fetches only the named issuer's public securities report, without a
 database, app token, raw-record output, or full-directory network crawl.
 
-Known limits: issuer export retrieval is manual; filtered-export semantics, cancelled/historical
-report formats, PDF/combined-report parsers, BVC current listings, issuer registration/cancellation
-dates, symbols/ISINs, and verified ownership are not live established. See
+Known limits: directory imports are operator-triggered through the guarded public-download action
+or an official-file upload/CLI fallback; they are not a scheduled complete directory feed.
+Filtered-export semantics, broad cancelled/historical formats and PDF/combined reports are not
+validated. BVC page coverage is locator- and access-dependent; quote fallbacks require exact
+identity evidence and do not establish exchange-wide current trading. Dates and identifiers are
+shown only when reported, never inferred; verified ownership remains unavailable. See
 [the full source assessment](capital-markets-sources.md). New integrations should add their own
 schema validation, immutable evidence, source-specific identifiers and matching policy; they must
 not reuse the RUES search interface inappropriately or weaken verified-listing semantics.
@@ -323,3 +326,10 @@ trading, price or liquidity. Blank check cells mean the positive registration co
 been established. In offline deployments without a report retriever, the explicit indexed-search
 fallback remains available: it searches cached registrations before pagination and reports
 `ranking_scope: "all matching indexed BVC registrations"` with a coverage notice.
+
+## Current readiness
+
+Capital-market coverage is **partial**; quote coverage is **experimental** and provider-dependent.
+See the [capability matrix](capabilities.md), [USD presentation](currency-presentation.md), and
+[research export schema](exports.md). Historical phase validation below does not establish universal
+listing or price coverage. Research exports omit contact/administration details and private evidence.

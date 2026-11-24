@@ -1,5 +1,7 @@
+import { Dropdown } from './Dropdown'
+import { useCurrencyAmounts, useContractExport } from '../presentation/context'
 import { uiMessage, errorMessage } from '../i18n/messages'
-import { formatDate, formatDecimal, formatCurrency, formatNumber } from '../i18n/format'
+import { formatDate, formatNumber } from '../i18n/format'
 import { locale, t, useLanguage } from '../i18n'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { FitMetricValue } from './FitMetricValue'
@@ -37,19 +39,19 @@ const currencyLabel = (label: string, currency?: string) =>
   currency ? `${label} (${currency})` : label
 const timestamp = (value: string | null) =>
   value ? formatDate(value, true) : t('governmentContracts.sinConsulta')
-const decimal = formatDecimal
-function values(totals: Record<string, string>, currency?: string) {
+function values(
+  totals: Record<string, string>,
+  money: ReturnType<typeof useCurrencyAmounts>,
+  currency?: string,
+) {
   const entries = Object.entries(totals)
   return entries.length
-    ? entries
-        .map(([code, amount]) =>
-          code === currency ? decimal(amount) : formatCurrency(amount, code),
-        )
-        .join(' · ')
+    ? entries.map(([code, amount]) => money.format(amount, code, code === currency)).join(' · ')
     : t('governmentContracts.noDisponibleSinValoresValidos')
 }
 function QuerySummary({ summary }: { summary: NonNullable<SecopScreening['summary']> }) {
   useLanguage()
+  const money = useCurrencyAmounts()
   const currency = singleCurrency(summary.total_values)
 
   return (
@@ -60,8 +62,11 @@ function QuerySummary({ summary }: { summary: NonNullable<SecopScreening['summar
           [
             [t('governmentContracts.totalContratos'), formatNumber(summary.total_contracts)],
             [
-              currencyLabel(t('governmentContracts.valorContractualTotal'), currency),
-              values(summary.total_values, currency),
+              currencyLabel(
+                t('governmentContracts.valorContractualTotal'),
+                money.currency(currency) ?? undefined,
+              ),
+              values(summary.total_values, money, currency),
             ],
             [t('governmentContracts.entidadesContratantes'), formatNumber(summary.distinct_buyers)],
             [t('governmentContracts.firmaMasReciente'), formatDate(summary.latest_signature_date)],
@@ -99,6 +104,7 @@ function Activity({
   currency?: string
 }) {
   useLanguage()
+  const money = useCurrencyAmounts()
 
   const units = (value: string) => {
     const [whole = '0', fraction = ''] = value.split('.')
@@ -116,7 +122,10 @@ function Activity({
       <h3>{title}</h3>
       {!monetary && groups.some((g) => Object.keys(g.values).length > 0) && (
         <p className="small muted">
-          {currencyLabel(t('governmentContracts.valorContractualTotal'), currency)}
+          {currencyLabel(
+            t('governmentContracts.valorContractualTotal'),
+            money.currency(currency) ?? undefined,
+          )}
         </p>
       )}
       {groups.length ? (
@@ -125,10 +134,13 @@ function Activity({
             <li key={g.label}>
               <div>
                 <span>{sourceLabels ? sourceValue(g.label) : uiMessage(g.label)}</span>
-                <strong className={monetary ? 'currency-value' : undefined}>
-                  {monetary ? values(g.values, currency) : formatNumber(g.count)}
-                </strong>
+                {!monetary && <strong>{formatNumber(g.count)}</strong>}
               </div>
+              {monetary && (
+                <p className="currency-value">
+                  <strong>{values(g.values, money, currency)}</strong>
+                </p>
+              )}
               {(!monetary || currency) && (
                 <meter
                   min={0}
@@ -136,7 +148,7 @@ function Activity({
                   value={heights[index] ?? 0}
                   aria-label={
                     monetary
-                      ? `${sourceLabels ? sourceValue(g.label) : uiMessage(g.label)}: ${values(g.values, currency)}`
+                      ? `${sourceLabels ? sourceValue(g.label) : uiMessage(g.label)}: ${values(g.values, money, currency)}`
                       : t('governmentContracts.valueValueContratos', {
                           value0: sourceLabels ? sourceValue(g.label) : uiMessage(g.label),
                           count: g.count,
@@ -148,7 +160,7 @@ function Activity({
                 <small>{t('common.contractCount', { count: g.count })}</small>
               ) : (
                 Object.keys(g.values).length > 0 && (
-                  <small className="currency-value">{values(g.values, currency)}</small>
+                  <small className="currency-value">{values(g.values, money, currency)}</small>
                 )
               )}
             </li>
@@ -172,6 +184,7 @@ function ContractDetail({
   close: () => void
 }) {
   useLanguage()
+  const money = useCurrencyAmounts()
 
   const query = useQuery({
     queryKey: ['secop-detail', companyId, id, runId],
@@ -214,7 +227,12 @@ function ContractDetail({
               [t('governmentContracts.valorReportado')]:
                 query.data.value === null
                   ? null
-                  : `${decimal(query.data.value)} ${query.data.currency ?? t('governmentContracts.monedaNoInformada')}`,
+                  : money.format(
+                      query.data.value,
+                      query.data.currency ?? t('governmentContracts.monedaNoInformada'),
+                      false,
+                      true,
+                    ),
               [t('governmentContracts.estadoEnLaFuente')]: sourceValue(query.data.raw_status),
               [t('governmentContracts.tipoDeContrato')]: query.data.contract_type,
               [t('common.method')]: sourceValue(query.data.modality),
@@ -250,6 +268,7 @@ function ContractDetail({
 }
 function Contracts({ companyId, screening }: { companyId: string; screening: SecopScreening }) {
   useLanguage()
+  const money = useCurrencyAmounts()
 
   const [page, setPage] = useState(1)
   const [filters, setFilters] = useState({
@@ -283,6 +302,7 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
         : undefined,
     queryFn: ({ signal }) => api.secopContracts(companyId, params, signal),
   })
+  useContractExport(companyId, params.toString(), query.isFetching || query.isError || !query.data)
   const tableViewport = useRef<HTMLDivElement>(null)
   const tableHeight = useRef(0)
   useLayoutEffect(() => {
@@ -314,24 +334,23 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
         <label>
           {' '}
           {t('governmentContracts.entidadNombreExacto')}{' '}
-          <input
+          <Dropdown
+            editable
+            aria-label={t('governmentContracts.entidadNombreExacto')}
             value={filters.entity}
             className="secop-source-field"
             maxLength={1000}
-            list="secop-buyers"
-            onChange={(e) => {
-              const value = e.target.value
+            options={alphabetical(summary.top_buyers).map((g) => ({
+              value: g.label,
+              label: sourceValue(g.label),
+            }))}
+            onChange={(value) => {
               const original = summary.top_buyers.find(
                 (g) => g.label.toLocaleUpperCase('es-CO') === value.toLocaleUpperCase('es-CO'),
               )?.label
               change('entity', original ?? value)
             }}
           />
-          <datalist id="secop-buyers">
-            {alphabetical(summary.top_buyers).map((g) => (
-              <option key={g.label} value={sourceValue(g.label)} />
-            ))}
-          </datalist>
         </label>
         {(
           [
@@ -362,30 +381,33 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
         ).map(([key, label, options]) => (
           <label key={key}>
             {label}
-            <select value={filters[key]} onChange={(e) => change(key, e.target.value)}>
-              {key === 'year' && (
-                <option value="missing">{t('governmentContracts.sinFechaDeFirma')}</option>
-              )}
-              <option value="">{t('governmentContracts.todos')}</option>
-              {options.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            <Dropdown
+              aria-label={label}
+              value={filters[key]}
+              onChange={(value) => change(key, value)}
+              options={[
+                ...(key === 'year'
+                  ? [{ value: 'missing', label: t('governmentContracts.sinFechaDeFirma') }]
+                  : []),
+                { value: '', label: t('governmentContracts.todos') },
+                ...options,
+              ]}
+            />
           </label>
         ))}
         <div className="secop-sort-field">
           <label htmlFor="secop-sort">{t('governmentContracts.ordenarPor')}</label>
           <div className="secop-sort-control">
-            <select
+            <Dropdown
               id="secop-sort"
+              aria-label={t('governmentContracts.ordenarPor')}
               value={filters.sort}
-              onChange={(e) => change('sort', e.target.value)}
-            >
-              <option value="date">{t('governmentContracts.fechaDeFirma')}</option>
-              <option value="value">{t('governmentContracts.valorReportado')}</option>
-            </select>
+              onChange={(value) => change('sort', value)}
+              options={[
+                { value: 'date', label: t('governmentContracts.fechaDeFirma') },
+                { value: 'value', label: t('governmentContracts.valorReportado') },
+              ]}
+            />
             <button
               className="refresh-button"
               type="button"
@@ -435,7 +457,10 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
                     t('governmentContracts.contratoReferencia'),
                     t('governmentContracts.entidad'),
                     t('governmentContracts.descripcion'),
-                    currencyLabel(t('governmentContracts.valor'), currency),
+                    currencyLabel(
+                      t('governmentContracts.valor'),
+                      money.currency(currency) ?? undefined,
+                    ),
                     t('governmentContracts.firma'),
                     t('governmentContracts.estado'),
                     t('governmentContracts.modalidad'),
@@ -461,9 +486,12 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
                     <td className="numeric-cell">
                       {c.value === null
                         ? t('governmentContracts.noInformado')
-                        : c.currency === currency
-                          ? decimal(c.value)
-                          : `${decimal(c.value)} ${c.currency ?? t('governmentContracts.monedaNoInformada')}`}
+                        : money.format(
+                            c.value,
+                            c.currency ?? t('governmentContracts.monedaNoInformada'),
+                            c.currency === currency,
+                            true,
+                          )}
                     </td>
                     <td className="date-cell">{formatDate(c.signature_date)}</td>
                     <td>{sourceValue(c.raw_status)}</td>
@@ -524,6 +552,7 @@ function Contracts({ companyId, screening }: { companyId: string; screening: Sec
 }
 export function Screening({ companyId }: { companyId: string }) {
   useLanguage()
+  const money = useCurrencyAmounts()
 
   const client = useQueryClient()
   const query = useQuery({
@@ -642,13 +671,19 @@ export function Screening({ companyId }: { companyId: string }) {
               sourceLabels
             />
             <Activity
-              title={currencyLabel(t('governmentContracts.annualContractValue'), currency)}
+              title={currencyLabel(
+                t('governmentContracts.annualContractValue'),
+                money.currency(currency) ?? undefined,
+              )}
               groups={summary.annual}
               currency={currency}
               monetary
             />
             <Activity
-              title={currencyLabel(t('governmentContracts.topFiveBuyersByValue'), currency)}
+              title={currencyLabel(
+                t('governmentContracts.topFiveBuyersByValue'),
+                money.currency(currency) ?? undefined,
+              )}
               groups={summary.top_buyers}
               currency={currency}
               sourceLabels

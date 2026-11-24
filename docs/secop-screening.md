@@ -1,6 +1,10 @@
-# SECOP II supplier screening (Phase 3)
+# Government Contracts — SECOP II supplier screening
 
-The company profile’s **Screening** tab queries public electronic contracts associated with the selected company’s source-confirmed NIT. It describes procurement participation, not sanctions, corruption, fraud, or a company risk score. SECOP I, consortium membership attribution and other future sources are outside this phase.
+The company profile’s **Government Contracts** tab queries public electronic contracts associated with the selected company’s source-confirmed NIT. It describes procurement participation, not sanctions, corruption, fraud, or a company risk score. SECOP I, consortium membership attribution and other future sources are outside the implemented scope.
+
+Current readiness: **implemented**, with bounded SECOP II coverage. Historical “Phase 3” references
+describe delivery order, not financial intelligence. See the [capability matrix](capabilities.md),
+[optional USD presentation](currency-presentation.md) and [bounded exports](exports.md).
 
 ## Official source validation
 
@@ -71,7 +75,7 @@ All values use Python `Decimal`, PostgreSQL `NUMERIC(31,6)`, and JSON decimal st
 
 Counts, signature-date annual activity, all reported source statuses without an Other bucket, buyer count, modalities, buyer geography, and the five buyers by COP contract value are available. Missing signature dates have their own annual bucket and are never replaced with start or update dates. The status chart and its table filter use the exact reported `estado_contrato` text (outer whitespace trimmed). Every distinct status is shown, including single-contract statuses; there is no top-N or Other grouping. Only missing or blank statuses use `No informado`. Internal normalized categories remain available through the existing API `status` filter, and none implies payment. Cached summaries using older status categories are recomputed from their persisted contracts on read (`summary_policy=raw_status_groups_v1`) without contacting SECOP or changing freshness timestamps. Buyer counts prefer buyer NIT and fall back to normalized buyer name when missing.
 
-Socrata aggregation is used for the bounded retrieval preflight. Summing upstream values would count duplicates and bypass identity exclusions. Therefore final summaries use the fully materialized, verified snapshot rather than an unsafe upstream sum. The cap remains at 5,000 source rows for now. Portfolios above it display a prominent alert near the top of Screening explaining that the query could not be completed and no partial totals are published. Any previous successful result remains visible with a stale-data notice. Supporting larger portfolios is deferred.
+Socrata aggregation is used for the bounded retrieval preflight. Summing upstream values would count duplicates and bypass identity exclusions. Therefore final summaries use the fully materialized, verified snapshot rather than an unsafe upstream sum. The cap remains at 5,000 source rows for now. Portfolios above it display a prominent alert near the top of Government Contracts explaining that the query could not be completed and no partial totals are published. Any previous successful result remains visible with a stale-data notice. Supporting larger portfolios is deferred.
 
 ## Persistence and lifecycle
 
@@ -106,7 +110,7 @@ Source links use the exact published HTTPS URL only on `community.secop.gov.co` 
 make migrate
 make backend
 make frontend
-# Find a company, open Screening, then Consultar SECOP.
+# Find a company, open Government Contracts, then refresh the SECOP query.
 make test
 make lint
 make build
@@ -121,11 +125,12 @@ backend/.venv/bin/python scripts/secop_smoke.py --nit 901449437
 
 Automated tests use synthetic records and mocked HTTP. They cover exact supplier identity/DV/group exclusions, buyer-versus-supplier separation, duplicates/conflicts, decimals/currencies/dates, upstream count/paging/schema/drift/cap failures, unsafe links, API filters/details/ownership, migration/idempotency/cooldown/concurrency/rollback, frontend loading/failures/empty/stale states and snapshot pagination/details. Live smoke checks intentionally do not print source rows or credentials.
 
+**Historical implementation validation (2026-11-18; not rerun by this documentation review).**
 The implementation was validated against an isolated PostgreSQL 17.12 instance built and run under `/tmp`, with no system service. The database suite executed actual upgrade/downgrade/re-upgrade and Alembic schema-diff checks, Phase 1/2 regressions, SECOP persistence, cache/failure isolation, concurrent refresh rejection and transactional rollback. Frontend tests, lint/type checks, production builds, bounded live connector validation and desktop/mobile/tablet browser checks also passed. Final automated validation after the COP and nine-/ten-digit matching updates: all 293 backend tests passed together with PostgreSQL and `RUN_BROWSER_TESTS=1`. All 96 frontend tests passed, including large-portfolio alerts, highlighted summary metrics, sort direction toggling and five-contract pagination. Run the migration against your application database before using the new routes; no existing application database was modified during testing.
 
 ## Extension boundary
 
-A future connector can reuse the company/source run history, atomic successful snapshot, exact identity evidence links, stale-success fallback and independent source status pattern. Add a separate adapter, verified matching rules, source ID, schema and source-specific UI component; expose it through a source selector in Screening. Do not reinterpret the SECOP outcome as an overall background-check result. Future SECOP I, SIC, Contraloría and regulatory connectors require their own validation and authorization; none is implemented here.
+A future connector can reuse the company/source run history, atomic successful snapshot, exact identity evidence links, stale-success fallback and independent source status pattern. Add a separate adapter, verified matching rules, source ID, schema and source-specific UI component; expose it through a future source selector. Do not reinterpret the SECOP outcome as an overall background-check result. Future SECOP I, SIC, Contraloría and regulatory connectors require their own validation and authorization; none is implemented here.
 
 ## Interface previews
 
@@ -133,6 +138,6 @@ The summary appears in the right half of the screening header on desktop and sta
 
 Screenshots use **synthetic test data**, not actual findings about a company. Browser verification covered a desktop viewport, tablet (768px), mobile (390px), contract detail opening/closing, browser errors and page overflow.
 
-![Desktop Screening with synthetic data](screenshots/secop-desktop.png)
+![Historical Government Contracts view with synthetic data](screenshots/secop-desktop.png)
 
 [Mobile preview](screenshots/secop-390.png) · [Tablet preview](screenshots/secop-768.png)

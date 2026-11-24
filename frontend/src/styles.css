@@ -1697,7 +1697,7 @@ details dl {
   min-width: 0;
   margin-top: 0;
 }
-.secop-sort-control button {
+.secop-sort-control > .refresh-button {
   font-size: var(--font-size-subheading);
   padding: var(--space-1) var(--space-3);
 }
@@ -2354,4 +2354,321 @@ tbody tr:hover {
   padding: var(--space-6);
   text-align: center;
   color: var(--color-text-muted);
+}
+
+.company-information {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 17rem;
+  align-items: start;
+  gap: var(--space-6);
+  margin-block: var(--space-8) var(--space-6);
+}
+.company-information .profile-heading {
+  margin-top: 0;
+  min-width: 0;
+}
+.presentation-controls {
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-4);
+  margin: 0;
+}
+.currency-card-heading,
+.currency-rate-label,
+.currency-rate-input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.currency-card-heading {
+  justify-content: space-between;
+  font-size: var(--font-size-card);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-2);
+}
+.currency-rate-label {
+  justify-content: space-between;
+  margin-top: var(--space-3);
+  font-size: var(--font-size-caption);
+}
+.presentation-controls select,
+.presentation-controls input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: var(--control-height);
+  padding: var(--space-2);
+  border: var(--border-width) solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-small);
+}
+.currency-rate-input .refresh-button {
+  flex: 0 0 var(--control-height);
+  width: var(--control-height);
+  padding: var(--space-2);
+}
+.currency-rate-input svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+.presentation-controls .filter-help [role='tooltip'] {
+  left: auto;
+  right: 0;
+}
+.currency-rate-status {
+  margin-top: var(--space-2);
+  margin-bottom: 0;
+}
+@media (max-width: 700px) {
+  .company-information {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .presentation-controls {
+    max-width: 20rem;
+    justify-self: end;
+  }
+  .presentation-controls input,
+  .presentation-controls select,
+  .currency-rate-input .refresh-button {
+    min-height: var(--control-height-touch);
+  }
+}
+
+.export-area {
+  margin-top: var(--space-5);
+}
+.export-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-selected);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-panel);
+}
+.export-scope {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+select.export-scope {
+  width: 100%;
+  height: var(--control-height);
+  padding: var(--space-2);
+  border: var(--border-width) solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: var(--font-size-small);
+}
+.export-limit {
+  white-space: nowrap;
+}
+.export-controls > .filter-help,
+.export-dropdown {
+  flex-shrink: 0;
+}
+.export-controls .filter-help [role='tooltip'] {
+  left: auto;
+  right: 0;
+}
+.export-dropdown {
+  position: relative;
+}
+.export-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+.export-trigger svg {
+  width: 16px;
+  height: 16px;
+}
+.export-options {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  z-index: var(--z-tooltip);
+  min-width: 8rem;
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-popover);
+}
+.export-options button {
+  display: block;
+  width: 100%;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-badge);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: start;
+  font: inherit;
+  font-size: var(--font-size-small);
+}
+.export-options button:hover,
+.export-options button:focus-visible {
+  background: var(--color-surface-selected);
+}
+.export-status:empty {
+  display: none;
+}
+@media (max-width: 700px) {
+  .export-controls {
+    gap: var(--space-2);
+    padding-inline: var(--space-2);
+  }
+  .export-limit {
+    display: none;
+  }
+  select.export-scope,
+  .export-options button {
+    min-height: var(--control-height-touch);
+  }
+}
+.export-controls {
+  position: relative;
+}
+.export-controls > .filter-help {
+  position: static;
+}
+.export-controls .filter-help [role='tooltip'] {
+  top: calc(100% + var(--space-1));
+  right: var(--space-3);
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height);
+  padding: var(--space-2);
+  border: var(--border-width) solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-small);
+  text-align: start;
+}
+.dropdown-trigger > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dropdown-trigger > svg {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+}
+.dropdown-trigger:hover:not(:disabled) {
+  background: var(--color-surface-selected);
+}
+.dropdown-trigger[aria-expanded='true'] {
+  border-color: var(--color-focus);
+}
+.dropdown-panel {
+  z-index: var(--z-tooltip);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-popover);
+}
+.dropdown-panel .dropdown-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-badge);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-small);
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.dropdown-option > span:first-child {
+  min-width: 0;
+}
+.dropdown-option[aria-selected='true'] {
+  font-weight: var(--font-weight-semibold);
+}
+.dropdown-panel .dropdown-option:hover:not([aria-disabled='true']),
+.dropdown-panel .dropdown-option[data-active='true'],
+.dropdown-panel .dropdown-option:focus-visible {
+  background: var(--color-surface-selected);
+}
+.dropdown-option[aria-disabled='true'] {
+  opacity: 0.65;
+  cursor: default;
+}
+.market-filters label > .dropdown-trigger,
+.filter-field label > .dropdown-trigger {
+  margin-top: var(--space-2);
+}
+.secop-sort-control > .dropdown-trigger {
+  flex: 1;
+}
+@media (max-width: 700px) {
+  .dropdown-trigger,
+  .dropdown-panel .dropdown-option {
+    min-height: var(--control-height-touch);
+  }
+}
+.multi-select {
+  position: relative;
+}
+.multi-select > summary {
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+.multi-select-options {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  right: 0;
+  z-index: var(--z-tooltip);
+  border: var(--border-width) solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-popover);
+  overscroll-behavior: contain;
+}
+.multi-select > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.multi-select > summary svg {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
 }

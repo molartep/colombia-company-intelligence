@@ -1,3 +1,4 @@
+import { openDropdown } from './testDropdown'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -331,6 +332,7 @@ test('SECOP display casing follows the allowlist while API values and descriptio
   expect(contract.raw_status).toBe('enviado Proveedor')
   expect(contract.buyer).toBe('Entidad Mixta')
   expect(contract.modality).toBe('Contratación directa')
+  await openDropdown(screen.getByRole('combobox', { name: 'Estado' }))
   expect(
     screen.getByRole('option', { name: contract.raw_status.toLocaleUpperCase('es-CO') }),
   ).toHaveValue(contract.raw_status)

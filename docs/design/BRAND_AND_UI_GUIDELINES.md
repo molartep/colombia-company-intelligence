@@ -109,13 +109,13 @@ Light mode is the only implemented theme. Do not add scattered dark-mode overrid
 | `SiteHeader`, `LanguageSwitcher` | Main navigation, original brand, EN/ES | Black masthead; small localized links; navigation wraps at 1100px | Active link underline; pressed language button; no route-order changes | Localized nav landmarks, pressed states and visible focus. Do not hide languages on mobile. |
 | `SearchForm`, `SearchButton` | Explicit company name/NIT submission | Existing field/button grouping; 14px field, 13px button | Dark primary button, hover, disabled during request; focus-within ring | Label/required/minimum length retained; no search-on-every-keystroke change. Do not remove the focus indicator. |
 | `.refresh-button`, `.pagination`, `.copy`, `.filter-clear` | Secondary and operational actions | 40px minimum height, 44px on mobile; 13px text; 6px radius | Quiet border, selected-surface hover, disabled opacity .65, localized busy state | Native buttons, existing disabled rules, focus visible. Do not conflate dismissing a dialog with cancelling a source request. |
-| `AdvancedFilters`, `.market-filters` | Source/search restrictions | Labels before controls; coherent 40px field height; control border distinct from card border | Existing applied-vs-draft behavior and query values remain | Native labels/fieldset/grouping; source option labels follow the explicit display registry; original option values are sent to the API. Never translate option values or reset filters on language switch. |
+| `AdvancedFilters`, `.market-filters` | Source/search restrictions | Labels before controls; coherent 40px field height; control border distinct from card border | Existing applied-vs-draft behavior and query values remain | Associated labels/fieldset/grouping; shared custom Dropdown comboboxes; source option labels follow the explicit display registry; original option values are sent to the API. Never translate option values or reset filters on language switch. |
 | `FilterHelp` | Short explanatory tooltip | 32px information button, 12px popover; z-index 20 | Shows on hover/focus; Escape suppresses while interaction remains; leave/reenter restores | `aria-describedby` survives dismissal; pointer can enter tooltip; focus restores predictably. Avoid interactive links inside this short tooltip. |
 | `.tabs`, Parameters tablist | Company sections and fixed parameter groups | 40px targets, underlined current tab; native horizontal scrolling | Existing navigation/keyboard arrows and locale state retained | Current state is textual/semantic as well as colored. Do not reorder sources to fit a screen. |
 | `.panel`, `.profile-grid` | Group related evidence | White surface, quiet border, 8px radius; 24px padding | Static; no ornamental lift animation | Use headings and detail-list semantics. Do not make every individual fact a KPI. |
 | `RegistrationStatus`, `MissingValue`, `ReviewValue` | Reported registration / availability / review labels | 12px badge, explicit words, 4px radius | Existing source tone mapping; Missing/Review visible | Source labels follow only the approved display registry; the original evidence stays untouched. Never turn colors into a risk score or a new finding. |
 | Search / securities / SECOP tables | Compare dense source records | 13px cells, 12px headings, local scrolling, sticky headers where a bounded viewport exists | Quiet row hover; exact money right aligned; dates kept together | Named focusable regions, mobile scroll hint, keyboard scrolling. Preserve all columns and exact links. Do not add ellipsis to financial amounts. |
-| SECOP query summary | Four verified metrics | 2×2 grid; tabular figures; labels subordinate to values | Actual summary only; unavailable stays unavailable | Exact values stay on one line with `FitMetricValue`; no soft breaks are permitted. No synthetic defaults, currency conversion or revenue claim. |
+| SECOP query summary | Four verified metrics | 2×2 grid; tabular figures; labels subordinate to values | Actual summary only; unavailable stays unavailable | Exact values stay on one line with `FitMetricValue`; no soft breaks are permitted. No synthetic defaults or revenue claim. Opt-in USD replaces COP in the same metric with an ≈ prefix; source amounts remain unchanged. |
 | SECOP `Activity` | Counts/statuses, annual value, buyer ranking | Existing native meters, exact values, approved source label casing | No animation required; all source statuses remain | Values and accessible labels remain available apart from bar length. Do not group arbitrary statuses into Other. |
 | `SourceInformationCard`, provenance / methodology / workflow `details` | Progressive disclosure | Native disclosure, clear summary, readable metadata | Existing collapsed defaults and source refresh controls | Keyboard-operable summary, visible focus, original URLs. Do not visually promote source absence into a negative conclusion. |
 | `Loading`, `SearchLoadingDialog` | Known in-progress operation | Quiet status notice; existing modal and animation asset | Inline progress remains; Continue browsing or Escape closes only the overlay | Labeled modal, localized exit, polite live status; reduced-motion uses static glyph. No indefinite forced modal. |
@@ -130,7 +130,7 @@ Light mode is the only implemented theme. Do not add scattered dark-mode overrid
 
 ## E. Data visualization and evidence conventions
 
-1. **Money:** currency values never wrap or split into several lines. Use `white-space: nowrap`; compact KPI values use the shared `FitMetricValue` component, which measures available space and reduces font size without modifying text. The source record, precision, and accessible value stay unchanged. For tables/charts, preserve a sufficient minimum width and allow local scrolling rather than truncating or splitting the number. Use the shared `i18n/format.ts` helpers with decimal strings. Preserve original scale/precision and currency codes. Never cast a financial amount to Number for display or convert currencies automatically. Aggregated currencies stay separate. SECOP’s explicit COP convention remains labeled; reported contract value is not revenue or payment.
+1. **Money:** currency values never wrap or split into several lines. Use `white-space: nowrap`; compact KPI values use the shared `FitMetricValue` component, which measures available space and reduces font size without modifying text. The source record, precision, and accessible value stay unchanged. For tables/charts, preserve a sufficient minimum width and allow local scrolling rather than truncating or splitting the number. Use the shared `i18n/format.ts` helpers with decimal strings. Preserve original scale/precision and currency codes. Never cast a financial amount to Number for display or convert currencies automatically. Optional USD presentation replaces displayed COP with an ≈-prefixed USD amount in the same element and typography; source COP remains unchanged in storage/API/exports. Currency titles and column units follow the displayed currency, and unavailable rates retain COP labels. The header Currency card exposes effective TRM versus manual provenance and information-icon tooltips; see [rate behavior](../currency-presentation.md). Aggregated currencies stay separate. SECOP’s explicit COP convention remains labeled; reported contract value is not revenue or payment.
 2. **Alignment:** `.numeric-cell` is right aligned and uses tabular figures. `.date-cell` is a complete date. Short identifiers retain leading zeros. Keep the original order/sort/filter values.
 3. **KPIs:** emphasize verified count/value before supporting detail. No zeros for unavailable information. Preserve the SECOP 2×2 summary. Every metric fits one line by reducing its font size when necessary; every digit remains available to reading/copying. Do not use `<wbr>` inside money.
 4. **Trends:** keep direction sign, percentage and source date. Green/up does not imply a good company; red/down does not imply a sanction. Do not add a trend arrow when there is no comparison.
@@ -335,3 +335,51 @@ The appendix below lists the actual values in `design-tokens.css`. Media thresho
 | `--z-tooltip` | `20` |
 | `--z-skip-link` | `50` |
 
+
+## Optional presentation and export controls — 2026-11-24
+
+The company header uses a two-column grid with an always-visible Currency card at the top right
+(in document flow, not a viewport overlay). At 700px and below it stacks beneath company identity
+and aligns right. The card has a labeled custom COP/USD dropdown. USD loads the current effective TRM into
+an editable COP-per-USD input; edits are visibly manual, and an accessible refresh-arrow button
+restores the reference. No manual date input. Information uses the existing `FilterHelp` component
+with focus, Escape dismissal and viewport-contained placement. Rate state remains visible.
+
+USD replaces each COP display in its existing element with an ≈ prefix and the same weight/size,
+including summary metrics, chart values, tables, contract details, quoted prices and authorized
+amounts. Currency-bearing titles/columns update together. Original source values, filters, chart
+ordering and original-currency export fields remain unchanged. Non-COP currencies remain separate.
+Invalid/unavailable reference rates retain COP displays/labels and disable USD exports.
+
+One export bar sits above the company title, within the currency provider. It uses the existing
+`--color-surface-selected` faded green, a compact custom scope dropdown (company research or the current
+filtered contracts), an information tooltip and one Export disclosure button. CSV/JSON choices
+appear in an anchored popover using native buttons. Escape restores trigger focus; blur/outside
+pointer interaction dismisses it. The bar stays on one line at all supported widths; the short
+limit hint is desktop-only, with full limits/warnings retained in the tooltip. Export failures
+remain visible below the bar. Contract controls register their active snapshot/filters with the
+header bar; no secondary export action remains inside the contracts table panel. References keeps
+the existing named table region.
+[Visual evidence](assets/currency-exports/README.md) records both languages and responsive widths.
+
+
+## Shared custom dropdowns — 2026-11-24
+
+Use `components/Dropdown.tsx` for single-value selections: currency, export scope, Government Contracts
+filters/sorting, Capital Markets filters and advanced-search modes. The buyer suggestion field uses
+its editable combobox variant, preserving arbitrary exact buyer text and original suggestion values.
+No HTML select or datalist controls remain. Advanced checkbox multi-selects keep their selection
+behavior, styled as the same white, bordered popover with green hover states and a quiet shadow.
+
+Selection triggers and the Export action share `.dropdown-panel` / `.dropdown-option` styles,
+existing colors/radii, 40px controls and 44px mobile targets. Options wrap long text, scroll locally
+and identify selection with a checkmark plus `aria-selected`. Only the closed trigger may ellipsize
+long labels; full option text stays in the accessible description and popup. Source values never change.
+
+Single-select popups are portaled outside clipping panels, positioned relative to the trigger,
+flipped above when needed, and bounded to the viewport. Keep `role=combobox`, listbox/options,
+accessible labels, expanded/selected/disabled states and active-descendant references. Focus stays
+on the trigger; arrows/Home/End/type-ahead navigate, Enter/Space commit, Escape cancels, Tab exits,
+and outside pointer interactions dismiss. Editable inputs preserve text-editing keys and free text.
+Option buttons retain trigger focus on pointer selection. Advanced multi-select disclosures support
+Escape/focus return and blur dismissal. Reduced motion follows existing global behavior.

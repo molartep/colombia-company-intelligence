@@ -1,0 +1,26 @@
+{
+  "reviewed_at": "2026-11-24",
+  "source_url": "https://www.datos.gov.co/d/32sa-8pi3",
+  "name": "Tasa de Cambio Representativa del Mercado- TRM",
+  "attribution": "Superintendencia Financiera de Colombia - SUPERFINANCIERA, Bogotá D.C.",
+  "licenseId": "CC_40_BY_SA",
+  "frequency": "Diaria",
+  "columns": [
+    {
+      "fieldName": "valor",
+      "dataTypeName": "number"
+    },
+    {
+      "fieldName": "unidad",
+      "dataTypeName": "text"
+    },
+    {
+      "fieldName": "vigenciadesde",
+      "dataTypeName": "calendar_date"
+    },
+    {
+      "fieldName": "vigenciahasta",
+      "dataTypeName": "calendar_date"
+    }
+  ]
+}

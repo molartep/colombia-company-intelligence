@@ -73,6 +73,39 @@ export function Advanced() {
         {' '}
         {t('advanced.architectureDataReadinessAndTheTechnicalWorkflowBehindEachFinding')}
       </p>
+      <section className="panel" aria-labelledby="capabilities-title">
+        <h2 id="capabilities-title">{t('capabilities.title')}</h2>
+        <p className="small muted">{t('capabilities.note')}</p>
+        <div className="table-wrap" tabIndex={0} role="region" aria-label={t('capabilities.title')}>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">{t('capabilities.capability')}</th>
+                <th scope="col">{t('capabilities.status')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(
+                [
+                  ['identity', 'implemented'],
+                  ['markets', 'partial'],
+                  ['quotes', 'experimental'],
+                  ['contracts', 'implemented'],
+                  ['presentation', 'implemented'],
+                  ['exports', 'implemented'],
+                  ['references', 'implemented'],
+                  ['future', 'planned'],
+                ] as const
+              ).map(([feature, readiness]) => (
+                <tr key={feature}>
+                  <td>{t(`capabilities.${feature}`)}</td>
+                  <td>{t(`capabilities.${readiness}`)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
       <section className="panel" aria-labelledby="runtime-status-title">
         <div className="section-heading">
           <h2 id="runtime-status-title">{t('advanced.currentDataState')}</h2>

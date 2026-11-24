@@ -1,7 +1,9 @@
+import { Dropdown } from './Dropdown'
+import { useCurrencyAmounts } from '../presentation/context'
 import { formatNumber } from '../i18n/format'
 import { FitMetricValue } from './FitMetricValue'
 import { uiMessage, errorMessage } from '../i18n/messages'
-import { formatCurrency, formatDecimal } from '../i18n/format'
+import { formatDecimal } from '../i18n/format'
 import { t, useLanguage } from '../i18n'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -98,6 +100,7 @@ function AdministrationValue({
 
 export function CapitalMarkets({ companyId }: { companyId: string }) {
   useLanguage()
+  const money = useCurrencyAmounts()
 
   const client = useQueryClient()
   const refresh = useMutation({
@@ -359,7 +362,7 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                         <FitMetricValue
                           value={
                             quote.currency
-                              ? formatCurrency(quote.last_price, quote.currency)
+                              ? money.format(quote.last_price, quote.currency)
                               : formatDecimal(quote.last_price)
                           }
                         />
@@ -633,54 +636,56 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
               <label>
                 {' '}
                 {t('capitalMarkets.categoria')}{' '}
-                <select
+                <Dropdown
+                  aria-label={t('capitalMarkets.categoria')}
                   value={category}
-                  onChange={(event) => {
-                    setCategory(event.target.value)
+                  onChange={(value) => {
+                    setCategory(value)
                     setPage(1)
                   }}
-                >
-                  <option value="">{t('capitalMarkets.todas')}</option>
-                  {Object.entries(categories).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {' '}
-                      {t(label)}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: t('capitalMarkets.todas') },
+                    ...Object.entries(categories).map(([value, label]) => ({
+                      value,
+                      label: t(label),
+                    })),
+                  ]}
+                />
               </label>
               <label>
                 {' '}
                 {t('capitalMarkets.mercadoRegistrado')}{' '}
-                <select
+                <Dropdown
+                  aria-label={t('capitalMarkets.mercadoRegistrado')}
                   value={exchange}
-                  onChange={(event) => {
-                    setExchange(event.target.value)
+                  onChange={(value) => {
+                    setExchange(value)
                     setPage(1)
                   }}
-                >
-                  <option value="">{t('capitalMarkets.todos')}</option>
-                  <option value="BVC">{t('capitalMarkets.bvcSegunSfc')}</option>
-                </select>
+                  options={[
+                    { value: '', label: t('capitalMarkets.todos') },
+                    { value: 'BVC', label: t('capitalMarkets.bvcSegunSfc') },
+                  ]}
+                />
               </label>
               <label>
                 {' '}
                 {t('capitalMarkets.estadoDeListado')}{' '}
-                <select
+                <Dropdown
+                  aria-label={t('capitalMarkets.estadoDeListado')}
                   value={listingStatus}
-                  onChange={(event) => {
-                    setListingStatus(event.target.value)
+                  onChange={(value) => {
+                    setListingStatus(value)
                     setPage(1)
                   }}
-                >
-                  <option value="">{t('capitalMarkets.todos')}</option>
-                  {Object.entries(listingLabels()).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {' '}
-                      {t(label)}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: t('capitalMarkets.todos') },
+                    ...Object.entries(listingLabels()).map(([value, label]) => ({
+                      value,
+                      label: t(label),
+                    })),
+                  ]}
+                />
               </label>
             </div>
             {securities.isFetching && <Loading />}
@@ -775,10 +780,7 @@ export function CapitalMarkets({ companyId }: { companyId: string }) {
                               {instrument.authorized_amount === null
                                 ? t('capitalMarkets.importeNoInformado')
                                 : instrument.currency
-                                  ? formatCurrency(
-                                      instrument.authorized_amount,
-                                      instrument.currency,
-                                    )
+                                  ? money.format(instrument.authorized_amount, instrument.currency)
                                   : formatDecimal(instrument.authorized_amount)}
                             </td>
                             <td>{instrument.credit_rating || t('capitalMarkets.noInformada')}</td>

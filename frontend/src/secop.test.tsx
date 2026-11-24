@@ -1,3 +1,4 @@
+import { chooseOption, openDropdown } from './testDropdown'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -286,7 +287,7 @@ test('sort direction button toggles direction and resets pagination', async () =
     expect(params.get('page_size')).toBe('5')
   })
   expect(screen.queryByLabelText('Address')).not.toBeInTheDocument()
-  await userEvent.selectOptions(screen.getByLabelText('Sort by'), 'value')
+  await chooseOption(screen.getByLabelText('Sort by'), 'value')
   await waitFor(() =>
     expect(vi.mocked(api.secopContracts).mock.calls.at(-1)![1].get('sort')).toBe('value'),
   )
@@ -331,6 +332,7 @@ test('status chart displays all source statuses and filters by the exact reporte
     [{ ...contract, buyer: 'Entidad Mixta', modality: 'Contratación directa' }],
   )
   await screen.findByRole('heading', { name: 'Contracts by status' })
+  await openDropdown(screen.getByLabelText('Status'))
   for (const name of names) {
     expect(
       screen.getByRole('meter', { name: `${name.toLocaleUpperCase('es-CO')}: 1 contract` }),
@@ -342,17 +344,21 @@ test('status chart displays all source statuses and filters by the exact reporte
   expect(screen.queryByText('Otro / no informado')).not.toBeInTheDocument()
   expect(await screen.findByRole('cell', { name: 'ENTIDAD MIXTA' })).toBeInTheDocument()
   expect(screen.getByRole('cell', { name: 'CONTRATACIÓN DIRECTA' })).toBeInTheDocument()
+  await openDropdown(screen.getByLabelText('Procurement method'))
   expect(screen.getByRole('option', { name: 'CONTRATACIÓN DIRECTA' })).toHaveValue(
     'Contratación directa',
   )
-  await userEvent.selectOptions(screen.getByLabelText('Status'), 'En aprobación')
+  await chooseOption(screen.getByLabelText('Status'), 'En aprobación')
   await waitFor(() => {
     const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]
     expect(params.get('raw_status')).toBe('En aprobación')
     expect(params.has('status')).toBe(false)
   })
-  await userEvent.selectOptions(screen.getByLabelText('Procurement method'), 'Contratación directa')
-  await userEvent.type(screen.getByLabelText('Entity (exact name)'), 'Entidad Mixta')
+  await chooseOption(screen.getByLabelText('Procurement method'), 'Contratación directa')
+  await userEvent.type(
+    screen.getByRole('combobox', { name: 'Entity (exact name)' }),
+    'Entidad Mixta',
+  )
   await waitFor(() => {
     const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]
     expect(params.get('modality')).toBe('Contratación directa')
@@ -363,14 +369,16 @@ test('status chart displays all source statuses and filters by the exact reporte
 test('missing-signature-date option comes first and sends a missing-date filter', async () => {
   show(completed)
   const year = await screen.findByLabelText('Signature year')
-  expect(within(year).getAllByRole('option')[0]).toHaveTextContent('No signature date')
-  await userEvent.selectOptions(year, 'missing')
+  expect(within(await openDropdown(year)).getAllByRole('option')[0]).toHaveTextContent(
+    'No signature date',
+  )
+  await chooseOption(year, 'missing')
   await waitFor(() => {
     const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]
     expect(params.get('missing_signature_date')).toBe('true')
     expect(params.has('year')).toBe(false)
   })
-  await userEvent.selectOptions(year, '2025')
+  await chooseOption(year, '2025')
   await waitFor(() => {
     const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]
     expect(params.get('year')).toBe('2025')
@@ -423,16 +431,19 @@ test('contract filter choices are alphabetic uppercase labels with original API 
   for (const label of ['Status', 'Procurement method']) {
     const select = await screen.findByLabelText(label)
     expect(
-      within(select)
+      within(await openDropdown(select))
         .getAllByRole('option')
-        .map((o) => o.textContent),
+        .map((o) => o.querySelector('span')?.textContent),
     ).toEqual(['All', 'ÁBACO', 'BETA', 'ZETA'])
-    await userEvent.selectOptions(select, 'Ábaco')
+    await chooseOption(select, 'Ábaco')
   }
+  await userEvent.click(screen.getByRole('combobox', { name: 'Entity (exact name)' }))
   expect(
-    [...document.querySelectorAll('#secop-buyers option')].map((o) => o.getAttribute('value')),
+    within(screen.getByRole('listbox', { name: 'Entity (exact name)' }))
+      .getAllByRole('option')
+      .map((o) => o.querySelector('span')?.textContent),
   ).toEqual(['ÁBACO', 'BETA', 'ZETA'])
-  await userEvent.type(screen.getByLabelText('Entity (exact name)'), 'ÁBACO')
+  await userEvent.type(screen.getByRole('combobox', { name: 'Entity (exact name)' }), 'ÁBACO')
   await waitFor(() => {
     const params = vi.mocked(api.secopContracts).mock.calls.at(-1)![1]
     expect(params.get('raw_status')).toBe('Ábaco')
@@ -465,7 +476,7 @@ test('changing a selected filter keeps controls and previous rows mounted while 
         finish = resolve
       }),
   )
-  await userEvent.selectOptions(status, 'En ejecución')
+  await chooseOption(status, 'En ejecución')
   expect(screen.getByLabelText('Status')).toBe(status)
   expect(screen.getByRole('button', { name: 'CONTRACT-1' })).toBeInTheDocument()
   expect(screen.getByRole('region', { name: 'Verified contracts table' })).toHaveAttribute(
@@ -486,7 +497,7 @@ test('changing a selected filter keeps controls and previous rows mounted while 
   expect(screen.getByLabelText('Status')).toBe(status)
   expect(screen.queryByText('Updating… Previous results shown.')).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'CONTRACT-1' })).not.toBeInTheDocument()
-  await userEvent.selectOptions(status, '')
+  await chooseOption(status, '')
   await waitFor(() =>
     expect(vi.mocked(api.secopContracts).mock.calls.at(-1)![1].has('raw_status')).toBe(false),
   )

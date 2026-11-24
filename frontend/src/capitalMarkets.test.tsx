@@ -1,3 +1,4 @@
+import { chooseOption } from './testDropdown'
 import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -206,12 +207,12 @@ test('securities filters use API parameters and reset pagination', async () => {
   await screen.findByText('BO SYNTHETIC BOND')
   await userEvent.click(screen.getByRole('button', { name: /Next →/ }))
   await waitFor(() => expect(requests.at(-1)!.searchParams.get('page')).toBe('2'))
-  await userEvent.selectOptions(screen.getByLabelText('Category'), 'corporate_bonds')
+  await chooseOption(screen.getByLabelText('Category'), 'corporate_bonds')
   await waitFor(() => expect(requests.at(-1)!.searchParams.get('page')).toBe('1'))
   expect(requests.at(-1)!.searchParams.get('security_category')).toBe('corporate_bonds')
-  await userEvent.selectOptions(screen.getByLabelText('Reported market'), 'BVC')
+  await chooseOption(screen.getByLabelText('Reported market'), 'BVC')
   await waitFor(() => expect(requests.at(-1)!.searchParams.get('exchange')).toBe('BVC'))
-  await userEvent.selectOptions(screen.getByLabelText('Listing status'), 'unknown')
+  await chooseOption(screen.getByLabelText('Listing status'), 'unknown')
   await waitFor(() => expect(requests.at(-1)!.searchParams.get('listing_status')).toBe('unknown'))
 })
 
@@ -588,7 +589,7 @@ test('10-record pages show filtered totals, ranges and a stable overall heading 
   await userEvent.click(screen.getByRole('button', { name: /Next →/ }))
   await screen.findByText('11 - 12 of 12')
   expect(screen.getAllByRole('row')).toHaveLength(3)
-  await userEvent.selectOptions(screen.getByLabelText('Category'), 'corporate_bonds')
+  await chooseOption(screen.getByLabelText('Category'), 'corporate_bonds')
   await screen.findByText('1 - 1 of 1')
   expect(screen.getByText('1 record found')).toBeVisible()
   expect(screen.getByRole('heading', { name: 'Registered securities (12)' })).toBeVisible()

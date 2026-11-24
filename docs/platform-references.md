@@ -7,9 +7,15 @@ RUES company registration, Capital Markets, and Government Contracts through SEC
 The architecture diagram shows the frontend, FastAPI, private storage and source connectors.
 The technical flow diagram separates the three source workflows. Seven expandable technical
 steps explain matching, persistence, import, quotes, government contracts and runtime controls;
-all start collapsed. The former Scope and limits card has been removed. Diagrams use semantic
+all start collapsed. The former Scope and limits card was removed during the earlier redesign. A current capability
+matrix now distinguishes readiness from local database counts. Diagrams use semantic
 HTML and small inline SVG arrows, localized labels and responsive layouts; no diagram dependency
 or remote renderer is needed.
+
+The [capability matrix](capabilities.md) is the canonical scope review. The rendered matrix uses
+the same readiness categories, including partial RNVE coverage, experimental quotes, implemented
+Government Contracts, USD presentation/exports and planned financial statements/additional screening.
+No rate is retrieved by visiting References; it is opt-in on company profiles.
 
 ## Recorded data readiness
 

@@ -133,9 +133,17 @@ or parent/subsidiary merges are introduced. Machine links are re-evaluated as ca
 Registration/listing evidence uses snapshots. Capital Markets reads refresh missing or stale RNVE
 summaries through isolated Chromium and separate securities reports through a bounded HTTPX client.
 Both sources have independent 24-hour success caches and 15-minute failure cooldowns. The administrative CLI imports official
-issuer exports and refreshes one selected securities report. Unknown BVC/ownership findings remain
+issuer exports and refreshes one selected securities report. BVC findings remain source-dependent; ownership findings remain
 unknown. SSRF protection is structural: the transport constructs one allowlisted official report
 URL from validated issuer codes and refuses redirects. Capital Markets access can trigger bounded
 summary/report ingestion for verified issuers; other profile reads, filters and pagination stay local.
 See [data-flow diagram, operations and safeguards](capital-markets.md) and
 [verified report schema](capital-markets-sources.md).
+
+## Presentation and public exports
+
+`services/currency.py` provides bounded cached effective SFC TRM observations and Decimal USD
+presentation. Browser BigInt formatting retains original COP. `api/exports.py` and `services/exports.py`
+project stored public research/filtered snapshot rows into bounded, versioned CSV/JSON. No source
+records are rewritten. See [capabilities](capabilities.md), [rates](currency-presentation.md) and
+[export contracts](exports.md). References is `/references`; `/advanced` redirects for compatibility.

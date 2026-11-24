@@ -1,3 +1,4 @@
+import { chooseOption } from './testDropdown'
 import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -141,9 +142,9 @@ test('all advanced filters are submit-only, reset pagination and survive Next', 
   ]) {
     await userEvent.click(screen.getByRole('checkbox', { name: label }))
   }
-  await userEvent.selectOptions(screen.getByLabelText('Code matching'), 'prefix')
+  await chooseOption(screen.getByLabelText('Code matching'), 'prefix')
   await userEvent.type(screen.getByLabelText('Economic activity / CIIU'), '62')
-  await userEvent.selectOptions(screen.getByLabelText('Activity scope'), 'any')
+  await chooseOption(screen.getByLabelText('Activity scope'), 'any')
   const { fireEvent } = await import('@testing-library/react')
   for (const [label, value] of [
     ['Registration date from', '2000-01-01'],
@@ -154,7 +155,7 @@ test('all advanced filters are submit-only, reset pagination and survive Next', 
     fireEvent.change(screen.getByLabelText(label), { target: { value } })
   }
   await userEvent.type(screen.getByLabelText('Last renewed year'), '2024')
-  await userEvent.selectOptions(screen.getByLabelText('Year matching'), 'minimum')
+  await chooseOption(screen.getByLabelText('Year matching'), 'minimum')
   expect(requests.filter((url) => url.pathname.endsWith('/companies'))).toHaveLength(1)
   await userEvent.click(screen.getAllByRole('button', { name: /^Search/ }).at(-1)!)
   await waitFor(() =>

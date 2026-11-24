@@ -1,28 +1,30 @@
 # Roadmap
 
-Phase 1 implements company identity search and registration-scoped profiles. Phase 2 adds local
-RNVE issuer ingestion, registered securities, conservative matching, snapshots, and the Capital
-Markets profile. BVC corroboration and ownership remain unknown pending authorized evidence.
+Use the [current capability matrix](capabilities.md) for readiness and source coverage. Company
+identity, SECOP II Government Contracts, References, optional currency presentation and bounded
+exports are implemented. Capital Markets is usable with incomplete directory/report coverage;
+quote connectors remain experimental in coverage. Financial statements, corporate events and
+additional screening sources are planned.
 
-Next engineering priorities:
+## Backlog and prerequisites
 
-1. Add scheduled, bounded source contract monitoring and metadata caching, with schema drift alerts,
-   query latency measurements, and operator-controlled refresh policies.
-2. Validate a representative set of multi-registration/NIT conflicts with authoritative evidence;
-   design reviewed entity reconciliation and source-ID replacement handling without automatic merges.
-3. Prepare deployment access controls, privacy/retention policies, and browser end-to-end accessibility
-   tests before expanding public usage or adding new datasets.
+| Future work | Prerequisites and acceptance boundary |
+| --- | --- |
+| Source monitoring and drift alerts | Bounded metadata probes, documented publishing cadence, operator refresh policy and safe logs. Local References counts alone do not provide upstream monitoring. |
+| Reviewed identity reconciliation | Representative multi-registration/NIT conflicts, authoritative evidence, authenticated review and audit/undo policy. Preserve registration UUIDs; no automatic merges. |
+| Larger SECOP portfolios | Stable complete retrieval/aggregation and snapshot consistency strategy, load/rate tests, source-access assessment. Preserve no-partial-totals behavior until validated. [Current cap](secop-screening.md). |
+| Wider quote coverage | Reproducible authorized access, provider terms, exact identity evidence, provider-specific timestamps, historical/cancelled-format validation. [Existing access assessment](quote-source-access.md). |
+| Financial statements and ratios | Licensed Supersociedades/SFC discovery, identity links, reporting periods, original currencies, restatements and field-level evidence; deterministic tested calculations. |
+| Corporate events | Source discovery/rights, event taxonomy, identity evidence and source-effective/retrieval dates. |
+| SECOP I, SIC, Contraloría and other screening | Independent source/rights/privacy validation, adapters, ambiguity handling, completeness states and tests before a selectable-source UI. No blanket clearance. |
+| Grounded briefings | Verified evidence from the relevant implemented sources, citation coverage, uncertainty and deterministic calculations. A language model cannot invent missing records or resolve identity. |
+| Expanded public operation | Deployment-specific access controls, data rights, privacy/retention policies, source capacity assessment and browser/assistive-technology tests. Existing production guards do not establish public-launch readiness. |
 
-Later phases require independent source discovery and licensing/privacy review:
+## Delivery history
 
-- **Phase 2 follow-up:** establish authorized documented issuer-export automation and BVC listing
-  access, add authenticated match review, and validate historical/cancelled source formats.
-- **Phase 3 — Financial intelligence:** Supersociedades/SFC statements with periods, currencies,
-  restatements, field-level evidence, and deterministic ratios. No inferred financials.
-- **Phase 4 — Selectable screening:** opt-in SECOP, SIC integration proceedings, and Contraloría
-  datasets with source-specific evidence and ambiguity review. Missing matches are not blanket clearance.
-- **Phase 5 — Grounded briefings:** summaries reference verified normalized records and evidence.
-  Deterministic code computes financial results; language models cannot invent findings or resolve identity.
-
-Phases 3–5 remain unimplemented. Phase 2 source-access limitations and unassessed attributes are
-explicit in the UI and [operating guide](capital-markets.md).
+Phase 1 delivered registration identity; Phase 2 introduced the capital-market evidence layer.
+The original aspirational Phase 3 (financial intelligence), Phase 4 (selectable screening) and
+Phase 5 (briefings) were not release commitments. SECOP II was subsequently implemented under the
+historical “Phase 3” label in its migration/validation notes. Financial intelligence and screening
+beyond SECOP II remain planned. Read dated validation records as historical evidence, not current
+coverage guarantees.

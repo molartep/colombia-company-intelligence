@@ -193,5 +193,10 @@ verified code fields, all four CIIU fields, text calendar dates, and last-renewe
 
 Capital-markets sources are independent of RUES identity/registration fields. See
 [capital-markets source discovery](capital-markets-sources.md) for the verified SFC issuer XLSX,
-public issuer-specific securities reports, source-defined identifiers and unverified BVC access.
+public issuer-specific securities reports, source-defined identifiers and limited, access-dependent BVC/quote connectors.
 These sources do not populate RUES legal form, infer ownership, or certify current BVC trading.
+
+Optional [SFC TRM presentation](currency-presentation.md) is independent of source financial records.
+[Public research exports](exports.md) retain source attribution, original decimals and completeness
+warnings. See [current capability coverage](capabilities.md); dated discovery results above are
+historical observations, not a guarantee that upstream sources remain accessible.

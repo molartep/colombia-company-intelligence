@@ -242,11 +242,11 @@ async def review_context(browser, args, out, report, lang, device, width):
             assert await metric.locator("span").evaluate(
                 "e => e.getBoundingClientRect().width <= e.parentElement.clientWidth + 1"
             )
-        assert await page.locator(".secop-sort-control select").evaluate(
+        assert await page.locator(".secop-sort-control .dropdown-trigger").evaluate(
             "e => getComputedStyle(e).fontSize"
-        ) == await page.locator(".market-filters label select").first.evaluate(
-            "e => getComputedStyle(e).fontSize"
-        )
+        ) == await page.locator(
+            ".market-filters label .dropdown-trigger"
+        ).first.evaluate("e => getComputedStyle(e).fontSize")
         assert (
             await page.locator(".secop-bars").first.evaluate(
                 "e => parseFloat(getComputedStyle(e).paddingInlineEnd)"
