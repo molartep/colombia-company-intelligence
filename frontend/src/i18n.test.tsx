@@ -482,3 +482,20 @@ test('legacy Advanced URL redirects to References and navigation uses the new UR
     '/references',
   )
 })
+
+test('legacy cached outage messages identify RUES and do not expose codes as source names', async () => {
+  const timeout = 'source_timeout: official source failed; showing previously retrieved records.'
+  const connection =
+    'source_unavailable: official source failed; showing previously retrieved records.'
+  for (const language of ['en', 'es'] as const) {
+    await changeLanguage(language)
+    const catalog = language === 'en' ? en : es
+    expect(uiMessage(timeout)).toBe(catalog.messages.rues.timeoutFallback)
+    expect(uiMessage(connection)).toBe(catalog.messages.rues.unavailableFallback)
+    expect(
+      uiMessage(
+        catalog === en ? en.messages.rues.timeoutFallback : en.messages.rues.unavailableFallback,
+      ),
+    ).not.toContain('source_timeout:')
+  }
+})

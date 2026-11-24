@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     rate_limit_max_entries: int = Field(default=10000, ge=10, le=100000)
     database_url: str = "postgresql+asyncpg://cci:cci@localhost:5432/cci"
     socrata_app_token: str | None = None
-    socrata_timeout: float = Field(default=20, gt=0, le=60)
+    socrata_timeout: float = Field(default=60, gt=0, le=60)
     socrata_retries: int = Field(default=2, ge=0, le=4)
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     capital_markets_timeout: float = Field(default=30, gt=0, le=60)

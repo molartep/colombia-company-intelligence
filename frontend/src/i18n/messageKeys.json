@@ -45,5 +45,7 @@
   "Legal organization reported by RUES. Labels are reproduced from the source, not inferred legal classifications.": "parameters.groups.organization.description",
   "Registration category": "parameters.groups.category.title",
   "Source registration category. The reported labels distinguish natural persons from principal legal entities or ESALs; this is not an ownership classification.": "parameters.groups.category.description",
-  "Observed distinct source code/label pairs, not a separately certified taxonomy. Missing labels and unpadded codes are preserved. This versioned snapshot may lag publisher changes.": "parameters.catalogNote"
+  "Observed distinct source code/label pairs, not a separately certified taxonomy. Missing labels and unpadded codes are preserved. This versioned snapshot may lag publisher changes.": "parameters.catalogNote",
+  "RUES (Confecámaras / datos.gov.co) lookup timed out. Previously retrieved records are shown; they may be outdated or incomplete. Try again.": "messages.rues.timeoutFallback",
+  "RUES (Confecámaras / datos.gov.co) could not be queried. Previously retrieved records are shown; they may be outdated or incomplete. Try again.": "messages.rues.unavailableFallback"
 }

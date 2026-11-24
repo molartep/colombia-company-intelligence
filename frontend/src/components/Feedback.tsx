@@ -4,7 +4,15 @@ import { useEffect, useRef } from 'react'
 import { ApiError } from '../api/client'
 import { DirectoryImport } from './DirectoryImport'
 
-export function Failure({ error, retry }: { error: Error; retry?: () => void }) {
+export function Failure({
+  error,
+  retry,
+  message,
+}: {
+  error: Error
+  retry?: () => void
+  message?: string
+}) {
   useLanguage()
 
   const needsImport = error instanceof ApiError && error.code === 'bvc_directory_unavailable'
@@ -15,7 +23,7 @@ export function Failure({ error, retry }: { error: Error; retry?: () => void }) 
           ? t('feedback.theRnveIssuerDirectoryNeedsImporting')
           : t('feedback.weCouldnTRetrieveThisInformation')}
       </strong>
-      <p>{errorMessage(error)}</p>
+      <p>{message ?? errorMessage(error)}</p>
       {needsImport && <DirectoryImport onImported={retry} />}
       {retry && (
         <button className="text-link" onClick={retry}>

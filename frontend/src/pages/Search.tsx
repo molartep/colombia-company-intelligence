@@ -1,5 +1,5 @@
 import { formatNumber } from '../i18n/format'
-import { uiMessage } from '../i18n/messages'
+import { uiMessage, ruesSearchErrorMessage } from '../i18n/messages'
 import { t, useLanguage } from '../i18n'
 import { useState } from 'react'
 import { AdvancedFilters, FilterHelp } from '../components/AdvancedFilters'
@@ -115,7 +115,11 @@ export function Search() {
             </>
           )}
           {results.isError && (
-            <Failure error={results.error} retry={() => void results.refetch()} />
+            <Failure
+              error={results.error}
+              message={ruesSearchErrorMessage(results.error)}
+              retry={() => void results.refetch()}
+            />
           )}
           {results.data && (
             <>

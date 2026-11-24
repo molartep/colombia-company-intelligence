@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -6,6 +7,7 @@ from sqlalchemy import case, func, literal_column, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.errors import SourceError
 from app.core.normalization import Nit, compact_name, normalize_name
 from app.integrations.capital_markets.equity_identity import registered_bvc_company_ids
@@ -30,6 +32,16 @@ from app.schemas.api import AttributeState, Profile, RecordView, SearchItem, Sea
 from app.schemas.filters import SearchFilters
 from app.services.cached_filters import cached_conditions
 from app.services.identity import classify
+
+RUES_TIMEOUT_WARNING = (
+    "RUES (Confecámaras / datos.gov.co) lookup timed out. Previously retrieved records are shown; "
+    "they may be outdated or incomplete. Try again."
+)
+RUES_UNAVAILABLE_WARNING = (
+    "RUES (Confecámaras / datos.gov.co) could not be queried. "
+    "Previously retrieved records are shown; "
+    "they may be outdated or incomplete. Try again."
+)
 
 COMPANY_FIELDS = [
     "nit",
@@ -147,18 +159,26 @@ async def search_companies(
     offset = (page - 1) * page_size
     stale, warning = False, None
     try:
-        metadata = await adapter.metadata()
-        rows = await (
-            adapter.search_by_nit(
-                nit.number,
-                page_size + 1,
-                offset,
-                verification_digit=nit.verification_digit,
-                **filter_kwargs,
-            )
-            if nit
-            else adapter.search_by_name(query, page_size + 1, offset, **filter_kwargs)
-        )
+        # Bound the complete RUES network phase, including metadata and retry backoff.
+        # HTTPX timeouts alone are per I/O phase and would allow multiple full attempts.
+        try:
+            async with asyncio.timeout(get_settings().socrata_timeout):
+                metadata = await adapter.metadata()
+                rows = await (
+                    adapter.search_by_nit(
+                        nit.number,
+                        page_size + 1,
+                        offset,
+                        verification_digit=nit.verification_digit,
+                        **filter_kwargs,
+                    )
+                    if nit
+                    else adapter.search_by_name(query, page_size + 1, offset, **filter_kwargs)
+                )
+        except TimeoutError as exc:
+            raise SourceError(
+                "source_timeout", "RUES lookup exceeded its configured time limit."
+            ) from exc
         source.last_checked_at = datetime.now(UTC)
         stamp = metadata.get("rowsUpdatedAt")
         source.last_updated_at = (
@@ -248,7 +268,7 @@ async def search_companies(
             raise exc
         stale, warning = (
             True,
-            f"{exc.code}: official source failed; showing previously retrieved records.",
+            RUES_TIMEOUT_WARNING if exc.code == "source_timeout" else RUES_UNAVAILABLE_WARNING,
         )
     await session.commit()
     result = await serialize_search(

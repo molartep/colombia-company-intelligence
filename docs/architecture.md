@@ -147,3 +147,19 @@ presentation. Browser BigInt formatting retains original COP. `api/exports.py` a
 project stored public research/filtered snapshot rows into bounded, versioned CSV/JSON. No source
 records are rewritten. See [capabilities](capabilities.md), [rates](currency-presentation.md) and
 [export contracts](exports.md). References is `/references`; `/advanced` redirects for compatibility.
+
+## RUES lookup deadline and fallback
+
+`SOCRATA_TIMEOUT` defaults to 60 seconds (maximum 60). Company search wraps its complete RUES
+network phase in one `asyncio.timeout`: metadata validation, data retrieval, transport retries and
+backoff all consume the same budget. Persistence/cache queries and optional RNVE/BVC discovery
+remain outside that upstream budget. Request cancellation propagates; only deadline expiration
+becomes a source timeout. The shared HTTPX client also uses this setting for transport I/O timeouts;
+SECOP retains its independent complete-run deadline.
+
+On expiry, the existing filtered cache fallback is retained. Available cached matches are marked
+stale with RUES attribution and an explicit outdated/incomplete warning. No matching cache returns
+503, never a fabricated clean empty result. HTTPX timeout exceptions retain `source_timeout`;
+other transport failures use `source_unavailable`. Safe retry diagnostics record exception class,
+never the search query, NIT, URL, tokens or raw response. Search-specific EN/ES copy identifies RUES,
+while other source modules retain their own error wording.

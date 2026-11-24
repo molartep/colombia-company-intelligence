@@ -32,7 +32,8 @@ Unix socket; it is a local validation aid, not an application dependency or a co
 
 ## Limits and observations
 
-- Government requests intermittently timed out. The 20-second default can trigger stale fallback;
+- During the initial validation, government requests intermittently timed out. The then-20-second
+  default could trigger stale fallback;
   longer configurable timeouts helped during validation. No latency/service-availability guarantee
   is made. The browser showed the separately persisted failed-to-retrieve source status during an
   intermittent outage, while cached profiles remained available.
@@ -290,3 +291,29 @@ Existing filter, localization and currency regressions use real custom-dropdown 
 EN/ES browser checks passed at 320/390/768/1440px for currency, scope, contracts, Capital Markets and
 advanced search, including no native selects/datalists, bounded popups and no page overflow.
 Updated [visual references](design/assets/currency-exports/README.md) show expanded custom choices.
+
+## RUES shared 60-second deadline — 2026-11-24
+
+Raised the default and example/local settings to 60 seconds (the existing maximum). Company
+search now enforces one deadline for RUES metadata, query, retries and backoff, rather than allowing
+multiple full timeout windows. Cache persistence/recovery and optional BVC discovery remain outside
+that upstream budget. External cancellation propagates. Timeout versus other transport failures
+have distinct safe codes; retry logs include exception classes without query text or payloads.
+
+Cached failures preserve the existing filters, evidence and stale flag with an explicit RUES
+(Confecámaras / datos.gov.co) warning about outdated/incomplete records. No matching cache remains
+503. EN/ES search errors name RUES; other modules keep source-specific error behavior. Legacy cached
+warning strings are also rendered with the corrected copy.
+
+Validation: backend Ruff/format, strict mypy, 262 passing tests (66 PostgreSQL/optional tests skipped
+without a disposable test database/browser opt-in), frontend ESLint/TypeScript/Prettier, all 149
+frontend tests, production frontend build and backend wheel build passed. New tests cover expiry
+during metadata, query and real retry backoff, available/absent cache, external cancellation,
+transport classification, default/limit validation, and rendered EN/ES fallback/error states.
+The [synthetic browser review](design/assets/rues-timeout/README.md) passed all 16 combinations of
+language, 320/390/768/1440px width and cached/no-cache outcome.
+
+Restarted the local API with `SOCRATA_TIMEOUT=60`. A live request through the app proxy for the
+reported “Thomas greg” query, without filters, returned HTTP 200, 9 records, `stale=false` and
+`warning=null` in 20.96 seconds. This confirms the exercised request can complete beyond the old
+20-second threshold; it does not guarantee future upstream response times.

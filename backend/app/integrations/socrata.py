@@ -84,8 +84,16 @@ class SocrataClient:
                 except httpx.TransportError as exc:
                     if attempt == self.retries:
                         raise SourceError(
-                            "source_timeout", "Could not reach official source."
+                            "source_timeout"
+                            if isinstance(exc, httpx.TimeoutException)
+                            else "source_unavailable",
+                            "Official source request timed out."
+                            if isinstance(exc, httpx.TimeoutException)
+                            else "Could not connect to official source.",
                         ) from exc
+                    logger.warning(
+                        "socrata_transport_retry", extra={"exception_type": type(exc).__name__}
+                    )
                 logger.warning("socrata_retry", extra={"attempt": attempt + 1, "delay": delay})
                 await asyncio.sleep(max(0, delay))
         raise SourceError("source_unavailable", "Official source unavailable.")

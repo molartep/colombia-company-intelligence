@@ -1,0 +1,130 @@
+[
+  {
+    "language": "en",
+    "width": 320,
+    "cached": true,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "en",
+    "width": 320,
+    "cached": false,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "en",
+    "width": 390,
+    "cached": true,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "en",
+    "width": 390,
+    "cached": false,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "en",
+    "width": 768,
+    "cached": true,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "en",
+    "width": 768,
+    "cached": false,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "en",
+    "width": 1440,
+    "cached": true,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "en",
+    "width": 1440,
+    "cached": false,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "es",
+    "width": 320,
+    "cached": true,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "es",
+    "width": 320,
+    "cached": false,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "es",
+    "width": 390,
+    "cached": true,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "es",
+    "width": 390,
+    "cached": false,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "es",
+    "width": 768,
+    "cached": true,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "es",
+    "width": 768,
+    "cached": false,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "es",
+    "width": 1440,
+    "cached": true,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  },
+  {
+    "language": "es",
+    "width": 1440,
+    "cached": false,
+    "rues_attributed": true,
+    "raw_code_hidden": true,
+    "page_overflow": false
+  }
+]

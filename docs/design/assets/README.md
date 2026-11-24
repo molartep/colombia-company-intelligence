@@ -76,3 +76,6 @@ and arithmetic correctness remain covered by the existing backend tests.
 
 2026-11-24: [Currency presentation, bounded exports and capability matrix references](currency-exports/README.md)
 include EN/ES desktop/mobile evidence and a reproducible synthetic browser check.
+
+2026-11-24: [RUES timeout/cache warning review](rues-timeout/README.md) covers explicit source
+attribution and cached-versus-unavailable states in EN/ES across supported responsive widths.

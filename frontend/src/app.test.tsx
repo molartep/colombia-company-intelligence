@@ -527,3 +527,73 @@ test('search loading can be dismissed while the same request continues and later
   expect(await screen.findByText('No matching registrations')).toBeVisible()
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
+
+test.each(['en', 'es'] as const)(
+  'RUES timeout with cached matches is a scoped stale warning (%s)',
+  async (language) => {
+    const { changeLanguage } = await import('./i18n')
+    const en = (await import('./i18n/locales/en.json')).default
+    const es = (await import('./i18n/locales/es.json')).default
+    await changeLanguage(language)
+    reply({
+      items: [
+        {
+          id: 'cached-id',
+          legal_name: 'CACHED SYNTHETIC SAS',
+          nit: '000123456',
+          verification_digit: '7',
+          registration_status: 'ACTIVA',
+          registration_date: null,
+          renewal_date: null,
+          match_type: 'exact_legal_name',
+        },
+      ],
+      page: 1,
+      page_size: 20,
+      has_more: false,
+      stale: true,
+      warning: en.messages.rues.timeoutFallback,
+    })
+    wrapper(<Search />, '/?q=Thomas+greg')
+    await screen.findByText('CACHED SYNTHETIC SAS')
+    expect(
+      screen.getByText(
+        language === 'en' ? en.messages.rues.timeoutFallback : es.messages.rues.timeoutFallback,
+      ),
+    ).toBeVisible()
+    expect(screen.queryByText(/source_timeout:/)).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: language === 'en' ? 'Refresh data' : 'Actualizar datos' }),
+    ).toBeEnabled()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  },
+)
+
+test.each(['en', 'es'] as const)(
+  'RUES timeout without matching cache stays an error, not a clean empty result (%s)',
+  async (language) => {
+    const { changeLanguage } = await import('./i18n')
+    const catalog = (
+      await import(language === 'en' ? './i18n/locales/en.json' : './i18n/locales/es.json')
+    ).default
+    await changeLanguage(language)
+    reply(
+      {
+        error: {
+          code: 'source_timeout',
+          message: 'RUES lookup exceeded its configured time limit.',
+        },
+      },
+      503,
+    )
+    wrapper(<Search />, '/?q=Thomas+greg')
+    expect(await screen.findByRole('alert')).toHaveTextContent(catalog.messages.rues.timeoutNoCache)
+    expect(
+      screen.queryByText(
+        language === 'en'
+          ? 'No matching registrations'
+          : 'No se encontraron matrículas coincidentes',
+      ),
+    ).not.toBeInTheDocument()
+  },
+)

@@ -134,7 +134,7 @@ The frontend never calls Socrata directly.
 | `DATABASE_URL` | `postgresql+asyncpg://cci:cci@localhost:5432/cci`; Compose overrides the host internally |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Local Compose database credentials; change before deployment |
 | `SOCRATA_APP_TOKEN` | Optional server-only token, sent via `X-App-Token` |
-| `SOCRATA_TIMEOUT` | 20 seconds per upstream attempt; positive, maximum 60 |
+| `SOCRATA_TIMEOUT` | Default/max 60 seconds. Shared RUES lookup deadline covers metadata, network requests and retry waits; also bounds individual Socrata transport I/O phases. |
 | `SOCRATA_RETRIES` | 2 retries, maximum 4; transient/network failures only |
 | `UPSTREAM_CONCURRENCY` | 4 active upstream operations per API process |
 | `CORS_ORIGINS` | JSON list; allows `localhost:5173` and `127.0.0.1:5173` by default |
@@ -211,9 +211,16 @@ Cached fallback retains page-local matching order and explicitly reports `rankin
 returns an unresolved candidate. Invalid identifier syntax returns 422; a valid no-match returns an
 empty 200 collection. Errors follow `{"error":{"code":"...","message":"..."}}`.
 
+RUES company search has a single configurable network-phase deadline (`SOCRATA_TIMEOUT`, default/max
+60 seconds), shared across metadata, the source query and retry waits. It does not grant every retry
+a fresh 60-second window. Database work and optional BVC issuer discovery are separate operations.
+Changing this environment setting requires restarting the API.
 Transient failures get bounded exponential retries with jitter. `Retry-After` is honored; requests
 that ask for a delay over 15 seconds return an explicit source error rather than retrying early.
-Failures without usable cache return 503. Cached fallback is always marked stale, with a warning.
+Failures without usable cache return 503. Cached fallback is always marked stale, with a warning
+identifying RUES (Confecámaras / datos.gov.co) and explaining that previous results can be outdated
+or incomplete. Actual transport timeouts use `source_timeout`; connection/protocol failures use
+`source_unavailable`. Neither failure means zero matching companies.
 Profiles are cached evidence: they do not silently refresh against RUES when opened.
 
 ## Frontend
@@ -309,7 +316,8 @@ verified negative finding. Nothing here substitutes for an authoritative registr
 
 - **503 database unavailable:** verify PostgreSQL is running, URL/credentials are correct, and migrations
   ran. Inspect `docker compose logs db migrate backend`. Readiness checks connectivity, not RUES.
-- **503 source failure:** check official-host network access; add an optional app token if appropriate.
+- **503 source failure:** the RUES lookup may have reached its 60-second deadline or encountered
+  a connection/provider failure. Check official-host network access; add an optional app token if appropriate.
   Do not interpret an outage as zero companies. Retry later or use explicitly stale cache results.
 - **No name candidates:** try a shorter distinctive source-spelled name; punctuation/accents can differ.
   A no-match is limited to this dataset and this bounded search.

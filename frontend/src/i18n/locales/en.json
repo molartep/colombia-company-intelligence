@@ -751,7 +751,11 @@
       "empty": "Source returned no current matches; showing cached normalized-name candidates.",
       "malformed": "Source value is malformed and could not be normalized.",
       "identity": "Registration-scoped profile. Shared NITs and similar names are never automatically merged.",
-      "outage": "{{source}}: official source failed; showing previously retrieved records."
+      "outage": "{{source}}: official source failed; showing previously retrieved records.",
+      "timeoutFallback": "RUES (Confecámaras / datos.gov.co) lookup timed out. Previously retrieved records are shown; they may be outdated or incomplete. Try again.",
+      "unavailableFallback": "RUES (Confecámaras / datos.gov.co) could not be queried. Previously retrieved records are shown; they may be outdated or incomplete. Try again.",
+      "timeoutNoCache": "RUES (Confecámaras / datos.gov.co) did not respond within the search time limit. No matching cached records are available. Try again.",
+      "unavailableNoCache": "RUES (Confecámaras / datos.gov.co) could not be queried. No matching cached records are available. Try again."
     },
     "source": {
       "directory": "SFC · National Registry of Securities and Issuers",

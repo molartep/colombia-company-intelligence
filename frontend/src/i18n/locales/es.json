@@ -751,7 +751,11 @@
       "empty": "La fuente no devolvió coincidencias actuales; se muestran candidatos en cache por nombre normalizado.",
       "malformed": "El valor de la fuente es inválido y no pudo normalizarse.",
       "identity": "Perfil por matrícula. Los NIT compartidos y los nombres similares nunca se fusionan automáticamente.",
-      "outage": "{{source}}: la fuente oficial falló; se muestran registros recuperados anteriormente."
+      "outage": "{{source}}: la fuente oficial falló; se muestran registros recuperados anteriormente.",
+      "timeoutFallback": "La consulta a RUES (Confecámaras / datos.gov.co) superó el tiempo límite. Se muestran registros recuperados anteriormente; pueden estar desactualizados o incompletos. Reintenta.",
+      "unavailableFallback": "No se pudo consultar RUES (Confecámaras / datos.gov.co). Se muestran registros recuperados anteriormente; pueden estar desactualizados o incompletos. Reintenta.",
+      "timeoutNoCache": "RUES (Confecámaras / datos.gov.co) no respondió dentro del tiempo límite de búsqueda. No hay registros coincidentes en cache. Reintenta.",
+      "unavailableNoCache": "No se pudo consultar RUES (Confecámaras / datos.gov.co). No hay registros coincidentes en cache. Reintenta."
     },
     "source": {
       "directory": "SFC · Registro Nacional de Valores y Emisores",
