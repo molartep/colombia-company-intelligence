@@ -40,3 +40,10 @@ labels remain useful when reading migrations and dated validation logs; they do 
 future work or that financial statements shipped. “Advanced” was the former References page name;
 advanced **search filters** remain a separate current feature. Earlier claims of BVC being entirely
 unimplemented describe the pre-connector state, not today's limited quote integrations.
+
+## Government Involvement experiment
+
+Implemented: bilingual availability card, shared methodology, synthetic evidence explorer, documented
+Rae REST transport and native evidence normalization. Real-company inference is blocked; the knowledge
+model is a provisional declarative specification, not a published model. Live inference/reference
+agreement and production readiness remain unverified. See [Rae manual](RaeManual.md).

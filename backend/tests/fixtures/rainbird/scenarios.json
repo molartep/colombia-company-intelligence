@@ -1,0 +1,536 @@
+[
+  {
+    "id": "historical",
+    "contracts": [
+      {
+        "signature": "2021-05-14"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "documented",
+        "not_observed_in_scope",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "recent",
+    "contracts": [
+      {
+        "signature": "2026-05-14"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "not_observed_in_scope",
+        "documented",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "both",
+    "contracts": [
+      {
+        "signature": "2021-05-14"
+      },
+      {
+        "signature": "2026-05-14"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "documented",
+        "documented",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "recent_execution",
+    "contracts": [
+      {
+        "signature": "2026-05-14",
+        "status": "execution"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "not_observed_in_scope",
+        "documented",
+        "reported"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "historical_execution",
+    "contracts": [
+      {
+        "signature": "2021-05-14",
+        "status": "execution"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "documented",
+        "not_observed_in_scope",
+        "reported"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "recent_liquidated",
+    "contracts": [
+      {
+        "signature": "2026-05-14",
+        "status": "liquidated"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "not_observed_in_scope",
+        "documented",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "elapsed_end",
+    "contracts": [
+      {
+        "signature": "2026-05-14",
+        "status": "execution",
+        "end": "2026-06-01"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "not_observed_in_scope",
+        "documented",
+        "reported"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "missing_signature",
+    "contracts": [
+      {}
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "undetermined",
+        "undetermined",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "missing",
+        "missing",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "empty",
+    "contracts": [],
+    "expected": {
+      "outcomes": [
+        "no_scoped_matches",
+        "not_observed_in_scope",
+        "not_observed_in_scope",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "failed",
+    "contracts": [],
+    "complete": false,
+    "expected": {
+      "outcomes": [
+        "undetermined",
+        "undetermined",
+        "undetermined",
+        "undetermined"
+      ],
+      "sufficiency": [
+        "incomplete",
+        "incomplete",
+        "incomplete",
+        "incomplete"
+      ]
+    }
+  },
+  {
+    "id": "row_cap",
+    "contracts": [],
+    "complete": false,
+    "expected": {
+      "outcomes": [
+        "undetermined",
+        "undetermined",
+        "undetermined",
+        "undetermined"
+      ],
+      "sufficiency": [
+        "incomplete",
+        "incomplete",
+        "incomplete",
+        "incomplete"
+      ]
+    }
+  },
+  {
+    "id": "failed_refresh",
+    "contracts": [
+      {
+        "signature": "2021-05-14",
+        "status": "execution"
+      }
+    ],
+    "stale": true,
+    "expected": {
+      "outcomes": [
+        "documented",
+        "documented",
+        "not_observed_in_scope",
+        "undetermined"
+      ],
+      "sufficiency": [
+        "stale",
+        "stale",
+        "stale",
+        "stale"
+      ]
+    }
+  },
+  {
+    "id": "identity_conflict",
+    "contracts": [],
+    "excluded": true,
+    "expected": {
+      "outcomes": [
+        "undetermined",
+        "undetermined",
+        "undetermined",
+        "undetermined"
+      ],
+      "sufficiency": [
+        "incomplete",
+        "incomplete",
+        "incomplete",
+        "incomplete"
+      ]
+    }
+  },
+  {
+    "id": "value_conflict",
+    "contracts": [
+      {
+        "signature": "2026-05-14",
+        "value_conflict": true
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "not_observed_in_scope",
+        "documented",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "status_conflict",
+    "contracts": [
+      {
+        "signature": "2026-05-14",
+        "status": "execution",
+        "status_conflict": true
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "not_observed_in_scope",
+        "documented",
+        "undetermined"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "contradictory"
+      ]
+    }
+  },
+  {
+    "id": "group",
+    "contracts": [
+      {
+        "eligible": false
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "no_scoped_matches",
+        "not_observed_in_scope",
+        "not_observed_in_scope",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "buyer_only",
+    "contracts": [
+      {
+        "eligible": false
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "no_scoped_matches",
+        "not_observed_in_scope",
+        "not_observed_in_scope",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "future",
+    "contracts": [
+      {
+        "signature": "2026-11-27"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "undetermined",
+        "undetermined",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "missing",
+        "missing",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "unknown_status",
+    "contracts": [
+      {
+        "signature": "2026-05-14",
+        "status": "unknown"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "not_observed_in_scope",
+        "documented",
+        "undetermined"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "missing"
+      ]
+    }
+  },
+  {
+    "id": "boundary",
+    "contracts": [
+      {
+        "signature": "2024-11-26"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "not_observed_in_scope",
+        "documented",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "duplicates",
+    "contracts": [
+      {
+        "signature": "2026-05-14"
+      },
+      {
+        "signature": "2026-05-14"
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "not_observed_in_scope",
+        "documented",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "missing_observation",
+    "contracts": [
+      {
+        "signature": "2026-05-14",
+        "status": "execution",
+        "observed": false
+      }
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "not_observed_in_scope",
+        "documented",
+        "undetermined"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "sufficient",
+        "missing"
+      ]
+    }
+  },
+  {
+    "id": "positive_missing_other",
+    "contracts": [
+      {
+        "signature": "2021-05-14"
+      },
+      {}
+    ],
+    "expected": {
+      "outcomes": [
+        "documented",
+        "documented",
+        "undetermined",
+        "not_observed_in_scope"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "sufficient",
+        "missing",
+        "sufficient"
+      ]
+    }
+  },
+  {
+    "id": "positive_incomplete",
+    "contracts": [
+      {
+        "signature": "2026-05-14"
+      }
+    ],
+    "complete": false,
+    "expected": {
+      "outcomes": [
+        "documented",
+        "undetermined",
+        "documented",
+        "undetermined"
+      ],
+      "sufficiency": [
+        "sufficient",
+        "incomplete",
+        "sufficient",
+        "incomplete"
+      ]
+    }
+  }
+]

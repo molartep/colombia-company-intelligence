@@ -13,6 +13,9 @@ import { toUsd, validRate } from './presentation/currency'
 import { changeLanguage } from './i18n'
 import { api } from './api/client'
 
+// Rae has its own state/accessibility tests; keep these SECOP/currency tests isolated.
+vi.mock('./components/GovernmentInvolvement', () => ({ GovernmentInvolvement: () => null }))
+
 const fixtures = JSON.parse(fs.readFileSync('../docs/design/fixtures/ui-review.json', 'utf8'))
 const today = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/Bogota',

@@ -383,3 +383,13 @@ on the trigger; arrows/Home/End/type-ahead navigate, Enter/Space commit, Escape 
 and outside pointer interactions dismiss. Editable inputs preserve text-editing keys and free text.
 Option buttons retain trigger focus on pointer selection. Advanced multi-select disclosures support
 Escape/focus return and blur dismissal. Reduced motion follows existing global behavior.
+
+## Government Involvement — 2026-11-26
+
+The SECOP tab adds a native `.panel` with independent descriptive dimensions. Present findings use
+existing success tokens; unavailable/unknown findings use neutral tokens, with explicit text. These
+colors describe evidence, never company risk. Reuse the shared Rae methodology content for native
+`dialog` and standalone page; Escape returns focus. Evidence uses native details/summary trees with
+localized node-kind labels, preserved external fact text and local scrolling. Synthetic evidence is
+explicitly labeled. The two-column dimension grid stacks at 700px. No tokens or source-value display
+exceptions changed. See [responsive visual evidence](assets/rainbird/README.md).

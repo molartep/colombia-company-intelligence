@@ -7,6 +7,7 @@ from alembic import context
 from app.core.config import get_settings
 from app.models import (
     capital_markets,  # noqa: F401
+    government_involvement,  # noqa: F401
     secop,  # noqa: F401
 )
 from app.models.entities import Base

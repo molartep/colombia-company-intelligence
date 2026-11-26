@@ -6,6 +6,9 @@ import { vi } from 'vitest'
 import { Screening } from './components/Screening'
 import { changeLanguage } from './i18n'
 import { api } from './api/client'
+
+// Rae has its own state/accessibility tests; keep these SECOP/currency tests isolated.
+vi.mock('./components/GovernmentInvolvement', () => ({ GovernmentInvolvement: () => null }))
 import type { Contract, SecopScreening } from './types/secop'
 
 vi.mock('./api/client', () => ({

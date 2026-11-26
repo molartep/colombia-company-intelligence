@@ -141,3 +141,10 @@ Screenshots use **synthetic test data**, not actual findings about a company. Br
 ![Historical Government Contracts view with synthetic data](screenshots/secop-desktop.png)
 
 [Mobile preview](screenshots/secop-390.png) · [Tablet preview](screenshots/secop-768.png)
+
+## Government Involvement
+
+The new card provides independent descriptive dimensions and a shared explanation experience.
+Company inference remains disabled pending licensing, authorization and native model validation.
+No matching, deduplication or source aggregation behavior changes. See [Rae integration](RaeManual.md),
+including the existing whole-record conflict exclusion limitation.

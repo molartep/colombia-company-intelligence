@@ -1,3 +1,4 @@
+import { GovernmentInvolvement } from './GovernmentInvolvement'
 import { Dropdown } from './Dropdown'
 import { useCurrencyAmounts, useContractExport } from '../presentation/context'
 import { uiMessage, errorMessage } from '../i18n/messages'
@@ -645,6 +646,7 @@ export function Screening({ companyId }: { companyId: string }) {
         </div>
         {summary && <QuerySummary summary={summary} />}
       </article>
+      <GovernmentInvolvement companyId={companyId} runId={data.run_id} />
       {summary && (
         <>
           <p className="small muted">

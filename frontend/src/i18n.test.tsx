@@ -168,71 +168,73 @@ function mount(path: string, screening: unknown = secop) {
   window.history.replaceState({}, '', path)
   const fetcher = vi.fn(async (url: string | URL | Request) => {
     const path = String(url).split('?')[0]!
-    const data = path.endsWith('/parameters')
-      ? catalog
-      : path.endsWith('/platform')
-        ? {
-            checked_at: contract.retrieved_at,
-            counts: { registrations: 1 },
-            rues: {
-              name: 'RUES / Confecámaras',
-              availability: 'available',
-              dataset_url: catalog.source_url,
-              last_checked_at: null,
-              last_updated_at: null,
-            },
-            sources: [],
-            directory_missing: false,
-            import_access: 'local',
-            parameter_verified_at: contract.retrieved_at,
-            parameter_options: 2,
-          }
-        : path.endsWith('/capital-markets')
-          ? markets
-          : path.endsWith('/securities')
-            ? {
-                items: [instrument],
-                total: 1,
-                unfiltered_total: 1,
-                page: 1,
-                page_size: 10,
-                has_more: false,
+    const data = path.endsWith('/involvement')
+      ? { status: 'disabled', decisions: [], engine: {}, evaluation: {}, source: {} }
+      : path.endsWith('/parameters')
+        ? catalog
+        : path.endsWith('/platform')
+          ? {
+              checked_at: contract.retrieved_at,
+              counts: { registrations: 1 },
+              rues: {
+                name: 'RUES / Confecámaras',
                 availability: 'available',
-              }
-            : path.endsWith('/secop')
-              ? screening
-              : path.endsWith('/contracts')
-                ? {
-                    items: [contract],
-                    total: 1,
-                    page: 1,
-                    page_size: 5,
-                    has_more: false,
-                    run_id: id,
-                  }
-                : path.endsWith('/sources')
-                  ? []
-                  : path === '/api/v1/companies'
-                    ? {
-                        items: [
-                          {
-                            ...company,
-                            chamber: 'CÁMARA ORIGINAL',
-                            registration_number: '00001',
-                            registration_date: '20200115',
-                            renewal_date: null,
-                            match_type: 'exact_nit',
-                            evidence: [],
-                            data_source: 'rues',
-                          },
-                        ],
-                        page: 1,
-                        page_size: 20,
-                        has_more: false,
-                        stale: false,
-                        warning: null,
-                      }
-                    : company
+                dataset_url: catalog.source_url,
+                last_checked_at: null,
+                last_updated_at: null,
+              },
+              sources: [],
+              directory_missing: false,
+              import_access: 'local',
+              parameter_verified_at: contract.retrieved_at,
+              parameter_options: 2,
+            }
+          : path.endsWith('/capital-markets')
+            ? markets
+            : path.endsWith('/securities')
+              ? {
+                  items: [instrument],
+                  total: 1,
+                  unfiltered_total: 1,
+                  page: 1,
+                  page_size: 10,
+                  has_more: false,
+                  availability: 'available',
+                }
+              : path.endsWith('/secop')
+                ? screening
+                : path.endsWith('/contracts')
+                  ? {
+                      items: [contract],
+                      total: 1,
+                      page: 1,
+                      page_size: 5,
+                      has_more: false,
+                      run_id: id,
+                    }
+                  : path.endsWith('/sources')
+                    ? []
+                    : path === '/api/v1/companies'
+                      ? {
+                          items: [
+                            {
+                              ...company,
+                              chamber: 'CÁMARA ORIGINAL',
+                              registration_number: '00001',
+                              registration_date: '20200115',
+                              renewal_date: null,
+                              match_type: 'exact_nit',
+                              evidence: [],
+                              data_source: 'rues',
+                            },
+                          ],
+                          page: 1,
+                          page_size: 20,
+                          has_more: false,
+                          stale: false,
+                          warning: null,
+                        }
+                      : company
     return { ok: true, status: 200, json: async () => structuredClone(data) }
   })
   vi.stubGlobal('fetch', fetcher)

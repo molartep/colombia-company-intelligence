@@ -49,9 +49,10 @@ from app.schemas.capital_markets import (
     SecuritiesPage,
 )
 from app.schemas.filters import CompanySearchRequest, SearchFilters
+from app.schemas.government_involvement import InvolvementView
 from app.schemas.parameters import ParameterCatalog
 from app.schemas.secop import ContractPage, ContractStatus, ContractView, ScreeningView
-from app.services import secop
+from app.services import government_involvement, secop
 from app.services.companies import (
     ensure_source,
     profile,
@@ -437,3 +438,24 @@ async def secop_contract_detail(
 @app.get("/api/v1/presentation/usd-rate", response_model=Rate)
 async def reference_rate(request: Request) -> Rate:
     return await cast(ReferenceRates, request.app.state.reference_rates).get()
+
+
+@app.get("/api/v1/government-involvement/demo", response_model=InvolvementView)
+async def involvement_demo() -> InvolvementView:
+    return government_involvement.demo()
+
+
+@app.get(
+    "/api/v1/companies/{company_id}/screening/secop/involvement",
+    response_model=InvolvementView,
+)
+async def company_involvement(
+    company_id: UUID,
+    session: DB,
+    run_id: UUID | None = None,
+) -> InvolvementView:
+    return await government_involvement.company_view(
+        session,
+        await get_company(session, company_id),
+        run_id,
+    )

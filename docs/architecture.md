@@ -163,3 +163,10 @@ stale with RUES attribution and an explicit outdated/incomplete warning. No matc
 other transport failures use `source_unavailable`. Safe retry diagnostics record exception class,
 never the search query, NIT, URL, tokens or raw response. Search-specific EN/ES copy identifies RUES,
 while other source modules retain their own error wording.
+
+## Rae experimental boundary
+
+The isolated Rainbird REST client consumes minimized facts and obtains native decisions/evidence.
+Company endpoints only expose availability and company-scoped screening-run context; they never invoke
+inference. Explicit CLI experiments use a fixed synthetic fixture. Optional append-only evaluation
+persistence is separate from immutable SECOP evidence. See [Rae manual](RaeManual.md).

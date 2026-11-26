@@ -28,6 +28,26 @@ explicit refreshes retain previous evidence when a source fails. Queries above t
 5,000-row cap show an alert without publishing partial totals. See [SECOP methodology, APIs and
 source mapping](docs/secop-screening.md).
 
+## Government Involvement · Rainbird Rae experiment
+
+Government Contracts now includes a bilingual Government Involvement card with independent direct,
+historical, recent and reported-execution dimensions, evidence sufficiency and a shared methodology
+dialog/page. The [Rae manual](docs/RaeManual.md) records verified REST interfaces, policy rules,
+configuration, licensing, limitations and activation steps. This is an **experimental foundation**:
+company reasoning is disabled; no real company evidence is transmitted. The separate
+[synthetic example](http://localhost:5174/methodology/rae?demo=true) demonstrates expandable evidence.
+Authored synthetic trees are clearly labeled and are not live Rae results.
+
+The backend client starts pinned Rae sessions, injects minimized structured facts, queries decisions
+and sufficiency, and retrieves native evidence. A declarative model specification and test-only Python
+reference are included; a published RBX build guide is available, but live validation remains pending. Community production
+queries are non-commercial only; production requires licensing, data authorization and model review.
+
+Run `cd frontend && npm run dev -- --port 5174 --strictPort`, with the API on 8000 as below.
+`/methodology/rae` works without a company; the synthetic endpoint requires no database. The optional
+`backend/.venv/bin/python scripts/rae_smoke.py` uses only a fixed synthetic fixture and requires explicit
+`RAE_ENABLED=true`, `RAE_EXECUTION_MODE=live_experimental`, backend keys and the published build ID. See [RBX connection setup](docs/rainbird/RBX-connection.md) for the prepared private key location and `--live` command. Company processing remains blocked in every mode. Default settings are in `.env.example`.
+
 ## Architecture
 
 ```mermaid
@@ -47,6 +67,8 @@ flowchart LR
     Identity --> DB[(PostgreSQL)]
     Markets --> DB
     Contracts --> DB
+    Synthetic[Synthetic-only explicit CLI] --> Rae[Rainbird Rae · pinned REST model]
+    Rae --> Native[Native decisions and evidence trees]
     References --> DB
 ```
 

@@ -99,3 +99,6 @@ for their meanings and the distinction between fallback, backups and supporting 
 Custom dropdown labels/options use the same centralized translation keys as the former native
 selects. Their stored values, URL/API parameters and source classifications remain original.
 The shared combobox supports accent-tolerant keyboard type-ahead without rewriting source labels.
+
+Government Involvement uses the `involvement` namespace for EN/ES interface prose, synthetic node labels
+and stable diagnostics. Native Rae fact labels are external evidence and remain untranslated.

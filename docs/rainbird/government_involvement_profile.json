@@ -1,0 +1,236 @@
+{
+  "name": "government_involvement_profile",
+  "artifact_type": "CCI declarative design specification; NOT a Rainbird import or validated export",
+  "policy_version": "government_involvement_v1",
+  "deployment_status": "published build supplied by user; live validation pending",
+  "concepts": {
+    "Evaluation Context": [
+      "evaluation"
+    ],
+    "Government Contract": [
+      "session-local contract_1, contract_2, …"
+    ],
+    "Truth": [
+      "true",
+      "false"
+    ],
+    "Signature Band": [
+      "historical",
+      "recent",
+      "missing",
+      "future"
+    ],
+    "Execution Status": [
+      "execution",
+      "non_execution",
+      "unknown"
+    ],
+    "Decision Outcome": [
+      "documented",
+      "reported",
+      "no_scoped_matches",
+      "not_observed_in_scope",
+      "undetermined"
+    ],
+    "Evidence Sufficiency": [
+      "sufficient",
+      "limited",
+      "missing",
+      "stale",
+      "contradictory",
+      "incomplete"
+    ]
+  },
+  "relationships": [
+    [
+      "Evaluation Context",
+      "contains_contract",
+      "Government Contract",
+      "plural"
+    ],
+    [
+      "Evaluation Context",
+      "identity_verified",
+      "Truth",
+      "singular"
+    ],
+    [
+      "Evaluation Context",
+      "query_complete",
+      "Truth",
+      "singular"
+    ],
+    [
+      "Evaluation Context",
+      "source_stale",
+      "Truth",
+      "singular"
+    ],
+    [
+      "Evaluation Context",
+      "contract_count",
+      "number",
+      "singular"
+    ],
+    [
+      "Evaluation Context",
+      "lookback_months",
+      "number",
+      "singular"
+    ],
+    [
+      "Evaluation Context",
+      "as_of_date",
+      "date",
+      "singular"
+    ],
+    [
+      "Evaluation Context",
+      "lookback_start_date",
+      "date",
+      "singular"
+    ],
+    [
+      "Government Contract",
+      "attribution_verified",
+      "Truth",
+      "singular"
+    ],
+    [
+      "Government Contract",
+      "signature_band",
+      "Signature Band",
+      "singular"
+    ],
+    [
+      "Government Contract",
+      "signature_date",
+      "date",
+      "singular"
+    ],
+    [
+      "Government Contract",
+      "reported_status",
+      "string",
+      "singular"
+    ],
+    [
+      "Government Contract",
+      "execution_status",
+      "Execution Status",
+      "singular"
+    ],
+    [
+      "Government Contract",
+      "observation_available",
+      "Truth",
+      "singular"
+    ],
+    [
+      "Government Contract",
+      "signature_conflict",
+      "Truth",
+      "singular"
+    ],
+    [
+      "Government Contract",
+      "execution_status_conflict",
+      "Truth",
+      "singular"
+    ],
+    [
+      "Government Contract",
+      "value_conflict",
+      "Truth",
+      "singular"
+    ],
+    [
+      "Government Contract",
+      "scheduled_end_date",
+      "date",
+      "singular"
+    ]
+  ],
+  "terminal_relationships": {
+    "direct_participation": [
+      "documented",
+      "no_scoped_matches",
+      "undetermined"
+    ],
+    "historical_participation": [
+      "documented",
+      "not_observed_in_scope",
+      "undetermined"
+    ],
+    "recent_participation": [
+      "documented",
+      "not_observed_in_scope",
+      "undetermined"
+    ],
+    "currently_reported_execution": [
+      "reported",
+      "not_observed_in_scope",
+      "undetermined"
+    ]
+  },
+  "sufficiency_relationships": "For each terminal relationship add a singular relationship named <terminal>_sufficiency to Evidence Sufficiency",
+  "intermediate_conclusions": {
+    "eligible_contract": "evaluation contains_contract C AND evaluation identity_verified true AND C attribution_verified true",
+    "historical_witness": "eligible_contract C AND C signature_band historical",
+    "recent_witness": "eligible_contract C AND C signature_band recent",
+    "execution_witness": "eligible_contract C AND C execution_status execution AND C observation_available true",
+    "direct_coverage": "identity_verified true AND query_complete true",
+    "temporal_coverage": "direct_coverage AND every eligible contract has signature_band historical or recent",
+    "execution_coverage": "direct_coverage AND every eligible contract has observation_available true AND execution_status not unknown AND source_stale false"
+  },
+  "rules": {
+    "direct_participation": [
+      "documented if an eligible_contract exists",
+      "no_scoped_matches if direct_coverage and no eligible_contract exists",
+      "undetermined otherwise"
+    ],
+    "historical_participation": [
+      "documented if historical_witness exists",
+      "not_observed_in_scope if temporal_coverage and no historical_witness",
+      "undetermined otherwise"
+    ],
+    "recent_participation": [
+      "documented if recent_witness exists",
+      "not_observed_in_scope if temporal_coverage and no recent_witness",
+      "undetermined otherwise"
+    ],
+    "currently_reported_execution": [
+      "reported if execution_witness exists AND source_stale false",
+      "not_observed_in_scope if execution_coverage and no execution_witness",
+      "undetermined otherwise"
+    ],
+    "evidence_sufficiency": [
+      "limited is reserved; never emitted in v1",
+      "stale qualifies each dimension when source_stale true; execution remains undetermined",
+      "missing when freshness is unknown; valid direct/historical/recent witnesses may remain documented",
+      "identity_verified false or absent: outcomes undetermined, sufficiency missing",
+      "an unaffected positive witness supports sufficient despite unrelated contradictions or incomplete retrieval",
+      "without a witness: relevant contradictory evidence outranks incomplete coverage, then missing required facts",
+      "sufficient negative requires complete relevant coverage and facts"
+    ]
+  },
+  "constraints": [
+    "Rules must have disjoint guards; do not rely on undocumented first-rule priority.",
+    "No closed-world inference from an unanswered query. Explicit coverage facts guard all negatives.",
+    "CCI does not inject terminal outcomes or sufficiency conclusions.",
+    "Current SECOP deduplication excludes entire unresolved versions, even for monetary-only conflicts. Do not reinstate these without a separate reviewed evidence change.",
+    "Company, Screening Run, Source Observation and Evidence Record are represented by the local evaluation envelope and provenance map, not transmitted personal or supplier identifiers.",
+    "Rules requiring universal collection coverage need validation in Studio before publishing. This JSON is not executable syntax.",
+    "Compare supplied contract_count to distinct contained contract instances; mismatch blocks negatives, absent count has no independent effect.",
+    "Do not assume missing attribution or conflict facts are false.",
+    "Never inject inferred relationships, terminal outcomes or sufficiency as overrides."
+  ],
+  "published_build": {
+    "model_id": "738e8674-b78f-4eee-9ad7-c7d13dfa7221",
+    "api_base_url": "https://enterprise-api.rainbird.ai",
+    "engine": "rbx",
+    "reference_mode": "published_build",
+    "guide": "published-build-1-api-guide.md"
+  },
+  "input_boolean_encoding": "Native JSON true/false, never strings; omitted conflict diagnostics remain unknown."
+}

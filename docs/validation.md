@@ -317,3 +317,42 @@ Restarted the local API with `SOCRATA_TIMEOUT=60`. A live request through the ap
 reported “Thomas greg” query, without filters, returned HTTP 200, 9 records, `stale=false` and
 `warning=null` in 20.96 seconds. This confirms the exercised request can complete beyond the old
 20-second threshold; it does not guarantee future upstream response times.
+
+## Rainbird Rae foundation — 2026-11-26
+
+- Backend: 311 passed, 66 skipped (database/optional prerequisites not configured).
+- Frontend: 154 passed across 11 files; ESLint, strict TypeScript, Prettier and production build pass.
+- Ruff lint/format and strict mypy pass; Alembic has one head, migration applied to local DB,
+  `alembic check` reports no new upgrade operations. Database readiness responds 200.
+- EN/ES at 390, 768 and 1440px: no overflow or browser errors; dialog Escape returns focus.
+  [Actual synthetic screenshots and inspection report](design/assets/rainbird/README.md).
+- Explicit live smoke without credentials returns safe `not_configured`; no inference attempted.
+  Native model deployment, Rae/reference decision agreement and live latency remain unverified.
+- Vite warns about a bundle above 500 kB; build succeeds.
+- Backend wheel built successfully. Read-only localhost company API smoke passed: disabled mode,
+  no fabricated decisions, invalid screening-run ID returns 404; no external inference call.
+
+## Frontend bundle splitting — 2026-11-26
+
+Resolved Vite's 500 kB chunk warning with lazy secondary routes (company, parameters, references,
+Rae methodology) and a cacheable React/router vendor chunk. Search remains eagerly available;
+route-loading feedback uses centralized EN/ES text. No dependencies or warning-limit changes.
+Before: one 599.10 kB JavaScript bundle (186.83 kB gzip). After: 255.71 kB app + 261.35 kB shared
+runtime (167.38 kB gzip combined), with secondary page chunks loaded on demand. Build passes without
+size warnings. All 154 frontend tests passed; ESLint, TypeScript and Prettier passed. Production
+Chromium smoke confirmed secondary chunks are absent on the search page, standalone methodology
+loads its chunk and renders successfully, and no browser exceptions occurred. No Core Web Vitals
+or real-user speed improvement is inferred from these artifact-size measurements.
+
+## Published Rae RBX adapter — 2026-11-26
+
+Implemented the user-supplied published-build contract: Enterprise/RBX header, native JSON booleans,
+optional field-specific conflict facts/end date, common and per-dimension diagnostics, build-ID pinning
+without invented version metadata, optional-but-validated response session IDs, and bounded evidence
+traversal fallback. Terminal outcome/sufficiency injection is rejected. The isolated synthetic CLI
+has an explicit --live switch and checks outcomes, sufficiency and evidence completeness.
+
+319 backend tests pass / 66 skip; strict mypy and Ruff lint/format pass. The private ignored
+backend/.env was prepared with owner-only permissions and a blank key. Running --live without the
+key returned not_configured without an inference call. Mocked RBX tests are contract validation,
+not observed live Rae agreement. See [connection instructions](rainbird/RBX-connection.md).

@@ -1,0 +1,215 @@
+{
+  "company_id": null,
+  "screening_run_id": null,
+  "status": "demo",
+  "engine": {
+    "provider": "Rainbird AI",
+    "product": "Rae",
+    "model_id": "government_involvement_profile",
+    "model_version": "synthetic-fixture-v1",
+    "execution_mode": "demo"
+  },
+  "evaluation": {
+    "evaluated_at": "2026-11-26T15:00:00Z",
+    "as_of_date": "2026-11-26",
+    "lookback_months": 24,
+    "lookback_start_date": "2024-11-26",
+    "policy_version": "government_involvement_v1"
+  },
+  "decisions": [
+    {
+      "id": "direct_participation",
+      "outcome": "documented",
+      "evidence_status": "sufficient",
+      "supporting_contract_ids": [
+        "SYNTHETIC-RECENT"
+      ],
+      "supporting_evidence_ids": [
+        "synthetic-observation"
+      ],
+      "evidence_tree_id": "demo-direct_participation",
+      "evidence_tree": {
+        "id": "demo-direct_participation",
+        "kind": "decision",
+        "label": "direct_participation",
+        "children": [
+          {
+            "id": "rule",
+            "kind": "rule",
+            "label": "rule_direct_participation",
+            "children": [
+              {
+                "id": "identity",
+                "kind": "fact",
+                "label": "verified_identity",
+                "children": []
+              },
+              {
+                "id": "contract",
+                "kind": "fact",
+                "label": "SYNTHETIC-RECENT",
+                "children": []
+              },
+              {
+                "id": "observation",
+                "kind": "source",
+                "label": "synthetic_source",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "native_evidence": null,
+      "warnings": []
+    },
+    {
+      "id": "historical_participation",
+      "outcome": "documented",
+      "evidence_status": "sufficient",
+      "supporting_contract_ids": [
+        "SYNTHETIC-HISTORICAL"
+      ],
+      "supporting_evidence_ids": [
+        "synthetic-observation"
+      ],
+      "evidence_tree_id": "demo-historical_participation",
+      "evidence_tree": {
+        "id": "demo-historical_participation",
+        "kind": "decision",
+        "label": "historical_participation",
+        "children": [
+          {
+            "id": "rule",
+            "kind": "rule",
+            "label": "rule_historical_participation",
+            "children": [
+              {
+                "id": "identity",
+                "kind": "fact",
+                "label": "verified_identity",
+                "children": []
+              },
+              {
+                "id": "contract",
+                "kind": "fact",
+                "label": "SYNTHETIC-HISTORICAL",
+                "children": []
+              },
+              {
+                "id": "observation",
+                "kind": "source",
+                "label": "synthetic_source",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "native_evidence": null,
+      "warnings": []
+    },
+    {
+      "id": "recent_participation",
+      "outcome": "documented",
+      "evidence_status": "sufficient",
+      "supporting_contract_ids": [
+        "SYNTHETIC-RECENT"
+      ],
+      "supporting_evidence_ids": [
+        "synthetic-observation"
+      ],
+      "evidence_tree_id": "demo-recent_participation",
+      "evidence_tree": {
+        "id": "demo-recent_participation",
+        "kind": "decision",
+        "label": "recent_participation",
+        "children": [
+          {
+            "id": "rule",
+            "kind": "rule",
+            "label": "rule_recent_participation",
+            "children": [
+              {
+                "id": "identity",
+                "kind": "fact",
+                "label": "verified_identity",
+                "children": []
+              },
+              {
+                "id": "contract",
+                "kind": "fact",
+                "label": "SYNTHETIC-RECENT",
+                "children": []
+              },
+              {
+                "id": "observation",
+                "kind": "source",
+                "label": "synthetic_source",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "native_evidence": null,
+      "warnings": []
+    },
+    {
+      "id": "currently_reported_execution",
+      "outcome": "reported",
+      "evidence_status": "sufficient",
+      "supporting_contract_ids": [
+        "SYNTHETIC-RECENT"
+      ],
+      "supporting_evidence_ids": [
+        "synthetic-observation"
+      ],
+      "evidence_tree_id": "demo-currently_reported_execution",
+      "evidence_tree": {
+        "id": "demo-currently_reported_execution",
+        "kind": "decision",
+        "label": "currently_reported_execution",
+        "children": [
+          {
+            "id": "rule",
+            "kind": "rule",
+            "label": "rule_currently_reported_execution",
+            "children": [
+              {
+                "id": "identity",
+                "kind": "fact",
+                "label": "verified_identity",
+                "children": []
+              },
+              {
+                "id": "contract",
+                "kind": "fact",
+                "label": "SYNTHETIC-RECENT",
+                "children": []
+              },
+              {
+                "id": "observation",
+                "kind": "source",
+                "label": "synthetic_source",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "native_evidence": null,
+      "warnings": []
+    }
+  ],
+  "source": {
+    "dataset": "Synthetic SECOP II example",
+    "dataset_id": "jbjy-vk9h",
+    "snapshot_completed_at": "2026-11-26T15:00:00Z",
+    "is_stale": false
+  },
+  "diagnostics": [
+    "synthetic_not_rae_inference"
+  ],
+  "input_fingerprint": null
+}

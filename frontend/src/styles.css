@@ -2672,3 +2672,138 @@ select.export-scope {
   width: 16px;
   height: 16px;
 }
+
+/* Government involvement reuses the native panel, semantic states and dialog system. */
+.involvement-heading,
+.involvement-dialog-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.involvement-card h2 {
+  margin-top: 0;
+}
+.involvement-dimensions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-block: var(--space-5);
+}
+.involvement-dimension {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  text-align: start;
+  color: var(--color-text);
+  min-width: 0;
+}
+.involvement-dimension:hover {
+  background: var(--color-surface-selected);
+}
+.involvement-pill {
+  display: inline-block;
+  border: 1px solid var(--color-neutral-border);
+  border-radius: var(--radius-badge);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-caption);
+  color: var(--color-neutral);
+  background: var(--color-neutral-surface);
+}
+.involvement-pill.present {
+  color: var(--color-success);
+  background: var(--color-success-surface);
+  border-color: var(--color-success-border);
+}
+.involvement-dialog {
+  width: min(900px, 94vw);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.rae-methodology {
+  overflow-wrap: anywhere;
+}
+.rae-methodology section {
+  margin-top: var(--space-6);
+}
+.rae-methodology h2 {
+  font-size: var(--font-size-section);
+}
+.involvement-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+}
+.involvement-flow li {
+  flex: 1 1 140px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-subtle);
+}
+.involvement-methods > div,
+.involvement-metadata > div {
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-divider);
+}
+.involvement-methods dt,
+.involvement-metadata dt {
+  font-weight: var(--font-weight-semibold);
+}
+.involvement-methods dd,
+.involvement-metadata dd {
+  margin: var(--space-1) 0 0;
+}
+.involvement-metadata {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--space-5);
+}
+.involvement-decision-detail {
+  border-top: 1px solid var(--color-divider);
+  padding: var(--space-4) 0;
+}
+.involvement-decision-detail summary {
+  cursor: pointer;
+}
+.involvement-tree,
+.involvement-tree ul {
+  list-style: none;
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--color-border);
+}
+.involvement-node {
+  padding-block: var(--space-2);
+}
+.involvement-node summary {
+  white-space: pre-wrap;
+}
+.involvement-node-unresolved {
+  color: var(--color-warning);
+}
+@media (max-width: 700px) {
+  .involvement-dimensions,
+  .involvement-metadata {
+    grid-template-columns: 1fr;
+  }
+}
+.involvement-dialog {
+  margin: auto;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-dialog);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-dialog);
+}
+.involvement-dialog::backdrop {
+  background: var(--color-backdrop);
+}

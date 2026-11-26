@@ -33,6 +33,21 @@ class Settings(BaseSettings):
     secop_cache_hours: int = Field(default=24, ge=1, le=8760)
     secop_max_rows: int = Field(default=5000, ge=200, le=10000)
     secop_run_timeout: float = Field(default=90, ge=10, le=180)
+    rae_enabled: bool = False
+    rae_execution_mode: Literal["disabled", "demo", "live_experimental"] = "disabled"
+    rae_api_base_url: Literal["https://api.rainbird.ai", "https://enterprise-api.rainbird.ai"] = (
+        "https://api.rainbird.ai"
+    )
+    rae_engine: Literal["rbx"] = "rbx"
+    # RBX wizard publishes a new kmID per build; legacy maps use a numeric version.
+    rae_model_reference_mode: Literal["published_build", "version"] = "published_build"
+    rae_api_key: str | None = Field(default=None, repr=False)
+    rae_evidence_key: str | None = Field(default=None, repr=False)
+    rae_model_id: str | None = Field(default=None, max_length=200)
+    rae_model_version: int | None = Field(default=None, ge=1)
+    rae_request_timeout_seconds: float = Field(default=30, ge=1, le=60)
+    rae_cache_hours: int = Field(default=24, ge=1, le=168)
+    government_involvement_lookback_months: int = Field(default=24, ge=1, le=120)
     upstream_concurrency: int = Field(default=4, ge=1, le=20)
 
     @model_validator(mode="after")

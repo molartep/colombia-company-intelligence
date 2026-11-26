@@ -1,0 +1,44 @@
+[
+  {
+    "language": "en",
+    "width": 390,
+    "overflow": false,
+    "browser_errors": [],
+    "escape_focus_return": true
+  },
+  {
+    "language": "en",
+    "width": 768,
+    "overflow": false,
+    "browser_errors": [],
+    "escape_focus_return": true
+  },
+  {
+    "language": "en",
+    "width": 1440,
+    "overflow": false,
+    "browser_errors": [],
+    "escape_focus_return": true
+  },
+  {
+    "language": "es",
+    "width": 390,
+    "overflow": false,
+    "browser_errors": [],
+    "escape_focus_return": true
+  },
+  {
+    "language": "es",
+    "width": 768,
+    "overflow": false,
+    "browser_errors": [],
+    "escape_focus_return": true
+  },
+  {
+    "language": "es",
+    "width": 1440,
+    "overflow": false,
+    "browser_errors": [],
+    "escape_focus_return": true
+  }
+]
