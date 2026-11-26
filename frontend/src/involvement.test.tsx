@@ -4,10 +4,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { GovernmentInvolvement, RaePage, RaeMethodology } from './components/GovernmentInvolvement'
 import { changeLanguage } from './i18n'
-import demo from '../../docs/design/fixtures/rae-demo.json'
+import { readFileSync } from 'node:fs'
 import type { Involvement } from './types/governmentInvolvement'
 
-const fixture = demo as Involvement
+// Tests share the visual-review fixture; production builds only receive frontend/.
+const fixture = JSON.parse(
+  readFileSync('../docs/design/fixtures/rae-demo.json', 'utf8'),
+) as Involvement
 function wrap(element: React.ReactNode, route = '/') {
   return render(
     <QueryClientProvider

@@ -356,3 +356,15 @@ has an explicit --live switch and checks outcomes, sufficiency and evidence comp
 backend/.env was prepared with owner-only permissions and a blank key. Running --live without the
 key returned not_configured without an inference call. Mocked RBX tests are contract validation,
 not observed live Rae agreement. See [connection instructions](rainbird/RBX-connection.md).
+
+## Production frontend build context correction — 2026-11-26
+
+Both production CI architectures failed because involvement.test.tsx statically imported a JSON
+fixture outside the frontend-only Docker build context. Local full-repository builds had masked
+this dependency. The test now reads the shared fixture through node:fs at test runtime, matching the
+existing presentation tests. Production TypeScript compilation no longer resolves a docs/ import.
+
+Reproduced TS2307 in a temporary frontend-only directory without docs/ before the fix; the same
+isolated npm run build passes afterward. Frontend tests (154), lint, formatting and the production
+build pass. No Docker executable is available on this workstation; complete x86/ARM stack smoke
+validation runs in GitHub Actions.
