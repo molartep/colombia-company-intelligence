@@ -23,7 +23,12 @@ class Settings(BaseSettings):
     socrata_app_token: str | None = None
     socrata_timeout: float = Field(default=60, gt=0, le=60)
     socrata_retries: int = Field(default=2, ge=0, le=4)
-    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    cors_origins: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+    ]
     capital_markets_timeout: float = Field(default=30, gt=0, le=60)
     capital_markets_retries: int = Field(default=2, ge=0, le=4)
     capital_markets_storage_dir: Path = Path("var/capital-markets")
@@ -34,7 +39,8 @@ class Settings(BaseSettings):
     secop_max_rows: int = Field(default=5000, ge=200, le=10000)
     secop_run_timeout: float = Field(default=90, ge=10, le=180)
     rae_enabled: bool = False
-    rae_execution_mode: Literal["disabled", "demo", "live_experimental"] = "disabled"
+    rae_execution_mode: Literal["disabled", "demo", "live_experimental", "live"] = "disabled"
+    rae_company_processing_authorized: bool = False
     rae_api_base_url: Literal["https://api.rainbird.ai", "https://enterprise-api.rainbird.ai"] = (
         "https://api.rainbird.ai"
     )

@@ -368,3 +368,82 @@ Reproduced TS2307 in a temporary frontend-only directory without docs/ before th
 isolated npm run build passes afterward. Frontend tests (154), lint, formatting and the production
 build pass. No Docker executable is available on this workstation; complete x86/ARM stack smoke
 validation runs in GitHub Actions.
+
+## Authorized company reasoning and 2×2 insight grid — 2026-11-26
+
+Implemented authorized live-mode snapshot evaluation, exact supplier revalidation, minimized facts,
+common/dimension diagnostics, native witness-to-source resolution, immutable result/failure history,
+model/evidence/date-aware cache, prior-result retention, cross-process locks, inference concurrency
+limits, failure cooldown and same-origin/rate-limited refresh. Snapshot cache index migration applied
+and Alembic schema check passed. A dedicated PostgreSQL persistence test is included for CI.
+
+The configured published Rae model passed a real synthetic call: 4.689 seconds total, all four
+expected decisions and sufficiency results, native evidence retrieved. No real-company transmission
+was performed: automatic approval review rejected that call because authorization did not specify
+its payload/destination sufficiently. The private company-processing switch remains false pending
+explicit execution approval. A private, Git-ignored review file contains 29 minimized facts for a
+two-contract snapshot, with no names, NITs, source URLs, amounts or official IDs in the payload.
+
+Government Involvement and three activity visualizations now share equal-width 2×2 cards above 700px,
+with one-column 24px gaps below. EN/ES screenshots at 1440, 768 and 390px pass layout, overflow,
+browser-error and Escape/focus-return checks. Shared ContractDetail now serves both table and reasoning
+references. Frontend: 157 tests, lint, TypeScript, formatting and production build pass; the isolated
+frontend-only build also passes. Backend unit/lifecycle, lint, formatting and strict mypy pass;
+database-dependent tests require a dedicated disposable test URL.
+
+
+## Approved company activation — 2026-11-26
+
+After the user explicitly approved the payload categories and Enterprise Rae destination, enabled
+RAE_ENABLED=true, RAE_EXECUTION_MODE=live and RAE_COMPANY_PROCESSING_AUTHORIZED=true in the private local
+backend environment. The exact reviewed two-contract snapshot completed in 5.918 seconds. Rae returned
+direct, historical and recent participation documented; execution undetermined; individual sufficiency
+stale. Source witness references resolved locally (2/1/1/0 contracts). A repeated request reused the
+persisted evaluation. No company names, NITs, descriptions, money, official identifiers or URLs were
+included in external facts. The earlier automatic-review rejection is resolved by explicit approval.
+
+After restarting the local API with the approved live settings, a real browser check confirmed the
+company card displays Rae results, native evidence opens, source-scoped contract details load, and
+all four insight cards form the requested 2×2 grid. No browser exceptions or page overflow occurred.
+
+
+## SECOP/Rae refresh origin correction — 2026-11-26
+
+Reproduced both refresh failures through Vite on localhost:5174 and 127.0.0.1:5174: HTTP 403 from the
+same-origin guard, before retrieval/inference. The proxy rewrites Host while preserving the browser's
+5174 Origin, which was missing from the backend configuration. Added both explicit port-5174 loopback
+origins to defaults, examples and local settings; arbitrary origins and cross-site requests remain
+rejected. Production origin validation is unchanged.
+
+HTTP exception responses now preserve Retry-After; both database refresh cooldowns report the actual
+remaining interval. Frontend refresh controls distinguish 403 from 429 and disable repeated clicks
+with a localized retry countdown. SECOP refresh invalidates the involvement cache so retained snapshots
+also pick up retrieval-failure freshness changes.
+
+Live browser verification: reasoning refresh returned 200/completed; SECOP refresh returned
+200/completed_with_matches; the card evaluated the new run with source.is_stale=false and no browser
+exceptions. Origin-acceptance/rejection and retry-header tests cover both endpoints; frontend tests
+cover countdown expiry, precise errors and retaining previous findings.
+
+
+## Government Involvement interaction and evidence refinement — 2026-11-26
+
+Replaced attribution prose with linked Rainbird RAE credit. Added synchronized native slider and
+integer input, default 24 and range 1–120 months. Draft edits mask results and make no API request;
+Apply commits the period. Both company endpoints validate the parameter, use calendar subtraction,
+and cache by selected evaluation context. Standalone links retain the period.
+
+The renamed dialog dismisses on backdrop and Escape with focus return. Conclusion methodology lives
+in reusable information tooltips; card/popup pills match. Sufficiency has a separate glossary,
+including the currently reserved limited state. Evidence shows one selected conclusion with grouped,
+deduplicated native facts, preserved conflicting values/source text and collapsed original reasoning.
+Removed the requested introductory and interpretation sections.
+
+Validation: 356 backend tests passed, 67 skipped (database/optional integration requirements);
+166 frontend tests passed. Backend Ruff/format/mypy, frontend lint/format/type checks, production
+build and isolated frontend-only build passed. Real local company reasoning verified a 36-month
+period with boundary 2023-11-26: draft caused no request, Apply returned completed native inference,
+compact fact groups displayed, standalone link retained 36, and backdrop returned focus. No browser
+exceptions occurred. Synthetic EN/ES responsive captures cover 320/390/768/1440px with equal-width
+2×2 cards above 700px, stacked cards below, tooltip bounds, Escape/backdrop focus return and no
+horizontal page overflow. Screenshots remain explicitly synthetic.

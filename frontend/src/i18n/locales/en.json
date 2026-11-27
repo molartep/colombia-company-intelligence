@@ -225,7 +225,8 @@
     "contractCount_other": "{{count}} contracts",
     "contractsIncluded_one": "{{count}} contract included in totals",
     "contractsIncluded_other": "{{count}} contracts included in totals",
-    "scrollTable": "Scroll horizontally to view all columns."
+    "scrollTable": "Scroll horizontally to view all columns.",
+    "refreshInSeconds": "Refresh in {{count}} s"
   },
   "feedback": {
     "theRnveIssuerDirectoryNeedsImporting": "The RNVE issuer directory needs importing.",
@@ -718,7 +719,9 @@
     "invalid_issuer_report": "The file could not be validated. Use the official issuer-only XLSX export.",
     "import_busy": "An import is already running. Please try again later.",
     "import_origin_denied": "Import requires a same-origin request.",
-    "import_too_large": "The XLSX limit is 10 MiB."
+    "import_too_large": "The XLSX limit is 10 MiB.",
+    "refresh_origin_forbidden": "The API rejected this app address. Check the configured frontend origin and reload the page.",
+    "refresh_cooldown": "Please wait for the refresh cooldown before trying again. Previous findings remain available."
   },
   "messages": {
     "secop": {
@@ -833,7 +836,7 @@
     "live": "Rae evaluation",
     "loading": "Loading decision availability…",
     "error": "Decision information is temporarily unavailable. Official contract evidence remains available.",
-    "disabledNotice": "Company reasoning is not enabled. No company evidence is sent to Rae. Explore the methodology or the separate synthetic example.",
+    "disabledNotice": "Company reasoning is disabled in the backend configuration.",
     "demoNotice": "Demonstration data — authored synthetic fixtures, not live Rae inference or findings about this company.",
     "attribution": "Evaluated by Rainbird Rae using the pinned model and source snapshot shown below.",
     "learnMore": "Learn more",
@@ -843,7 +846,7 @@
     "what": "What is Rae?",
     "whatText": "Rae is Rainbird AI’s platform for explicit, knowledge-based decision models. Its symbolic reasoning engine applies facts and rules consistently and returns evidence describing the reasoning. This experience uses structured reasoning evidence; it does not ask a generative model to write an explanation.",
     "how": "How CCI uses Rae",
-    "howText": "CCI retrieves official records, verifies supplier identity, deduplicates contracts and preserves source observations. The experimental Rae model evaluates involvement policies from minimal structured facts. Company transmission requires a separate authorization and licensing review.",
+    "howText": "CCI retrieves official records, verifies supplier identity, deduplicates contracts and preserves source observations. Rae evaluates involvement policies from minimized facts tied to a specific SECOP II snapshot. Company names, NITs, descriptions, monetary values and source links stay in CCI.",
     "officialSources": "RUES + SECOP II",
     "verification": "CCI verification and evidence",
     "reasoning": "Rae decision model",
@@ -905,6 +908,120 @@
     "source_stale": "Source observation is stale.",
     "excluded_conflicting_or_ineligible_rows": "Excluded observations limit negative conclusions.",
     "evidence_unavailable": "Supporting evidence could not be retrieved.",
-    "demoLabel": "Synthetic demonstration"
+    "demoLabel": "Synthetic demonstration",
+    "running": "Evaluating with Rae…",
+    "notReady": "Reasoning needs a verified SECOP II snapshot and an available Rae connection.",
+    "previousEvaluation": "Previous Rae findings retained. The latest evaluation failed; review the evaluation and source dates.",
+    "refresh": "Refresh reasoning",
+    "refreshError": "Reasoning could not be refreshed. Previous findings remain available. Please try again later.",
+    "officialSource": "Official source",
+    "modelDiagnostics": "Rae evidence diagnostics",
+    "native_evidence_not_available": "Native reasoning evidence is unavailable for this result.",
+    "native_evidence_incomplete": "The native evidence tree contains an unresolved branch.",
+    "availability": {
+      "real_company_processing_not_authorized": "Company evidence processing needs authorization in backend settings.",
+      "rae_not_configured": "Configure the Rae model and server-side API key to evaluate this snapshot.",
+      "identity_unverified": "A verified canonical company identity is required.",
+      "source_snapshot_required": "Complete a successful SECOP II query before evaluating involvement.",
+      "source_snapshot_requires_refresh": "Refresh SECOP II to use the current supplier matching policy."
+    },
+    "poweredBy": "Powered by Rainbird AI's RAE.",
+    "conclusions": "Conclusions",
+    "evidenceLabel": "Evidence",
+    "pendingResult": "Results awaiting evaluation",
+    "lookbackRange": "1 month–10 years",
+    "lookbackSlider": "Lookback period slider",
+    "monthsUnit": "months",
+    "apply": "Apply",
+    "applyHint": "Apply to evaluate this period.",
+    "lookbackInvalid": "Enter a whole number from 1 to 120 months.",
+    "whyConclusion": "Why this conclusion",
+    "supportingSources": "Supporting source observations",
+    "noSupportingSource": "No qualifying contract observation supports this conclusion.",
+    "evaluationDetails": "Evaluation details",
+    "aboutRae": "About Rainbird RAE",
+    "evidenceFor": "Evidence for {{name}}",
+    "inspectNative": "Inspect original reasoning",
+    "nativePreserved": "Original Rae reasoning is preserved here, including intermediate rules and unresolved references.",
+    "nativeDetailsAvailable": "The original reasoning is available below.",
+    "factCount_one": "{{count}} supporting fact",
+    "factCount_other": "{{count}} supporting facts",
+    "brief": {
+      "direct_participation": "A verified SECOP II contract attributed to this company as a direct, non-group supplier.",
+      "historical_participation": "A verified contract signed before the selected lookback period. This does not mean activity has ceased.",
+      "recent_participation": "A verified contract signed within the selected period, including both boundary dates. This does not imply ongoing execution.",
+      "currently_reported_execution": "A dated, sufficiently fresh SECOP II observation reports “En ejecución”. Scheduled end dates do not override that status."
+    },
+    "sufficiencyLabels": {
+      "sufficient": "Sufficient",
+      "limited": "Limited",
+      "missing": "Missing",
+      "stale": "Stale",
+      "contradictory": "Contradictory",
+      "incomplete": "Incomplete"
+    },
+    "sufficiencyDescriptions": {
+      "sufficient": "Enough verified evidence for this conclusion.",
+      "limited": "Reserved; not produced by the current model.",
+      "missing": "Required facts are unavailable.",
+      "stale": "Source observations need updating.",
+      "contradictory": "Relevant evidence disagrees.",
+      "incomplete": "Retrieval or scope coverage is incomplete."
+    },
+    "evidenceGroups": {
+      "identity": "Identity and attribution",
+      "dates": "Dates and activity",
+      "execution": "Reported execution",
+      "coverage": "Coverage and freshness",
+      "other": "Additional supporting facts"
+    },
+    "factLabels": {
+      "identity_verified": "Company identity verified",
+      "attribution_verified": "Direct supplier attribution verified",
+      "contains_contract": "Contract included in this snapshot",
+      "eligible_contract": "Eligible supporting contract",
+      "signature_date": "Signature date",
+      "signature_band": "Signature period",
+      "signature_conflict": "Signature conflict reported",
+      "as_of_date": "Evaluation date",
+      "lookback_start_date": "Recent period starts",
+      "lookback_months": "Lookback in months",
+      "scheduled_end_date": "Scheduled end date",
+      "historical_witness": "Historical supporting contract",
+      "recent_witness": "Recent supporting contract",
+      "reported_status": "Original source status",
+      "execution_status": "Recognized execution status",
+      "observation_available": "Dated observation available",
+      "execution_status_conflict": "Execution status conflict reported",
+      "execution_witness": "Execution supporting contract",
+      "execution_resolved_contract": "Execution status resolved for contract",
+      "execution_coverage": "Execution evidence coverage complete",
+      "query_complete": "Source retrieval complete",
+      "contract_count": "Contracts in the snapshot",
+      "source_stale": "Source observations are stale",
+      "direct_coverage": "Direct participation coverage complete",
+      "temporal_coverage": "Signature evidence coverage complete",
+      "incomplete_coverage_reason": "Coverage limitation",
+      "missing_coverage_fact": "Missing coverage fact",
+      "value_conflict": "Contract value conflict reported",
+      "attribution_gap_contract": "Contract with unresolved attribution",
+      "temporal_gap_contract": "Contract with missing temporal evidence",
+      "execution_gap_contract": "Contract with missing execution evidence",
+      "signature_contradiction": "Conflicting signature evidence",
+      "status_contradiction": "Conflicting execution evidence"
+    },
+    "factValues": {
+      "historical": "Historical",
+      "recent": "Recent",
+      "missing": "Missing",
+      "future": "Future date",
+      "execution": "Execution reported",
+      "non_execution": "Other recognized status",
+      "unknown": "Unknown"
+    },
+    "boolean": {
+      "true": "Yes",
+      "false": "No"
+    }
   }
 }

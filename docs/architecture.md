@@ -164,9 +164,11 @@ other transport failures use `source_unavailable`. Safe retry diagnostics record
 never the search query, NIT, URL, tokens or raw response. Search-specific EN/ES copy identifies RUES,
 while other source modules retain their own error wording.
 
-## Rae experimental boundary
+## Government Involvement live mode
 
-The isolated Rainbird REST client consumes minimized facts and obtains native decisions/evidence.
-Company endpoints only expose availability and company-scoped screening-run context; they never invoke
-inference. Explicit CLI experiments use a fixed synthetic fixture. Optional append-only evaluation
-persistence is separate from immutable SECOP evidence. See [Rae manual](RaeManual.md).
+Authorized company reasoning is implemented for verified, immutable SECOP II snapshots. The backend
+reuses supplier matching, sends only minimized pseudonymous facts to Rae, persists native decisions,
+evidence, failures and local source references, and caches by source/model/policy/date. GET evaluates
+on cache miss; same-origin POST reasoning refresh has company rate/cooldown controls. Prior native
+findings remain qualified if reevaluation fails. No Python classification fallback is used.
+The card shares a responsive 2×2 grid with the three activity visualizations. Live synthetic reasoning and one authorized company evaluation passed; ongoing minimized company transmission has been explicitly approved. See [Rae manual](RaeManual.md).

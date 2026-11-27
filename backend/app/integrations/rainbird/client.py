@@ -1,4 +1,4 @@
-"""Documented REST session API; bounded synthetic-only experimental caller.
+"""Documented REST session API; bounded synthetic and authorized company inference.
 
 References: docs.rainbird.ai/rainbird/developer-docs/api-reference/{decisions,evidence}
 """
@@ -68,7 +68,19 @@ def normalize_evidence(raw: dict[str, Any], *, limit: int = 500) -> EvidenceNode
         )
         if not isinstance(fact, dict):
             raise RaeError("invalid_evidence")
-        label = json.dumps(fact, ensure_ascii=False) if fact else fact_id
+
+        def scalar(value: Any) -> str:
+            if isinstance(value, dict):
+                value = value.get("value", value.get("type", value))
+            return value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+
+        label = (
+            " → ".join(scalar(fact[key]) for key in ("subject", "relationship", "object"))
+            if all(key in fact for key in ("subject", "relationship", "object"))
+            else json.dumps(fact, ensure_ascii=False)
+            if fact
+            else fact_id
+        )
         if len(label) > 10000:
             raise RaeError("invalid_evidence")
         result = EvidenceNode(
@@ -151,7 +163,7 @@ class RaeClient:
         response = ResultResponse.model_validate(raw)
         if response.sid is not None and response.sid != session:
             raise RaeError("invalid_session")
-        if len(response.result) > 100:
+        if len(response.result) > 5000:
             raise RaeError("response_limit")
         if any(
             f.subject != "evaluation" or (f.relationship or f.relationshipType) != relationship
@@ -253,14 +265,28 @@ class RaeClient:
         return tree
 
     async def evaluate_synthetic(self, facts: list[dict[str, Any]]) -> tuple[list[Decision], str]:
-        """Only trusted repository synthetic fixtures may call this method.
+        if self.settings.rae_execution_mode != "live_experimental":
+            raise RaeError("not_configured")
+        return await self._evaluate(facts)
 
-        No public endpoint accepts arbitrary facts or invokes external inference.
-        """
+    async def evaluate_company(self, facts: list[dict[str, Any]]) -> tuple[list[Decision], str]:
+        if (
+            not self.settings.rae_company_processing_authorized
+            or self.settings.rae_execution_mode != "live"
+        ):
+            raise RaeError("company_processing_not_authorized")
+        return await self._evaluate(facts, include_witnesses=True)
+
+    async def _evaluate(
+        self,
+        facts: list[dict[str, Any]],
+        *,
+        include_witnesses: bool = False,
+    ) -> tuple[list[Decision], str]:
         s = self.settings
         if not (
             s.rae_enabled
-            and s.rae_execution_mode == "live_experimental"
+            and s.rae_execution_mode in ("live_experimental", "live")
             and s.rae_api_key
             and s.rae_model_id
             and (s.rae_model_reference_mode == "published_build" or s.rae_model_version is not None)
@@ -327,6 +353,17 @@ class RaeClient:
                     if len(suff) != 1:
                         raise RaeError("unresolved_sufficiency")
                     diagnostics = common + await self._query(started.id, f"{dimension}_diagnostics")
+                    aliases = []
+                    if include_witnesses and result.object in ("documented", "reported"):
+                        relationship = {
+                            "direct_participation": "eligible_contract",
+                            "historical_participation": "historical_witness",
+                            "recent_participation": "recent_witness",
+                            "currently_reported_execution": "execution_witness",
+                        }[dimension]
+                        aliases = [f.object for f in await self._query(started.id, relationship)]
+                        if not aliases:
+                            raise RaeError("missing_supporting_contracts")
                     tree = await self._evidence(result.factID, started.id, evidence_cache)
                     suff_tree = await self._evidence(suff[0].factID, started.id, evidence_cache)
                     normalized = normalize_evidence(tree) if tree else None
@@ -347,6 +384,7 @@ class RaeClient:
                         Decision.model_validate(
                             dict(
                                 id=dimension,
+                                supporting_aliases=aliases,
                                 outcome=result.object,
                                 evidence_status=suff[0].object,
                                 evidence_tree_id=result.factID if tree else None,

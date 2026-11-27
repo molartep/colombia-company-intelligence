@@ -1,8 +1,10 @@
 # Rainbird Rae integration manual
 
 Status: experimental RBX adapter, 2026-11-26. A published model connection guide is now available; see [RBX connection setup](rainbird/RBX-connection.md). **No live inference has been validated.**
-Company processing is blocked in all modes. The REST client is implemented against official
-interfaces and tested with mocked HTTP. Demonstrations are authored synthetic fixtures.
+Company processing is implemented for explicitly authorized live mode, with snapshot-scoped caching,
+source-reference resolution, and refresh controls. The model passed a live synthetic test (4.689 seconds,
+all four outcomes/sufficiency values and native evidence). The user explicitly approved ongoing minimized company transmission to the configured Rae Enterprise API. Company mode is enabled locally and a real snapshot evaluation passed in 5.918 seconds, with native evidence/source resolution and repeat-request cache reuse.
+Demonstrations remain authored synthetic fixtures.
 
 ## 1. Executive overview
 
@@ -30,7 +32,9 @@ represented as missing states, never assigned an invented percentage.
 ```mermaid
 flowchart TD
   Sources[RUES and SECOP II] --> CCI[CCI identity and immutable evidence snapshots]
-  CCI --> Card[Company availability card: external processing blocked]
+  CCI --> Gate[Enabled + authorized live mode]
+  Gate --> Mapper
+  CCI --> Card[Company involvement card and availability]
   Fixture[Repository synthetic fixture] --> Mapper[Factual preprocessing and pseudonyms]
   Mapper --> REST[Backend Rae REST client]
   REST --> Rae[Published version of government_involvement_profile]
@@ -153,7 +157,8 @@ For the supplied wizard model, `RAE_MODEL_ID` pins the build and `RAE_MODEL_VERS
 Use `RAE_MODEL_REFERENCE_MODE=version` with a positive integer only for legacy maps.
 For an explicitly authorized synthetic experiment, set `RAE_ENABLED=true`,
 `RAE_EXECUTION_MODE=live_experimental`, keys and build ID in a private backend `.env`. The explicit `--live` CLI flag also enables only the synthetic experiment for that process.
-Company transmission remains blocked even then. Do not add a `VITE_` key or commit secrets.
+Synthetic mode does not enable company transmission. Authorized company mode additionally requires
+`RAE_EXECUTION_MODE=live` and `RAE_COMPANY_PROCESSING_AUTHORIZED=true`. Do not add a `VITE_` key or commit secrets.
 
 ## 9. API integration
 
@@ -184,13 +189,16 @@ The native decision and sufficiency evidence are retained separately from the no
 CCI endpoints:
 
 - `GET /api/v1/companies/{UUID}/screening/secop/involvement?run_id={UUID}`: existing company check and
-  company/source/NIT-scoped run validation; returns availability, pinned run, evaluation context and no
-  invented decisions. Omit run_id to reference the last successful compatible SECOP run.
+  company/source/NIT/DV-scoped run validation; returns cached or live decisions for the pinned snapshot.
+  Omit run_id to reference the last successful compatible SECOP run. Without successful evidence it
+  returns a prerequisite state, never a negative finding.
 - `GET /api/v1/government-involvement/demo`: immutable authored example, no real company/run identity.
 
-No public inference/refresh endpoint is exposed. There are no inference calls on page visits, and
-no arbitrary user-supplied facts can be forwarded to Rae. Existing API method, body and rate controls
-remain in effect. Existing SECOP APIs and evidence are unaffected by Rae outages.
+`POST /api/v1/companies/{UUID}/screening/secop/involvement/refresh?run_id={UUID}` reevaluates the pinned
+snapshot. Same-origin enforcement, company refresh rate limits and a database cooldown apply. GET may
+perform inference on cache miss, behind authorization/configuration gates, a cross-process company
+lock, and a two-call process semaphore. Concurrent requests return running and the UI polls. No public
+endpoint accepts arbitrary facts. SECOP retrieval and stored evidence are unaffected by Rae outages.
 
 ## 10. MCP integration
 
@@ -220,7 +228,8 @@ are CCI-owned and remain distinct from the native reasoning tree.
 | --- | --- | --- | --- |
 | Disabled (default) | Never transmitted | None | Availability and methodology |
 | Demo | Never transmitted | None | Separate authored synthetic example |
-| Live experimental | Still blocked | Explicit CLI, fixed repository synthetic fixture only | CLI results; optional private persistence |
+| Live experimental | Blocked | Explicit CLI, fixed synthetic fixture only | Synthetic test results |
+| Live + company authorization | Minimized facts only | Cache misses and explicit reasoning refresh | Native decisions, evidence and local source links |
 
 The public demo page remains accessible in disabled mode because it is static explanatory data.
 A company page is never substituted with demo findings by the backend. Screenshots simulate the
@@ -245,9 +254,13 @@ mode, timestamp and complete JSON envelope. Application code only appends; sourc
 modified. Run migrations normally (`make migrate`) before optional persistence.
 `rae_smoke.py --live --persist` caches fixed synthetic inputs with a PostgreSQL advisory lock across processes.
 Cache identity includes facts/local evidence references, model/build/version, engine, API base, reference mode, policy, evaluation date and mode. `--refresh` appends a fresh result; failures do not replace prior successes. TTL is 24 hours.
-No public company evaluation cache is active because company evaluation is not authorized. Real failure
-records, source-version binding and stale cache presentation require the later reviewed live lifecycle;
-this migration is a foundation, not proof of production operation.
+Company evaluations and failures append to the same isolated table with company/run IDs. Cache keys
+include canonical scope, immutable evidence hashes, facts, date, month configuration, source freshness,
+model/reference mode/engine/API base and policy. Database advisory locks prevent duplicate company
+inference; success TTL is configured by RAE_CACHE_HOURS and failure cooldown is 60 seconds. Refresh
+has an additional database cooldown. A failure can retain a previous successful evaluation only for
+the same company/run/configuration, preserving its original native decisions/date with explicit stale
+qualification. Source evidence is never modified. Migration c7902ea3b112 indexes company/run history.
 
 ## 15. Frontend usage
 
@@ -255,8 +268,11 @@ Open a company → Government Contracts → Government Involvement. Learn more o
 Escape closes it and returns focus. Individual dimensions select the corresponding evidence section.
 Open in new tab preserves company, run and decision. `/methodology/rae` works independently; use
 `/methodology/rae?demo=true&decision=recent_participation` for the isolated synthetic example.
-The card remains present when the reasoning endpoint fails. Contract retrieval failures retain their
-existing behavior. Text, metadata formatting and controls support English and Spanish.
+The card remains present when the reasoning endpoint fails, with separate disabled, blocked, failed,
+running and stale states. Refresh reasoning updates the cached evaluation. Source references open
+allowlisted official links; contract references reuse the shared pinned contract-detail component.
+The card and three visualizations form a 2×2 grid above 700px and stack with consistent spacing below.
+Text, metadata formatting and controls support English and Spanish.
 
 ## 16. Testing and validation
 
@@ -299,7 +315,7 @@ See [visual evidence](design/assets/rainbird/README.md).
 
 | Code/state | Action |
 | --- | --- |
-| disabled / blocked | Expected for companies; setting credentials does not authorize processing |
+| disabled / blocked | Check live mode, company-processing authorization, API key/model and successful current-policy SECOP snapshot |
 | not_configured | Supply a private key and published build ID, then use --live; legacy mode also needs an integer version |
 | invalid_credentials / access_denied | Review account/map API permission and keys; never send keys to browser |
 | model_not_found | Check environment, map ID and published version |
@@ -337,9 +353,10 @@ full accessible native-evidence UI review. No current config flag bypasses these
 
 ## 21. Evaluation results
 
-Observed: local reference and mocked transport tests; bilingual UI tests and responsive synthetic
-screenshots. Unobserved: live Rae decisions, native model correctness, full truth-table agreement,
-model-only inference latency, billable usage, commercial pricing and rule maintenance effort in Studio.
+Observed: local reference and mocked transport/lifecycle tests; bilingual UI tests and responsive
+synthetic screenshots; a live synthetic Rae evaluation with matching four decisions, four sufficiency
+values and complete native evidence, taking 4.689 seconds end to end. Observed also: one authorized company snapshot evaluated in 5.918 seconds; direct/historical/recent participation documented, reported execution undetermined with stale sufficiency. Unobserved: full live truth-table agreement, model-only inference latency, billable usage, commercial pricing and
+rule maintenance effort in Studio.
 The Python reference expresses this small policy with much less operational machinery. Rae may add
 valuable native evidence and policy ownership, but this value is not demonstrated by mocked tests.
 **Defer** adoption until a published synthetic model establishes that value with measured results.
@@ -357,3 +374,18 @@ valuable native evidence and policy ownership, but this value is not demonstrate
 
 Official documentation checked 2026-11-26. The main Rainbird website and some documentation URLs did not
 load through the research tool; the API, evidence, overview, quickstart and hosting pages did. No vendor sales response, private account terms or executable MCP tool was available for verification. The user-supplied published model guide is retained in docs/rainbird/.
+
+
+### User-selected lookback
+
+The company card defaults to 24 calendar months. Its slider and integer input allow 1–120 months.
+Editing creates a draft and blanks the displayed conclusions; Apply sends `lookback_months` to the
+company involvement GET endpoint. The explicit refresh POST accepts the same bounded parameter.
+The selected period participates in the evaluation fingerprint/cache and standalone reasoning link;
+changing it does not alter the SECOP snapshot or refresh source retrieval. The backend setting remains
+the default for API clients that omit the parameter. Boundaries use calendar-month subtraction.
+
+The Government Involvement dialog shows shared conclusion pills and methodology information icons,
+a separate sufficiency glossary, and a compact projection of native supporting facts. Identical facts
+are deduplicated; different values remain visible. Original native reasoning remains available in a
+collapsed disclosure. This projection adds no inference and preserves original source values.

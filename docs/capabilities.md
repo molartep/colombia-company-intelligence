@@ -41,9 +41,11 @@ future work or that financial statements shipped. “Advanced” was the former 
 advanced **search filters** remain a separate current feature. Earlier claims of BVC being entirely
 unimplemented describe the pre-connector state, not today's limited quote integrations.
 
-## Government Involvement experiment
+## Government Involvement live mode
 
-Implemented: bilingual availability card, shared methodology, synthetic evidence explorer, documented
-Rae REST transport and native evidence normalization. Real-company inference is blocked; the knowledge
-model is a provisional declarative specification, not a published model. Live inference/reference
-agreement and production readiness remain unverified. See [Rae manual](RaeManual.md).
+Authorized company reasoning is implemented for verified, immutable SECOP II snapshots. The backend
+reuses supplier matching, sends only minimized pseudonymous facts to Rae, persists native decisions,
+evidence, failures and local source references, and caches by source/model/policy/date. GET evaluates
+on cache miss; same-origin POST reasoning refresh has company rate/cooldown controls. Prior native
+findings remain qualified if reevaluation fails. No Python classification fallback is used.
+The card shares a responsive 2×2 grid with the three activity visualizations. Live synthetic reasoning and one authorized company evaluation passed; ongoing minimized company transmission has been explicitly approved. See [Rae manual](RaeManual.md).

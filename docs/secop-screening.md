@@ -142,9 +142,11 @@ Screenshots use **synthetic test data**, not actual findings about a company. Br
 
 [Mobile preview](screenshots/secop-390.png) · [Tablet preview](screenshots/secop-768.png)
 
-## Government Involvement
+## Government Involvement live mode
 
-The new card provides independent descriptive dimensions and a shared explanation experience.
-Company inference remains disabled pending licensing, authorization and native model validation.
-No matching, deduplication or source aggregation behavior changes. See [Rae integration](RaeManual.md),
-including the existing whole-record conflict exclusion limitation.
+Authorized company reasoning is implemented for verified, immutable SECOP II snapshots. The backend
+reuses supplier matching, sends only minimized pseudonymous facts to Rae, persists native decisions,
+evidence, failures and local source references, and caches by source/model/policy/date. GET evaluates
+on cache miss; same-origin POST reasoning refresh has company rate/cooldown controls. Prior native
+findings remain qualified if reevaluation fails. No Python classification fallback is used.
+The card shares a responsive 2×2 grid with the three activity visualizations. Live synthetic reasoning and one authorized company evaluation passed; ongoing minimized company transmission has been explicitly approved. See [Rae manual](RaeManual.md).

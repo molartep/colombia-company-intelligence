@@ -9,6 +9,7 @@ export class ApiError extends Error {
     message: string,
     public code: string,
     public status: number,
+    public retryAfterSeconds?: number,
   ) {
     super(message)
     this.name = 'ApiError'
@@ -43,7 +44,15 @@ export async function request<T>(
       typeof payload.error.code === 'string'
         ? payload.error.code
         : 'request_failed'
-    throw new ApiError(message, code, response.status)
+    const retryAfter = Number(response.headers?.get('Retry-After'))
+    throw new ApiError(
+      message,
+      code,
+      response.status,
+      Number.isFinite(retryAfter) && retryAfter > 0
+        ? Math.min(3600, Math.ceil(retryAfter))
+        : undefined,
+    )
   }
   return response.json() as Promise<T>
 }

@@ -128,6 +128,27 @@ Light mode is the only implemented theme. Do not add scattered dark-mode overrid
 
 **Do not duplicate components.** Extend the listed component or existing class family. A visual change does not justify a second search form, a second language switcher or a mobile-specific copy of a source table. React Query, API shapes and page identity are outside the visual system.
 
+### Popup header actions
+
+Use the shared `PopupActions` component in popup headers: title on the left; an optional **Open in
+new tab** icon followed by the **Close** X icon at the far right. Offer the new-tab action only
+when a standalone view exists, preserving its current context. Use a native anchor with
+`target="_blank" rel="noopener noreferrer"`; Close is a native button. Closing a popup never
+cancels its underlying request. Retain Escape/backdrop dismissal and return focus to the trigger.
+
+Use 20px outline SVGs (24×24 viewBox, 1.6px stroke, currentColor, `aria-hidden`) in
+`--control-height-icon` (32px) square targets; below 700px use `--control-height-touch` (44px).
+Keep `--space-2` (8px) between actions, `--radius-control` corners, secondary text color,
+selected-surface hover and the global visible focus ring. Titles wrap without overlapping actions;
+mobile popup padding uses `--space-5` (20px). Do not add a second text action row.
+
+Each icon needs a localized accessible name and a matching short tooltip via shared `Tooltip`,
+also used by FilterHelp. Tooltips show on hover or keyboard focus, remain hoverable, and dismiss
+with Escape or leaving the interaction. Use the existing dark tooltip surface, caption typography,
+popover shadow and tooltip z-index. Anchor below the action and align right to stay inside the
+viewport. EN/ES labels must remain available to assistive technology even when the tooltip is hidden.
+See [popup visual references](assets/rainbird/README.md).
+
 ## E. Data visualization and evidence conventions
 
 1. **Money:** currency values never wrap or split into several lines. Use `white-space: nowrap`; compact KPI values use the shared `FitMetricValue` component, which measures available space and reduces font size without modifying text. The source record, precision, and accessible value stay unchanged. For tables/charts, preserve a sufficient minimum width and allow local scrolling rather than truncating or splitting the number. Use the shared `i18n/format.ts` helpers with decimal strings. Preserve original scale/precision and currency codes. Never cast a financial amount to Number for display or convert currencies automatically. Optional USD presentation replaces displayed COP with an ≈-prefixed USD amount in the same element and typography; source COP remains unchanged in storage/API/exports. Currency titles and column units follow the displayed currency, and unavailable rates retain COP labels. The header Currency card exposes effective TRM versus manual provenance and information-icon tooltips; see [rate behavior](../currency-presentation.md). Aggregated currencies stay separate. SECOP’s explicit COP convention remains labeled; reported contract value is not revenue or payment.
@@ -393,3 +414,32 @@ colors describe evidence, never company risk. Reuse the shared Rae methodology c
 localized node-kind labels, preserved external fact text and local scrolling. Synthetic evidence is
 explicitly labeled. The two-column dimension grid stacks at 700px. No tokens or source-value display
 exceptions changed. See [responsive visual evidence](assets/rainbird/README.md).
+
+## Government Involvement grid and live evidence — 2026-11-26
+
+Government Involvement is the first card in `.secop-insights-grid`, followed by statuses, annual
+activity and top buyers. Use the shared two-column grid above 700px; all four cards have equal widths
+and row heights. Below 700px retain a CSS grid with one column and 24px gaps (do not inherit the
+legacy block layout while removing panel margins). Reuse ContractDetail across contract tables and
+Rae methodology; pinned run scope and original source values are preserved. Evidence has readable
+native fact triples plus separate CCI provenance links. Available, failed, blocked, evaluating, stale
+source and retained-evaluation states use localized text. No design tokens changed.
+See [updated visual checks](assets/rainbird/README.md).
+
+
+## Government Involvement controls and evidence — 2026-11-26
+
+Use the linked “Powered by Rainbird AI's RAE.” caption without an eyebrow or introductory
+attribution paragraph. The calendar lookback uses a native range slider and labeled integer input,
+1–120 months, initially 24. Both edit one draft. Draft changes mask conclusions with static skeletons;
+only the compact Apply action commits the period. Validate typed values and retain visible focus.
+Keep the selected period in API cache keys and standalone links.
+
+The native dialog is titled Government Involvement; Escape, Close and a click on the backdrop
+return focus to its trigger. Conclusion headings reuse FilterHelp for short methodology descriptions.
+Card and popup share outcome pills; documented/reported use existing success tokens. Evidence
+sufficiency has its own six-state glossary with short descriptions. Display one selected conclusion’s
+evidence at a time, grouped into identity, dates, execution and coverage disclosures. Deduplicate
+identical native fact triples, preserve conflicting values and source text, and keep original native
+reasoning in a separate collapsed disclosure. Supporting source observations also start collapsed
+in a native disclosure, with links to pinned local contract details and the official source. No design tokens or external-field casing exceptions changed.

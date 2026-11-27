@@ -10,8 +10,7 @@ Implemented 2026-11-26 as an experimental foundation. Frontend and API run on lo
   data with no company/run association. Real-company endpoint validates company/run scope.
 - Exact calendar-month mapper, minimized session pseudonyms, isolated optional append-only evaluation
   storage/migration and synthetic CLI cache/refresh. Source evidence and matching are unchanged.
-- Declarative model design, 24 explicit reference scenarios and test-only Python evaluator. The model
-  has not been created/published/tested in Rae; collection guards need Studio validation.
+- Declarative model design, 24 explicit reference scenarios and test-only Python evaluator. A published model is configured and has passed a live synthetic evaluation; full live truth-table comparison remains pending.
 
 Primary new files: `backend/app/integrations/rainbird/{client,mapper}.py`,
 `backend/app/{schemas,services,models}/government_involvement.py`, migration `b6a7203c9101`,
@@ -46,3 +45,17 @@ explainability and policy-maintenance value needs a genuine published-model comp
 Backend wheel build also passed. A local database-backed read-only company endpoint smoke check
 confirmed disabled mode with no findings and rejection of an invalid run ID. Full PostgreSQL test-suite
 execution still requires a dedicated disposable TEST_DATABASE_URL and was not performed.
+
+
+Company reasoning update: authorized live mode now includes verified snapshot mapping, native witness
+source resolution, persistent cache/failure history, concurrency/cooldown controls and explicit refresh.
+The card joins the three visualizations in a responsive 2×2 grid. A real synthetic call passed in
+4.689 seconds. Real-company execution was rejected by automatic approval review; local activation
+awaits the specific payload/destination approval, with no real-company facts transmitted.
+
+
+Activation completed after explicit approval: ongoing minimized company facts may be sent to the
+configured Enterprise Rae API. Local live mode is enabled. A two-contract real company snapshot
+completed in 5.918 seconds with native evidence, per-decision source references and cached reuse.
+Direct/historical/recent participation were documented; execution remained undetermined because the
+source snapshot was stale. Full live scenario coverage and production operations remain separate work.

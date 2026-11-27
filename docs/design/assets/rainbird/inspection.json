@@ -1,44 +1,114 @@
 [
   {
     "language": "en",
+    "width": 320,
+    "overflow": false,
+    "browser_errors": [],
+    "escape_focus_return": true,
+    "backdrop_focus_return": true,
+    "tooltip_inside_viewport": true,
+    "default_lookback_months": 24,
+    "popup_icon_sizes_and_tooltips": true,
+    "close_icon_focus_return": true,
+    "equal_width_insight_cards": true,
+    "layout": "stacked"
+  },
+  {
+    "language": "en",
     "width": 390,
     "overflow": false,
     "browser_errors": [],
-    "escape_focus_return": true
+    "escape_focus_return": true,
+    "backdrop_focus_return": true,
+    "tooltip_inside_viewport": true,
+    "default_lookback_months": 24,
+    "popup_icon_sizes_and_tooltips": true,
+    "close_icon_focus_return": true,
+    "equal_width_insight_cards": true,
+    "layout": "stacked"
   },
   {
     "language": "en",
     "width": 768,
     "overflow": false,
     "browser_errors": [],
-    "escape_focus_return": true
+    "escape_focus_return": true,
+    "backdrop_focus_return": true,
+    "tooltip_inside_viewport": true,
+    "default_lookback_months": 24,
+    "popup_icon_sizes_and_tooltips": true,
+    "close_icon_focus_return": true,
+    "equal_width_insight_cards": true,
+    "layout": "2x2"
   },
   {
     "language": "en",
     "width": 1440,
     "overflow": false,
     "browser_errors": [],
-    "escape_focus_return": true
+    "escape_focus_return": true,
+    "backdrop_focus_return": true,
+    "tooltip_inside_viewport": true,
+    "default_lookback_months": 24,
+    "popup_icon_sizes_and_tooltips": true,
+    "close_icon_focus_return": true,
+    "equal_width_insight_cards": true,
+    "layout": "2x2"
+  },
+  {
+    "language": "es",
+    "width": 320,
+    "overflow": false,
+    "browser_errors": [],
+    "escape_focus_return": true,
+    "backdrop_focus_return": true,
+    "tooltip_inside_viewport": true,
+    "default_lookback_months": 24,
+    "popup_icon_sizes_and_tooltips": true,
+    "close_icon_focus_return": true,
+    "equal_width_insight_cards": true,
+    "layout": "stacked"
   },
   {
     "language": "es",
     "width": 390,
     "overflow": false,
     "browser_errors": [],
-    "escape_focus_return": true
+    "escape_focus_return": true,
+    "backdrop_focus_return": true,
+    "tooltip_inside_viewport": true,
+    "default_lookback_months": 24,
+    "popup_icon_sizes_and_tooltips": true,
+    "close_icon_focus_return": true,
+    "equal_width_insight_cards": true,
+    "layout": "stacked"
   },
   {
     "language": "es",
     "width": 768,
     "overflow": false,
     "browser_errors": [],
-    "escape_focus_return": true
+    "escape_focus_return": true,
+    "backdrop_focus_return": true,
+    "tooltip_inside_viewport": true,
+    "default_lookback_months": 24,
+    "popup_icon_sizes_and_tooltips": true,
+    "close_icon_focus_return": true,
+    "equal_width_insight_cards": true,
+    "layout": "2x2"
   },
   {
     "language": "es",
     "width": 1440,
     "overflow": false,
     "browser_errors": [],
-    "escape_focus_return": true
+    "escape_focus_return": true,
+    "backdrop_focus_return": true,
+    "tooltip_inside_viewport": true,
+    "default_lookback_months": 24,
+    "popup_icon_sizes_and_tooltips": true,
+    "close_icon_focus_return": true,
+    "equal_width_insight_cards": true,
+    "layout": "2x2"
   }
 ]

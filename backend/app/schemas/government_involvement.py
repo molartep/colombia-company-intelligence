@@ -33,6 +33,8 @@ class Decision(BaseModel):
         "documented", "reported", "no_scoped_matches", "not_observed_in_scope", "undetermined"
     ]
     evidence_status: EvidenceStatus
+    supporting_aliases: list[str] = Field(default_factory=list)
+    source_references: list[dict[str, str]] = Field(default_factory=list)
     supporting_contract_ids: list[str] = Field(default_factory=list)
     supporting_evidence_ids: list[str] = Field(default_factory=list)
     evidence_tree_id: str | None = None
@@ -53,7 +55,7 @@ class EvaluationContext(BaseModel):
 class InvolvementView(BaseModel):
     company_id: UUID | None = None
     screening_run_id: UUID | None = None
-    status: Literal["disabled", "demo", "completed", "blocked", "failed"]
+    status: Literal["disabled", "demo", "completed", "blocked", "failed", "running"]
     engine: dict[str, Any]
     evaluation: EvaluationContext
     decisions: list[Decision] = Field(default_factory=list)

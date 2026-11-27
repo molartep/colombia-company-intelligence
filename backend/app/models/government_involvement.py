@@ -13,7 +13,10 @@ from app.models.entities import Base
 
 class InvolvementEvaluation(Base):
     __tablename__ = "government_involvement_evaluations"
-    __table_args__ = (Index("ix_involvement_cache", "input_fingerprint", "created_at"),)
+    __table_args__ = (
+        Index("ix_involvement_cache", "input_fingerprint", "created_at"),
+        Index("ix_involvement_company_run_created", "company_id", "screening_run_id", "created_at"),
+    )
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     company_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("companies.id"))
     screening_run_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("screening_runs.id"))

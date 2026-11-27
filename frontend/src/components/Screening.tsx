@@ -1,3 +1,5 @@
+import { useRefreshFeedback } from '../hooks/useRefreshFeedback'
+import { ContractDetail, SourceLink } from './ContractDetail'
 import { GovernmentInvolvement } from './GovernmentInvolvement'
 import { Dropdown } from './Dropdown'
 import { useCurrencyAmounts, useContractExport } from '../presentation/context'
@@ -8,7 +10,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { FitMetricValue } from './FitMetricValue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api/client'
-import type { ActivityGroup, Contract, ContractPage, SecopScreening } from '../types/secop'
+import type { ActivityGroup, ContractPage, SecopScreening } from '../types/secop'
 import { Failure, Loading } from './Feedback'
 
 const states = (): Record<SecopScreening['outcome'], string> => ({
@@ -80,15 +82,6 @@ function QuerySummary({ summary }: { summary: NonNullable<SecopScreening['summar
         ))}
       </div>
     </aside>
-  )
-}
-function SourceLink({ contract }: { contract: Contract }) {
-  useLanguage()
-
-  return (
-    <a className="text-link" href={contract.source_url} target="_blank" rel="noreferrer">
-      {uiMessage(contract.source_link_label)} ↗
-    </a>
   )
 }
 function Activity({
@@ -171,100 +164,6 @@ function Activity({
         <p>{t('governmentContracts.sinDatosParaEstaConsulta')}</p>
       )}
     </article>
-  )
-}
-function ContractDetail({
-  companyId,
-  id,
-  runId,
-  close,
-}: {
-  companyId: string
-  id: string
-  runId: string
-  close: () => void
-}) {
-  useLanguage()
-  const money = useCurrencyAmounts()
-
-  const query = useQuery({
-    queryKey: ['secop-detail', companyId, id, runId],
-    queryFn: ({ signal }) => api.secopContract(companyId, id, signal, runId),
-  })
-  return (
-    <section
-      className="panel secop-detail"
-      aria-label={t('governmentContracts.detalleDelContrato')}
-    >
-      <button className="refresh-button" onClick={close}>
-        {' '}
-        {t('governmentContracts.cerrarDetalle')}
-      </button>
-      <h3>
-        {' '}
-        {t('governmentContracts.detalleDelContrato')} {id}
-      </h3>
-      {query.isPending ? (
-        <Loading />
-      ) : query.isError ? (
-        <Failure error={query.error} retry={() => void query.refetch()} />
-      ) : (
-        <>
-          <p>{shown(query.data.description)}</p>
-          <dl>
-            {Object.entries({
-              [t('common.contract')]: query.data.contract_id,
-              [t('common.process')]: query.data.process_id,
-              [t('common.reference')]: query.data.reference,
-              [t('governmentContracts.entidadContratante')]: sourceValue(query.data.buyer),
-              [t('governmentContracts.nitDeLaEntidad')]: query.data.buyer_nit,
-              [t('governmentContracts.documentoOriginalDelProveedor')]:
-                query.data.original_supplier_identifier,
-              [t('governmentContracts.nitNormalizadoDelProveedor')]:
-                query.data.normalized_supplier_identifier,
-              [t('governmentContracts.tipoDeDocumento')]: query.data.supplier_document_type,
-              [t('common.match')]:
-                `${t(`governmentContracts.matchMethods.${query.data.match_method}`, { defaultValue: query.data.match_method })} / ${t(`governmentContracts.matchStatuses.${query.data.match_status}`, { defaultValue: query.data.match_status })}`,
-              [t('governmentContracts.valorReportado')]:
-                query.data.value === null
-                  ? null
-                  : money.format(
-                      query.data.value,
-                      query.data.currency ?? t('governmentContracts.monedaNoInformada'),
-                      false,
-                      true,
-                    ),
-              [t('governmentContracts.estadoEnLaFuente')]: sourceValue(query.data.raw_status),
-              [t('governmentContracts.tipoDeContrato')]: query.data.contract_type,
-              [t('common.method')]: sourceValue(query.data.modality),
-              [t('common.signature')]: formatDate(query.data.signature_date),
-              [t('common.start')]: formatDate(query.data.start_date),
-              [t('common.end')]: formatDate(query.data.end_date),
-              [t('governmentContracts.departamentoDeLaEntidad')]: query.data.department,
-              [t('governmentContracts.ciudadDeLaEntidad')]: query.data.city,
-              [t('governmentContracts.filaDeLaFuente')]: query.data.source_identifier,
-              [t('common.evidence')]: query.data.evidence_id,
-              [t('common.retrieved')]: timestamp(query.data.retrieved_at),
-              [t('governmentContracts.actualizacionDelContrato')]: timestamp(
-                query.data.source_updated_at,
-              ),
-            }).map(([key, value]) => (
-              <div key={key}>
-                <dt>{key}</dt>
-                <dd
-                  className={
-                    key === t('governmentContracts.valorReportado') ? 'currency-value' : undefined
-                  }
-                >
-                  {shown(value)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <SourceLink contract={query.data} />
-        </>
-      )}
-    </section>
   )
 }
 function Contracts({ companyId, screening }: { companyId: string; screening: SecopScreening }) {
@@ -561,12 +460,15 @@ export function Screening({ companyId }: { companyId: string }) {
     queryFn: ({ signal }) => api.secop(companyId, signal),
     refetchInterval: (query) => (query.state.data?.outcome === 'running' ? 2000 : false),
   })
+  const feedback = useRefreshFeedback()
   const refresh = useMutation({
+    onError: feedback.onError,
     mutationFn: () => api.refreshSecop(companyId),
     onSuccess: async (data) => {
       client.setQueryData(['secop', companyId], data)
       await client.invalidateQueries({ queryKey: ['secop-contracts', companyId] })
       await client.invalidateQueries({ queryKey: ['secop-detail', companyId] })
+      await client.invalidateQueries({ queryKey: ['involvement', companyId] })
     },
   })
   if (query.isPending) return <Loading />
@@ -610,7 +512,9 @@ export function Screening({ companyId }: { companyId: string }) {
               )}
             </div>
           )}
-          {refresh.isError && <p role="alert">{errorMessage(refresh.error)}</p>}
+          {refresh.isError && (
+            <p role="alert">{feedback.message(refresh.error) ?? errorMessage(refresh.error)}</p>
+          )}
           <p className="small muted">
             {' '}
             {t('governmentContracts.ultimaConsultaExitosa')} {timestamp(data.last_successful_at)}
@@ -635,18 +539,22 @@ export function Screening({ companyId }: { companyId: string }) {
             className="refresh-button"
             aria-busy={refresh.isPending}
             disabled={
-              refresh.isPending || data.outcome === 'missing_nit' || data.outcome === 'running'
+              refresh.isPending ||
+              feedback.seconds > 0 ||
+              data.outcome === 'missing_nit' ||
+              data.outcome === 'running'
             }
             onClick={() => refresh.mutate()}
           >
-            {data.last_attempted_at
-              ? t('governmentContracts.actualizarConsulta')
-              : t('governmentContracts.consultarSecop')}
+            {feedback.seconds > 0
+              ? t('common.refreshInSeconds', { count: feedback.seconds })
+              : data.last_attempted_at
+                ? t('governmentContracts.actualizarConsulta')
+                : t('governmentContracts.consultarSecop')}
           </button>
         </div>
         {summary && <QuerySummary summary={summary} />}
       </article>
-      <GovernmentInvolvement companyId={companyId} runId={data.run_id} />
       {summary && (
         <>
           <p className="small muted">
@@ -665,7 +573,8 @@ export function Screening({ companyId }: { companyId: string }) {
             )}
             {formatNumber(summary.zero_value_contracts)} {t('governmentContracts.conValorCero')}
           </p>
-          <div className="profile-grid">
+          <div className="profile-grid secop-insights-grid">
+            <GovernmentInvolvement companyId={companyId} runId={data.run_id} />
             <Activity
               title={t('governmentContracts.contratosPorEstado')}
               groups={alphabetical(summary.statuses)}
@@ -699,6 +608,7 @@ export function Screening({ companyId }: { companyId: string }) {
           <Contracts key={data.run_id} companyId={companyId} screening={data} />
         </>
       )}
+      {!summary && <GovernmentInvolvement companyId={companyId} runId={data.run_id} />}
       <details className="panel market-provenance">
         <summary>{t('governmentContracts.metodologiaYAlcance')}</summary>
         <ul className="market-limitations">

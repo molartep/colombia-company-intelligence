@@ -2807,3 +2807,333 @@ select.export-scope {
 .involvement-dialog::backdrop {
   background: var(--color-backdrop);
 }
+
+.secop-insights-grid {
+  margin-bottom: var(--space-6);
+  align-items: stretch;
+}
+.secop-insights-grid > .panel {
+  min-width: 0;
+  margin-bottom: 0;
+}
+.involvement-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+}
+@media (max-width: 700px) {
+  .secop-insights-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Involvement: applied calendar window and progressive native evidence. */
+.involvement-heading {
+  align-items: baseline;
+  gap: var(--space-2) var(--space-4);
+}
+.involvement-heading h2 {
+  margin-bottom: 0;
+}
+.involvement-powered {
+  font-size: var(--font-size-caption);
+}
+.involvement-lookback {
+  margin-top: var(--space-5);
+  padding: var(--space-4) 0;
+  border-block: 1px solid var(--color-divider);
+}
+.involvement-lookback-heading,
+.involvement-lookback-inputs,
+.involvement-conclusion-title,
+.involvement-evidence-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.involvement-lookback-heading {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+.involvement-lookback-heading label {
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+.involvement-lookback-inputs {
+  gap: var(--space-3);
+}
+.involvement-lookback input[type='range'] {
+  flex: 1 1 120px;
+  min-width: 70px;
+  width: auto;
+  accent-color: var(--color-action);
+  cursor: pointer;
+}
+.involvement-month-input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-small);
+}
+.involvement-month-input input {
+  width: 76px;
+  min-height: var(--control-height);
+  padding: var(--space-2);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  background: var(--color-surface);
+  font: inherit;
+}
+.involvement-apply {
+  flex-shrink: 0;
+  padding-inline: var(--space-3);
+}
+.involvement-lookback p {
+  margin-bottom: 0;
+}
+.involvement-conclusion-title {
+  width: 100%;
+  justify-content: space-between;
+}
+.involvement-conclusion-title strong {
+  min-width: 0;
+}
+.involvement-conclusion-title .filter-help {
+  flex-shrink: 0;
+}
+.involvement-dimension:nth-child(odd) .filter-help [role='tooltip'] {
+  left: 0;
+}
+.involvement-dimension:nth-child(even) .filter-help [role='tooltip'] {
+  left: auto;
+  right: 0;
+}
+.involvement-dimension:hover {
+  background: var(--color-surface);
+}
+.involvement-dimension.is-selected {
+  background: var(--color-surface-selected);
+  border-color: var(--color-action);
+}
+.involvement-outcome-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  min-height: var(--control-height-icon);
+}
+.involvement-outcome-button:hover .involvement-pill {
+  text-decoration: underline;
+}
+.involvement-result-skeleton {
+  width: 100%;
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+.involvement-result-skeleton span {
+  display: block;
+  height: 20px;
+  width: 65%;
+  border-radius: var(--radius-badge);
+  background: var(--color-neutral-surface);
+}
+.involvement-result-skeleton span:last-child {
+  width: 85%;
+  height: 12px;
+}
+.involvement-sufficiency-guide {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.involvement-sufficiency-guide > div {
+  border-bottom: 1px solid var(--color-divider);
+  padding-bottom: var(--space-3);
+}
+.involvement-sufficiency-guide dd {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-small);
+}
+.involvement-pill.evidence-sufficient {
+  color: var(--color-success);
+  background: var(--color-success-surface);
+  border-color: var(--color-success-border);
+}
+.involvement-pill.evidence-limited,
+.involvement-pill.evidence-contradictory,
+.involvement-pill.evidence-incomplete {
+  color: var(--color-warning);
+  background: var(--color-warning-surface);
+  border-color: var(--color-warning-border);
+}
+.involvement-pill.evidence-stale {
+  color: var(--color-notice-warning);
+  background: var(--color-notice-warning-surface);
+  border-color: var(--color-notice-warning-border);
+}
+.involvement-selected-evidence {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  padding: var(--space-5);
+}
+.involvement-evidence-heading {
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.involvement-evidence-heading h3 {
+  margin: 0;
+}
+.involvement-proof-steps {
+  list-style: decimal;
+  padding-left: var(--space-5);
+}
+.involvement-proof-steps > li {
+  padding: var(--space-3) 0 var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-divider);
+}
+.involvement-proof-steps summary {
+  cursor: pointer;
+}
+.involvement-proof-steps summary > span {
+  margin-left: var(--space-3);
+}
+.involvement-facts {
+  margin: var(--space-3) 0 0;
+}
+.involvement-facts > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(80px, 0.7fr);
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  font-size: var(--font-size-small);
+}
+.involvement-facts dd {
+  margin: 0;
+}
+.involvement-facts dt > span {
+  display: block;
+}
+.involvement-supporting-sources,
+.involvement-native-details,
+.involvement-evaluation-details,
+.involvement-about,
+.involvement-references {
+  margin-top: var(--space-5);
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--color-divider);
+}
+.involvement-supporting-sources summary,
+.involvement-native-details summary,
+.involvement-evaluation-details summary,
+.involvement-about summary,
+.involvement-references summary {
+  cursor: pointer;
+  font-weight: var(--font-weight-semibold);
+}
+.involvement-supporting-sources article {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding-block: var(--space-2);
+}
+.involvement-method-list {
+  display: grid;
+  gap: var(--space-4);
+}
+.involvement-tree {
+  font-size: var(--font-size-small);
+}
+.involvement-tree li {
+  padding-block: var(--space-2);
+}
+@media (max-width: 700px) {
+  .involvement-sufficiency-guide {
+    grid-template-columns: 1fr;
+  }
+  .involvement-dimension:nth-child(n) .filter-help [role='tooltip'] {
+    left: auto;
+    right: 0;
+  }
+  .involvement-month-input input {
+    min-height: var(--control-height-touch);
+  }
+  .involvement-lookback-inputs {
+    flex-wrap: wrap;
+  }
+  .involvement-selected-evidence {
+    padding: var(--space-4);
+  }
+}
+
+.involvement-method-list .filter-help [role='tooltip'] {
+  left: auto;
+  right: 0;
+}
+
+/* Shared popup header actions, using the existing icon and touch target scale. */
+.involvement-dialog-header {
+  flex-wrap: nowrap;
+}
+.involvement-dialog-header > h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  margin-bottom: 0;
+}
+.popup-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--space-2);
+}
+.popup-actions .popup-icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height-icon);
+  height: var(--control-height-icon);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+}
+.popup-actions .popup-icon-action:hover {
+  background: var(--color-surface-selected);
+  color: var(--color-text);
+}
+.popup-actions .popup-icon-action svg {
+  width: var(--space-5);
+  height: var(--space-5);
+}
+.popup-action-tooltip [role='tooltip'] {
+  left: auto;
+  right: 0;
+  width: max-content;
+  max-width: min(270px, 70vw);
+}
+@media (max-width: 700px) {
+  .popup-actions .popup-icon-action {
+    width: var(--control-height-touch);
+    height: var(--control-height-touch);
+  }
+  .popup-action-tooltip [role='tooltip'] {
+    top: calc(var(--control-height-touch) + var(--space-1));
+  }
+}
+
+@media (max-width: 700px) {
+  .involvement-dialog {
+    padding: var(--space-5);
+  }
+  .involvement-dialog-header {
+    gap: var(--space-2);
+  }
+}

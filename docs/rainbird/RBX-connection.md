@@ -78,4 +78,31 @@ After migrations, `--live --persist` stores a successful synthetic evaluation in
   that callers can override inferred facts is deliberately not used by CCI.
 
 The model's actual response shapes, evidence-key requirements and business-rule agreement still need
-validation using the live synthetic command. Real-company transmission remains blocked in every mode.
+validation using the live synthetic command. Authorized company processing is supported in `live` mode:
+
+```dotenv
+RAE_ENABLED=true
+RAE_EXECUTION_MODE=live
+RAE_COMPANY_PROCESSING_AUTHORIZED=true
+```
+
+Restart the backend after changing these settings. The company endpoint evaluates only successful,
+current-policy SECOP snapshots, revalidates exact supplier/non-group attribution against private raw
+source evidence, and sends pseudonymous minimal facts. Its persisted cache includes source versions,
+dates, model and policy configuration. No names, NITs, descriptions, money, official identifiers or
+source URLs are sent. Run-scoped source links and contract details are resolved locally.
+
+A live synthetic run completed in 4.689 seconds with matching outcomes/sufficiency and native evidence.
+The user subsequently explicitly approved ongoing company transmission of the minimized fact types
+to the Rae Enterprise API, and the local live switch is now on. A verified two-contract company
+snapshot completed in 5.918 seconds, returning direct/historical/recent participation documented and
+execution undetermined because the source was stale. Native evidence and local source references were
+resolved, and the next identical request reused the persisted result. This validates one real snapshot,
+not full live truth-table coverage or a production SLA.
+
+
+Local Vite refresh actions require the app origin in CORS_ORIGINS, even though the browser uses the
+same-origin /api proxy: Vite rewrites the request Host to the backend target. Defaults and .env.example
+explicitly include localhost/127.0.0.1 on ports 5173 and 5174. Production keeps its explicit HTTPS
+origin policy. A 403 indicates an origin mismatch; a 429 carries Retry-After and the UI shows the
+remaining cooldown rather than treating it as a Rae outage.

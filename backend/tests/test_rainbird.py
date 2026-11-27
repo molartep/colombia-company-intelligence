@@ -207,7 +207,7 @@ async def test_disabled_no_calls_and_fixed_hosts():
 async def test_company_scope():
     session = AsyncMock()
     session.scalar.return_value = None
-    company = type("Company", (), {"id": uuid4(), "nit": "000000001"})()
+    company = type("Company", (), {"id": uuid4(), "nit": "000000001", "verification_digit": None})()
     with pytest.raises(HTTPException) as exc:
         await company_view(session, company, uuid4())
     assert exc.value.status_code == 404
@@ -472,3 +472,52 @@ async def test_terminal_overrides_never_transmitted():
                     }
                 ]
             )
+
+
+async def test_company_inference_requires_explicit_live_authorization():
+    async with httpx.AsyncClient(
+        transport=httpx.MockTransport(lambda r: pytest.fail("No calls"))
+    ) as http:
+        with pytest.raises(RaeError, match="company_processing_not_authorized"):
+            await RaeClient(rbx_settings(), http).evaluate_company([])
+
+
+async def test_authorized_company_results_include_native_witness_aliases():
+    settings = Settings(
+        _env_file=None,
+        rae_enabled=True,
+        rae_execution_mode="live",
+        rae_company_processing_authorized=True,
+        rae_api_base_url="https://enterprise-api.rainbird.ai",
+        rae_api_key="PRIVATE",
+        rae_model_id="738e8674-b78f-4eee-9ad7-c7d13dfa7221",
+    )
+
+    def handler(request):
+        if request.url.path.endswith("/query"):
+            relation = json.loads(request.content)["relationship"]
+            if relation in (
+                "eligible_contract",
+                "historical_witness",
+                "recent_witness",
+                "execution_witness",
+            ):
+                return httpx.Response(
+                    200,
+                    json={
+                        "result": [
+                            {
+                                "subject": "evaluation",
+                                "relationship": relation,
+                                "object": "contract_1",
+                                "factID": "WA:RF:witness",
+                                "certainty": 100,
+                            }
+                        ]
+                    },
+                )
+        return rbx_handler(request)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        decisions, _ = await RaeClient(settings, http).evaluate_company([])
+    assert all(d.supporting_aliases == ["contract_1"] for d in decisions)

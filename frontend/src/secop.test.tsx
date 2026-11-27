@@ -11,7 +11,8 @@ import { api } from './api/client'
 vi.mock('./components/GovernmentInvolvement', () => ({ GovernmentInvolvement: () => null }))
 import type { Contract, SecopScreening } from './types/secop'
 
-vi.mock('./api/client', () => ({
+vi.mock('./api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./api/client')>()),
   api: { secop: vi.fn(), refreshSecop: vi.fn(), secopContracts: vi.fn(), secopContract: vi.fn() },
 }))
 const initial: SecopScreening = {

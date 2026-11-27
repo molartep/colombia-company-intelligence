@@ -225,7 +225,8 @@
     "contractCount_other": "{{count}} contratos",
     "contractsIncluded_one": "{{count}} contrato incluido en los totales",
     "contractsIncluded_other": "{{count}} contratos incluidos en los totales",
-    "scrollTable": "Desplázate horizontalmente para ver todas las columnas."
+    "scrollTable": "Desplázate horizontalmente para ver todas las columnas.",
+    "refreshInSeconds": "Actualizar en {{count}} s"
   },
   "feedback": {
     "theRnveIssuerDirectoryNeedsImporting": "Es necesario importar el directorio RNVE de emisores.",
@@ -718,7 +719,9 @@
     "invalid_issuer_report": "No se pudo validar el archivo. Usa el XLSX oficial que contiene solo emisores.",
     "import_busy": "Ya hay una importación en curso. Intenta más tarde.",
     "import_origin_denied": "La importación requiere una solicitud del mismo origen.",
-    "import_too_large": "El límite del XLSX es de 10 MiB."
+    "import_too_large": "El límite del XLSX es de 10 MiB.",
+    "refresh_origin_forbidden": "La API rechazó la dirección de esta aplicación. Revisa el origen configurado del frontend y vuelve a cargar la página.",
+    "refresh_cooldown": "Espera a que termine el intervalo de actualización antes de intentarlo de nuevo. Se conservan los hallazgos anteriores."
   },
   "messages": {
     "secop": {
@@ -833,7 +836,7 @@
     "live": "Evaluación de Rae",
     "loading": "Cargando disponibilidad de decisiones…",
     "error": "La información de decisiones no está disponible temporalmente. La evidencia oficial de contratos sigue disponible.",
-    "disabledNotice": "El razonamiento para empresas no está habilitado. No se envía evidencia de empresas a Rae. Consulta la metodología o el ejemplo sintético independiente.",
+    "disabledNotice": "El razonamiento para empresas está deshabilitado en la configuración del servidor.",
     "demoNotice": "Datos de demostración: ejemplos sintéticos elaborados, no inferencia de Rae en vivo ni hallazgos sobre esta empresa.",
     "attribution": "Evaluado por Rainbird Rae con el modelo y la consulta de origen identificados abajo.",
     "learnMore": "Más información",
@@ -843,7 +846,7 @@
     "what": "¿Qué es Rae?",
     "whatText": "Rae es la plataforma de Rainbird AI para modelos de decisión basados en conocimiento explícito. Su motor de razonamiento simbólico aplica hechos y reglas de forma consistente y devuelve evidencia del razonamiento. Esta experiencia utiliza evidencia estructurada; no solicita una explicación a un modelo generativo.",
     "how": "Cómo utiliza CCI a Rae",
-    "howText": "CCI consulta registros oficiales, verifica la identidad del proveedor, elimina duplicados y conserva las observaciones de origen. El modelo experimental de Rae evalúa políticas de participación con hechos estructurados mínimos. La transmisión de datos de empresas requiere autorización y revisión de licencia independientes.",
+    "howText": "CCI consulta registros oficiales, verifica la identidad del proveedor, elimina duplicados y conserva las observaciones de origen. Rae evalúa las políticas de participación con hechos mínimos vinculados a una consulta específica de SECOP II. Los nombres, NIT, descripciones, valores monetarios y enlaces de origen permanecen en CCI.",
     "officialSources": "RUES + SECOP II",
     "verification": "Verificación y evidencia de CCI",
     "reasoning": "Modelo de decisión de Rae",
@@ -905,6 +908,120 @@
     "source_stale": "La observación de origen está desactualizada.",
     "excluded_conflicting_or_ineligible_rows": "Las observaciones excluidas limitan las conclusiones negativas.",
     "evidence_unavailable": "No se pudo recuperar la evidencia de respaldo.",
-    "demoLabel": "Demostración sintética"
+    "demoLabel": "Demostración sintética",
+    "running": "Evaluando con Rae…",
+    "notReady": "El razonamiento requiere una consulta verificada de SECOP II y una conexión disponible con Rae.",
+    "previousEvaluation": "Se conservan los hallazgos anteriores de Rae. La última evaluación falló; revisa las fechas de evaluación y de la fuente.",
+    "refresh": "Actualizar razonamiento",
+    "refreshError": "No se pudo actualizar el razonamiento. Se conservan los hallazgos anteriores. Inténtalo más tarde.",
+    "officialSource": "Fuente oficial",
+    "modelDiagnostics": "Diagnósticos de evidencia de Rae",
+    "native_evidence_not_available": "La evidencia nativa de razonamiento no está disponible para este resultado.",
+    "native_evidence_incomplete": "El árbol de evidencia nativa contiene una rama sin resolver.",
+    "availability": {
+      "real_company_processing_not_authorized": "El procesamiento de evidencia de empresas requiere autorización en la configuración del servidor.",
+      "rae_not_configured": "Configura el modelo de Rae y la clave del servidor para evaluar esta consulta.",
+      "identity_unverified": "Se requiere una identidad canónica de empresa verificada.",
+      "source_snapshot_required": "Completa una consulta exitosa de SECOP II antes de evaluar la participación.",
+      "source_snapshot_requires_refresh": "Actualiza SECOP II para utilizar la política vigente de coincidencia de proveedores."
+    },
+    "poweredBy": "Con tecnología RAE de Rainbird AI.",
+    "conclusions": "Conclusiones",
+    "evidenceLabel": "Evidencia",
+    "pendingResult": "Resultados pendientes de evaluación",
+    "lookbackRange": "1 mes–10 años",
+    "lookbackSlider": "Control de ventana temporal",
+    "monthsUnit": "meses",
+    "apply": "Aplicar",
+    "applyHint": "Aplica el cambio para evaluar este período.",
+    "lookbackInvalid": "Ingresa un número entero entre 1 y 120 meses.",
+    "whyConclusion": "Por qué se llegó a esta conclusión",
+    "supportingSources": "Observaciones de origen de respaldo",
+    "noSupportingSource": "Ninguna observación de contrato elegible respalda esta conclusión.",
+    "evaluationDetails": "Detalles de la evaluación",
+    "aboutRae": "Acerca de Rainbird RAE",
+    "evidenceFor": "Evidencia de {{name}}",
+    "inspectNative": "Inspeccionar el razonamiento original",
+    "nativePreserved": "Aquí se conserva el razonamiento original de Rae, incluidas las reglas intermedias y las referencias sin resolver.",
+    "nativeDetailsAvailable": "El razonamiento original está disponible abajo.",
+    "factCount_one": "{{count}} hecho de respaldo",
+    "factCount_other": "{{count}} hechos de respaldo",
+    "brief": {
+      "direct_participation": "Un contrato verificado de SECOP II atribuido a esta empresa como proveedor directo no agrupado.",
+      "historical_participation": "Un contrato verificado firmado antes de la ventana seleccionada. No implica que la actividad haya cesado.",
+      "recent_participation": "Un contrato verificado firmado dentro del período seleccionado, incluidas ambas fechas límite. No implica ejecución actual.",
+      "currently_reported_execution": "Una observación fechada y suficientemente reciente de SECOP II reporta “En ejecución”. La fecha prevista de finalización no reemplaza ese estado."
+    },
+    "sufficiencyLabels": {
+      "sufficient": "Suficiente",
+      "limited": "Limitada",
+      "missing": "Ausente",
+      "stale": "Desactualizada",
+      "contradictory": "Contradictoria",
+      "incomplete": "Incompleta"
+    },
+    "sufficiencyDescriptions": {
+      "sufficient": "Evidencia verificada suficiente para esta conclusión.",
+      "limited": "Reservado; el modelo actual no lo produce.",
+      "missing": "Faltan hechos necesarios.",
+      "stale": "Las observaciones de origen requieren actualización.",
+      "contradictory": "La evidencia pertinente presenta contradicciones.",
+      "incomplete": "La consulta o la cobertura del alcance está incompleta."
+    },
+    "evidenceGroups": {
+      "identity": "Identidad y atribución",
+      "dates": "Fechas y actividad",
+      "execution": "Ejecución reportada",
+      "coverage": "Cobertura y vigencia",
+      "other": "Hechos de respaldo adicionales"
+    },
+    "factLabels": {
+      "identity_verified": "Identidad de la empresa verificada",
+      "attribution_verified": "Atribución al proveedor directo verificada",
+      "contains_contract": "Contrato incluido en esta consulta",
+      "eligible_contract": "Contrato de respaldo elegible",
+      "signature_date": "Fecha de firma",
+      "signature_band": "Período de firma",
+      "signature_conflict": "Conflicto de firma reportado",
+      "as_of_date": "Fecha de evaluación",
+      "lookback_start_date": "Inicio del período reciente",
+      "lookback_months": "Ventana en meses",
+      "scheduled_end_date": "Fecha prevista de finalización",
+      "historical_witness": "Contrato de respaldo histórico",
+      "recent_witness": "Contrato de respaldo reciente",
+      "reported_status": "Estado original de la fuente",
+      "execution_status": "Estado de ejecución reconocido",
+      "observation_available": "Observación fechada disponible",
+      "execution_status_conflict": "Conflicto de estado de ejecución reportado",
+      "execution_witness": "Contrato de respaldo de ejecución",
+      "execution_resolved_contract": "Estado de ejecución resuelto para el contrato",
+      "execution_coverage": "Cobertura de evidencia de ejecución completa",
+      "query_complete": "Consulta a la fuente completa",
+      "contract_count": "Contratos de la consulta",
+      "source_stale": "Las observaciones están desactualizadas",
+      "direct_coverage": "Cobertura de participación directa completa",
+      "temporal_coverage": "Cobertura de evidencia de firma completa",
+      "incomplete_coverage_reason": "Limitación de cobertura",
+      "missing_coverage_fact": "Hecho de cobertura ausente",
+      "value_conflict": "Conflicto de valor contractual reportado",
+      "attribution_gap_contract": "Contrato con atribución sin resolver",
+      "temporal_gap_contract": "Contrato sin evidencia temporal suficiente",
+      "execution_gap_contract": "Contrato sin evidencia de ejecución suficiente",
+      "signature_contradiction": "Evidencia de firma contradictoria",
+      "status_contradiction": "Evidencia de ejecución contradictoria"
+    },
+    "factValues": {
+      "historical": "Histórica",
+      "recent": "Reciente",
+      "missing": "Ausente",
+      "future": "Fecha futura",
+      "execution": "Ejecución reportada",
+      "non_execution": "Otro estado reconocido",
+      "unknown": "Desconocido"
+    },
+    "boolean": {
+      "true": "Sí",
+      "false": "No"
+    }
   }
 }

@@ -137,7 +137,9 @@ async def constrain_request(request: Request, call_next: RequestResponseEndpoint
     secop_refresh = (
         request.method == "POST"
         and request.url.path.startswith("/api/v1/companies/")
-        and request.url.path.endswith("/screening/secop/refresh")
+        and request.url.path.endswith(
+            ("/screening/secop/refresh", "/screening/secop/involvement/refresh")
+        )
     )
     importing = request.method == "POST" and request.url.path == IMPORT_PATH
     if importing:
@@ -193,11 +195,14 @@ async def validation_error(request: Request, exc: RequestValidationError) -> JSO
 
 @app.exception_handler(StarletteHTTPException)
 async def http_error(request: Request, exc: StarletteHTTPException) -> JSONResponse:
-    return error(
+    response = error(
         exc.status_code,
         "not_found" if exc.status_code == 404 else "invalid_request",
         str(exc.detail),
     )
+    if exc.headers:
+        response.headers.update(exc.headers)
+    return response
 
 
 @app.exception_handler(DatabaseUnavailable)
@@ -453,9 +458,36 @@ async def company_involvement(
     company_id: UUID,
     session: DB,
     run_id: UUID | None = None,
+    lookback_months: Annotated[int | None, Query(ge=1, le=120)] = None,
 ) -> InvolvementView:
     return await government_involvement.company_view(
         session,
         await get_company(session, company_id),
         run_id,
+        lookback_months=lookback_months,
+    )
+
+
+@app.post(
+    "/api/v1/companies/{company_id}/screening/secop/involvement/refresh",
+    response_model=InvolvementView,
+)
+async def refresh_company_involvement(
+    company_id: UUID,
+    session: DB,
+    request: Request,
+    run_id: UUID | None = None,
+    lookback_months: Annotated[int | None, Query(ge=1, le=120)] = None,
+) -> InvolvementView:
+    settings = get_settings()
+    allowed = {f"{request.url.scheme}://{request.url.netloc}", *settings.cors_origins}
+    origin = request.headers.get("origin")
+    if request.headers.get("sec-fetch-site") == "cross-site" or (origin and origin not in allowed):
+        raise HTTPException(403, "Reasoning refresh requires a same-origin request.")
+    return await government_involvement.company_view(
+        session,
+        await get_company(session, company_id),
+        run_id,
+        force=True,
+        lookback_months=lookback_months,
     )

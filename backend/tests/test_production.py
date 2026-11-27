@@ -112,3 +112,15 @@ async def test_rate_limit_http_contract(monkeypatch):
     assert 1 <= int(response.headers["Retry-After"]) <= 60
     assert response.headers["Cache-Control"] == "no-store"
     assert response.json()["error"]["code"] == "rate_limited"
+
+
+def test_reasoning_refresh_uses_shared_company_cooldown():
+    limiter = RequestLimiter(settings(rate_limits_enabled=True))
+    company = uuid4()
+    path = f"/api/v1/companies/{company}/screening/secop/involvement/refresh"
+    first = request(path)
+    first.scope["method"] = "POST"
+    assert limiter.check(first) == 0
+    second = request(path, client="192.0.2.2")
+    second.scope["method"] = "POST"
+    assert limiter.check(second) > 0

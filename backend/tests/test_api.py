@@ -68,3 +68,89 @@ async def test_unknown_route_has_consistent_error(client):
     response = await client.get("/api/v1/unknown")
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "not_found"
+
+
+async def test_company_reasoning_refresh_refuses_cross_origin(client):
+    response = await client.post(
+        "/api/v1/companies/00000000-0000-0000-0000-000000000001/screening/secop/involvement/refresh",
+        headers={"Origin": "https://untrusted.example", "Sec-Fetch-Site": "cross-site"},
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.parametrize(
+    "origin", ["http://localhost:5174", "http://127.0.0.1:5174", "http://localhost:5173"]
+)
+async def test_configured_vite_origins_can_refresh_both_sources(client, monkeypatch, origin):
+    from unittest.mock import AsyncMock
+    from uuid import UUID
+
+    import app.main as main
+    from app.core.config import Settings
+    from app.schemas.secop import ScreeningView
+    from app.services.government_involvement import demo
+
+    monkeypatch.setattr(main, "get_settings", lambda: Settings(_env_file=None))
+    monkeypatch.setattr(main, "get_company", AsyncMock(return_value=object()))
+    monkeypatch.setattr(app.state, "secop", object(), raising=False)
+    screening = ScreeningView(
+        company_id=UUID("00000000-0000-0000-0000-000000000001"),
+        company_name="SYNTHETIC",
+        nit="000000001",
+        source_id="secop",
+        source_url="https://www.datos.gov.co/d/jbjy-vk9h",
+        outcome="completed_no_matches",
+        cache_ttl_seconds=86400,
+    )
+    secop_refresh = AsyncMock(return_value=screening)
+    reasoning_refresh = AsyncMock(return_value=demo())
+    monkeypatch.setattr(main.secop, "refresh", secop_refresh)
+    monkeypatch.setattr(main.government_involvement, "company_view", reasoning_refresh)
+    base = "/api/v1/companies/00000000-0000-0000-0000-000000000001/screening/secop"
+    for endpoint in ["/refresh", "/involvement/refresh"]:
+        response = await client.post(
+            base + endpoint, headers={"Origin": origin, "Sec-Fetch-Site": "same-origin"}
+        )
+        assert response.status_code == 200
+    secop_refresh.assert_awaited_once()
+    reasoning_refresh.assert_awaited_once()
+
+
+@pytest.mark.parametrize("endpoint", ["/refresh", "/involvement/refresh"])
+async def test_refresh_preserves_retry_after_header(client, monkeypatch, endpoint):
+    from unittest.mock import AsyncMock
+
+    from fastapi import HTTPException
+
+    import app.main as main
+
+    monkeypatch.setattr(main, "get_company", AsyncMock(return_value=object()))
+    monkeypatch.setattr(app.state, "secop", object(), raising=False)
+    failure = AsyncMock(
+        side_effect=HTTPException(429, "Wait before refreshing.", headers={"Retry-After": "15"})
+    )
+    monkeypatch.setattr(main.secop, "refresh", failure)
+    monkeypatch.setattr(main.government_involvement, "company_view", failure)
+    response = await client.post(
+        "/api/v1/companies/00000000-0000-0000-0000-000000000001/screening/secop" + endpoint
+    )
+    assert response.status_code == 429 and response.headers["Retry-After"] == "15"
+
+
+@pytest.mark.parametrize("endpoint", ["/refresh", "/involvement/refresh"])
+async def test_unconfigured_frontend_origin_stays_rejected(client, endpoint):
+    response = await client.post(
+        "/api/v1/companies/00000000-0000-0000-0000-000000000001/screening/secop" + endpoint,
+        headers={"Origin": "http://localhost:9999"},
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.parametrize("months", ["0", "121", "-1", "1.5", "unknown"])
+@pytest.mark.parametrize("method", ["GET", "POST"])
+async def test_company_lookback_range_validation(client, months, method):
+    path = "/api/v1/companies/00000000-0000-0000-0000-000000000001/screening/secop/involvement"
+    if method == "POST":
+        path += "/refresh"
+    response = await client.request(method, path, params={"lookback_months": months})
+    assert response.status_code == 422

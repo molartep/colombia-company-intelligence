@@ -2,7 +2,8 @@ import { Dropdown } from './Dropdown'
 import { formatNumber } from '../i18n/format'
 import { uiMessage } from '../i18n/messages'
 import { t, useLanguage } from '../i18n'
-import { useId, useState } from 'react'
+import { useState } from 'react'
+import { Tooltip } from './Tooltip'
 import { Link } from 'react-router-dom'
 import {
   emptyFilters,
@@ -17,43 +18,31 @@ import { SearchButton } from './SearchButton'
 export function FilterHelp({ text, label }: { text: string; label: string }) {
   useLanguage()
 
-  const id = useId()
-  const [dismissed, setDismissed] = useState(false)
   return (
-    <span
-      className="filter-help"
-      data-dismissed={dismissed || undefined}
-      onMouseEnter={() => setDismissed(false)}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setDismissed(false)
-      }}
-      onKeyDown={(event) => {
-        if (event.key === 'Escape') setDismissed(true)
-      }}
-    >
-      <button
-        type="button"
-        aria-label={t('filters.helpValue', { value0: label })}
-        aria-describedby={id}
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          aria-hidden="true"
+    <Tooltip text={text}>
+      {(id) => (
+        <button
+          type="button"
+          aria-label={t('filters.helpValue', { value0: label })}
+          aria-describedby={id}
         >
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 11v5" strokeLinecap="round" />
-          <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
-        </svg>
-      </button>
-      <span id={id} role="tooltip">
-        {text}
-      </span>
-    </span>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 11v5" strokeLinecap="round" />
+            <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      )}
+    </Tooltip>
   )
 }
+
 function optionLabel(option: ParameterOption) {
   return `${option.code ?? t('filters.missingCode')} · ${option.label ?? t('filters.descriptionMissingFromSource')}`
 }

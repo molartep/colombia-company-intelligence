@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import math
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 from uuid import UUID
@@ -173,7 +174,14 @@ async def refresh(session: AsyncSession, company: Company, source: SecopSource) 
     if latest and now - latest.started_at < timedelta(
         seconds=settings.refresh_min_interval_seconds
     ):
-        raise HTTPException(429, "Wait before refreshing SECOP again.")
+        remaining = (
+            settings.refresh_min_interval_seconds - (now - latest.started_at).total_seconds()
+        )
+        raise HTTPException(
+            429,
+            "Wait before refreshing SECOP again.",
+            headers={"Retry-After": str(max(1, math.ceil(remaining)))},
+        )
     await session.execute(
         insert(DataSource)
         .values(
